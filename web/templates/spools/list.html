@@ -12,10 +12,8 @@
 <table>
   <thead>
     <tr>
-      <th>ID</th>
       <th>顏色</th>
       <th>材料</th>
-      <th>色號</th>
       <th>初始重量</th>
       <th>已使用</th>
       <th>剩餘</th>
@@ -26,30 +24,38 @@
   <tbody>
     {% for s in spools %}
     <tr>
-      <td>{{ s.id }}</td>
       <td>
         {% if s.color_hex %}
         <span class="color-swatch" style="--swatch-color:{{ s.color_hex }};"></span>
         {% endif %}
         {{ s.color_name or '-' }}
+        {% if s.color_hex %}<small style="color:var(--pico-muted-color);font-size:0.78rem;"> {{ s.color_hex }}</small>{% endif %}
       </td>
       <td>{{ s.material or '-' }}</td>
-      <td><code>{{ s.color_hex or '-' }}</code></td>
       <td>{{ '%.0f' % s.initial_weight_g }}g</td>
       <td>{{ '%.1f' % s.used_weight_g }}g</td>
       <td>
+        {% set pct = [[(s.remaining_weight_g / s.initial_weight_g * 100) | round | int, 0] | max, 100] | min %}
+        {% if pct >= 50 %}{% set bar_cls = '' %}
+        {% elif pct >= 25 %}{% set bar_cls = 'bar-yellow' %}
+        {% elif pct >= 10 %}{% set bar_cls = 'bar-orange' %}
+        {% else %}{% set bar_cls = 'bar-red' %}{% endif %}
         <div class="progress-bar-container" title="{{ '%.1f' % s.remaining_weight_g }}g 剩餘">
-          {% set pct = [[(s.remaining_weight_g / s.initial_weight_g * 100) | round | int, 0] | max, 100] | min %}
-          <div class="progress-bar {{ s.status }}" style="width:{{ pct }}%"></div>
+          <div class="progress-bar {{ bar_cls }}" style="width:{{ pct }}%"></div>
         </div>
-        {{ '%.1f' % s.remaining_weight_g }}g
+        <small>{{ '%.1f' % s.remaining_weight_g }}g</small>
       </td>
-      <td><span class="status-badge status-{{ s.status }}">{{ s.status }}</span></td>
       <td>
-        <a href="{{ url_for('spools.edit_view', spool_id=s.id) }}" role="button" class="outline" style="padding:0.3rem 0.6rem;font-size:0.85rem;">編輯</a>
-        <form method="post" action="{{ url_for('spools.delete_view', spool_id=s.id) }}" style="display:inline;" onsubmit="return confirm('確定刪除此耗材？');">
-          <button type="submit" class="outline danger" style="padding:0.3rem 0.6rem;font-size:0.85rem;">刪除</button>
-        </form>
+        {% set status_label = {'active': '使用中', 'low': '偏低', 'empty': '已用盡', 'sealed': '未開封'} %}
+        <span class="status-badge status-{{ s.status }}">{{ status_label.get(s.status, s.status) }}</span>
+      </td>
+      <td>
+        <div style="display:flex;gap:0.4rem;align-items:stretch;">
+          <a href="{{ url_for('spools.edit_view', spool_id=s.id) }}" role="button" class="outline" style="flex:1;display:flex;align-items:center;justify-content:center;padding:0.3rem 0.5rem;font-size:0.85rem;">編輯</a>
+          <form method="post" action="{{ url_for('spools.delete_view', spool_id=s.id) }}" style="flex:1;margin:0;display:flex;" onsubmit="return confirm('確定刪除此耗材？');">
+            <button type="submit" class="outline danger" style="flex:1;padding:0.3rem 0.5rem;font-size:0.85rem;margin-bottom:0;">刪除</button>
+          </form>
+        </div>
       </td>
     </tr>
     {% endfor %}

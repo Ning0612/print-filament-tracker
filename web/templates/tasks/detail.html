@@ -6,65 +6,67 @@
 
 <h1>{{ task.print_name or '(未命名)' }}</h1>
 
-{% if task.cover_url %}
-<div class="cover-thumb cover-thumb--lg">
-  <img src="{{ task.cover_url }}" alt="{{ task.print_name or '' }}" loading="lazy" decoding="async">
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;align-items:start;margin:1.25rem 0 1.75rem;">
+  {% if task.cover_url %}
+  <div class="cover-thumb cover-thumb--lg" style="max-width:none;width:100%;margin-bottom:0;">
+    <img src="{{ task.cover_url }}" alt="{{ task.print_name or '' }}" loading="lazy" decoding="async">
+  </div>
+  {% else %}<div></div>{% endif %}
+  <div style="display:flex;flex-direction:column;gap:1.25rem;">
+    <div>
+      <small style="color:var(--pico-muted-color);">印表機</small><br>
+      <strong>{{ task.printer_name or '-' }}</strong>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+      <div><small style="color:var(--pico-muted-color);">開始時間</small><br><strong>{{ (task.started_at or '')[:16] | replace('T', ' ') or '-' }}</strong></div>
+      <div><small style="color:var(--pico-muted-color);">結束時間</small><br><strong>{{ (task.ended_at or '')[:16] | replace('T', ' ') or '-' }}</strong></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+      <div><small style="color:var(--pico-muted-color);">列印耗時</small><br><strong>{% if task.duration_seconds %}{{ task.duration_seconds // 3600 }}h {{ (task.duration_seconds % 3600) // 60 }}m{% else %}-{% endif %}</strong></div>
+      <div><small style="color:var(--pico-muted-color);">總用量</small><br><strong>{{ '%.1f' % task.total_weight_g if task.total_weight_g else '-' }}g</strong></div>
+    </div>
+    <div style="border-top:1px solid var(--pico-muted-border-color);padding-top:0.75rem;">
+      <small style="color:var(--pico-muted-color);font-weight:600;text-transform:uppercase;letter-spacing:0.04em;">耗材用量</small>
+      {% if task.filaments %}
+      <div class="overflow-auto" style="margin-top:0.5rem;">
+      <table style="font-size:0.9rem;">
+        <thead>
+          <tr>
+            <th>Slot</th>
+            <th>材料</th>
+            <th>顏色</th>
+            <th>用量</th>
+            <th>對應 Spool</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for f in task.filaments %}
+          <tr>
+            <td>{{ f.slot_id if f.slot_id is not none else '-' }}</td>
+            <td>{{ f.material or '-' }}</td>
+            <td>
+              {% if f.color_hex %}
+              <span class="color-swatch" style="--swatch-color:{{ f.color_hex }};"></span>
+              {% endif %}
+              {{ f.color_hex or '-' }}
+            </td>
+            <td>{{ '%.1f' % f.used_weight_g if f.used_weight_g else '-' }}g</td>
+            <td>
+              {% if f.filament_spool_id %}
+                <a href="{{ url_for('spools.edit_view', spool_id=f.filament_spool_id) }}">Spool #{{ f.filament_spool_id }} {{ f.color_name or '' }}</a>
+              {% else %}
+                <span style="color:var(--pico-muted-color);">未對照</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      </div>
+      {% else %}
+      <p style="margin-top:0.5rem;">此任務無耗材記錄。</p>
+      {% endif %}
+    </div>
+  </div>
 </div>
-{% endif %}
-
-<div class="grid">
-  <dl>
-    <dt>印表機</dt><dd>{{ task.printer_name or '-' }}</dd>
-    <dt>開始時間</dt><dd>{{ (task.started_at or '')[:16] }}</dd>
-    <dt>結束時間</dt><dd>{{ (task.ended_at or '')[:16] }}</dd>
-    <dt>列印耗時</dt>
-    <dd>
-      {% if task.duration_seconds %}
-        {{ task.duration_seconds // 3600 }}h {{ (task.duration_seconds % 3600) // 60 }}m
-      {% else %}-{% endif %}
-    </dd>
-    <dt>總用量</dt><dd>{{ '%.1f' % task.total_weight_g if task.total_weight_g else '-' }}g</dd>
-  </dl>
-</div>
-
-<h2>耗材用量</h2>
-{% if task.filaments %}
-<div class="overflow-auto">
-<table>
-  <thead>
-    <tr>
-      <th>Slot</th>
-      <th>材料</th>
-      <th>顏色</th>
-      <th>用量</th>
-      <th>對應 Spool</th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for f in task.filaments %}
-    <tr>
-      <td>{{ f.slot_id if f.slot_id is not none else '-' }}</td>
-      <td>{{ f.material or '-' }}</td>
-      <td>
-        {% if f.color_hex %}
-        <span class="color-swatch" style="--swatch-color:{{ f.color_hex }};"></span>
-        {% endif %}
-        <code>{{ f.color_hex or '-' }}</code>
-      </td>
-      <td>{{ '%.1f' % f.used_weight_g if f.used_weight_g else '-' }}g</td>
-      <td>
-        {% if f.filament_spool_id %}
-          <a href="{{ url_for('spools.edit_view', spool_id=f.filament_spool_id) }}">Spool #{{ f.filament_spool_id }} {{ f.color_name or '' }}</a>
-        {% else %}
-          <span style="color:var(--pico-muted-color);">未 mapping</span>
-        {% endif %}
-      </td>
-    </tr>
-    {% endfor %}
-  </tbody>
-</table>
-</div>
-{% else %}
-<p>此任務無耗材記錄。</p>
-{% endif %}
 {% endblock %}

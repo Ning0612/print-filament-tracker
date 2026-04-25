@@ -1,8 +1,8 @@
 {% extends "base.html" %}
-{% block title %}未 Mapping 耗材 — BambuPrintManager{% endblock %}
+{% block title %}耗材對照 — BambuPrintManager{% endblock %}
 
 {% block content %}
-<h1>未 Mapping 耗材</h1>
+<h1>耗材對照</h1>
 
 {% if not spools %}
 <div role="alert">
@@ -49,7 +49,7 @@
       </td>
       <td>{{ '%.1f' % r.used_weight_g if r.used_weight_g else '-' }}g</td>
       <td>
-        <select name="spool_id" id="spool-select-{{ r.id }}" {% if not spools %}disabled{% endif %}>
+        <select name="spool_id" id="spool-select-{{ r.id }}" style="min-width:200px;" {% if not spools %}disabled{% endif %}>
           <option value="">— 選擇 spool —</option>
           {% for s in spools %}
           <option value="{{ s.id }}">

@@ -35,13 +35,16 @@
   {% endif %}
 </div>
 
-<h2 style="margin-top:2rem;">最近列印</h2>
+<h2 style="margin-top:2rem;">
+  最近列印
+  <a href="{{ url_for('tasks.list_view') }}" style="font-size:0.85rem;font-weight:normal;margin-left:1rem;">查看全部 →</a>
+</h2>
 {% if recent_tasks %}
 <div class="overflow-auto">
 <table>
   <thead>
     <tr>
-      <th style="width:152px;">圖片</th>
+      <th style="width:130px;">圖片</th>
       <th>列印名稱</th>
       <th>印表機</th>
       <th>開始時間</th>
@@ -54,14 +57,14 @@
     <tr>
       <td>
         {% if t.cover_url %}
-        <div class="cover-thumb cover-thumb--md">
+        <div class="cover-thumb cover-thumb--sm">
           <img src="{{ t.cover_url }}" alt="" loading="lazy" decoding="async">
         </div>
         {% else %}<span style="color:var(--pico-muted-color);">—</span>{% endif %}
       </td>
       <td><a href="{{ url_for('tasks.detail_view', task_id=t.id) }}">{{ t.print_name or '(未命名)' }}</a></td>
       <td>{{ t.printer_name or '-' }}</td>
-      <td>{{ (t.started_at or '')[:16] }}</td>
+      <td>{{ (t.started_at or '')[:16] | replace('T', ' ') }}</td>
       <td>{{ (t.duration_seconds // 3600) if t.duration_seconds else 0 }}h {{ ((t.duration_seconds % 3600) // 60) if t.duration_seconds else 0 }}m</td>
       <td>{{ '%.1f' % t.total_weight_g if t.total_weight_g else '-' }}g</td>
     </tr>

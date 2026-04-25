@@ -39,6 +39,10 @@
 .status-badge.status-low    { background: #fff3cd; color: #856404; }
 .status-badge.status-empty  { background: #f8d7da; color: #721c24; }
 .status-badge.status-sealed { background: #e2e3e5; color: #383d41; }
+[data-theme="dark"] .status-badge.status-active { background: rgba(45,138,78,0.25);  color: #7de0a0; }
+[data-theme="dark"] .status-badge.status-low    { background: rgba(193,127,0,0.25);  color: #f5c842; }
+[data-theme="dark"] .status-badge.status-empty  { background: rgba(192,57,43,0.25);  color: #ff8a80; }
+[data-theme="dark"] .status-badge.status-sealed { background: rgba(128,128,128,0.2); color: #aaa; }
 
 /* === 進度條 === */
 .progress-bar-container {
@@ -46,9 +50,8 @@
   border-radius: 4px;
   height: 8px;
   width: 80px;
-  display: inline-block;
-  vertical-align: middle;
-  margin-right: 0.4rem;
+  display: block;
+  margin-bottom: 0.25rem;
 }
 .progress-bar {
   background: #2d8a4e;
@@ -56,8 +59,9 @@
   border-radius: 4px;
   transition: width 0.3s;
 }
-.progress-bar.low   { background: #c17f00; }
-.progress-bar.empty { background: #c0392b; }
+.progress-bar.bar-yellow   { background: #c9a800; }
+.progress-bar.bar-orange   { background: #d4620a; }
+.progress-bar.bar-red      { background: #c0392b; }
 
 /* === 顏色色塊 === */
 .color-swatch {
@@ -90,6 +94,8 @@
 }
 .flash-success { background: #d4edda; color: #155724; border-left: 4px solid #28a745; }
 .flash-error   { background: #f8d7da; color: #721c24; border-left: 4px solid #dc3545; }
+[data-theme="dark"] .flash-success { background: rgba(40,167,69,0.15);  color: #7de0a0; }
+[data-theme="dark"] .flash-error   { background: rgba(220,53,69,0.15);  color: #ff8a80; }
 
 /* === mapping 已完成列 === */
 .mapped-row { opacity: 0.6; }
@@ -103,6 +109,7 @@ button.danger, [type="submit"].danger {
 
 /* === 表格捲動容器 === */
 .overflow-auto { overflow-x: auto; }
+
 
 /* === 封面縮圖 skeleton === */
 .cover-thumb {
@@ -157,6 +164,20 @@ button.danger, [type="submit"].danger {
   margin-bottom: 1.5rem;
 }
 .cover-thumb--lg img { object-fit: contain; }
+.cover-thumb--lg[data-lightbox]:hover::after {
+  content: '⤢  點擊放大';
+  inset: 0;
+  width: auto;
+  height: auto;
+  background: rgba(0, 0, 0, 0.38);
+  display: grid;
+  place-items: center;
+  font-size: 1rem;
+  letter-spacing: 0.04em;
+  border-radius: inherit;
+  padding: 0;
+  opacity: 1;
+}
 
 /* 可點擊放大提示 */
 .cover-thumb[data-lightbox] {

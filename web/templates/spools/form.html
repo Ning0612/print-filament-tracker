@@ -8,7 +8,7 @@
   <div class="grid">
     <label>
       材料 *
-      <input type="text" name="material" value="{{ spool.material if spool else '' }}" placeholder="PLA / PETG / ABS …">
+      <input type="text" name="material" value="{{ spool.material if spool else '' }}" placeholder="PLA / PETG / ABS …" required>
     </label>
     <label>
       顏色名稱
@@ -48,8 +48,9 @@
 
   <div class="grid">
     <label>
-      開封日期（設定後狀態改為 active）
+      開封日期
       <input type="date" name="opened_at" value="{{ (spool.opened_at or '')[:10] if spool else '' }}">
+      <small>設定後耗材狀態將自動改為「使用中」</small>
     </label>
     <label>
       商品連結

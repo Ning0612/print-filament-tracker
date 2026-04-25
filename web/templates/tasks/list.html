@@ -17,7 +17,7 @@
 <table>
   <thead>
     <tr>
-      <th style="width:68px;">圖片</th>
+      <th style="width:152px;">圖片</th>
       <th>列印名稱</th>
       <th>印表機</th>
       <th>開始時間</th>
@@ -37,7 +37,7 @@
       </td>
       <td><a href="{{ url_for('tasks.detail_view', task_id=t.id) }}">{{ t.print_name or '(未命名)' }}</a></td>
       <td>{{ t.printer_name or '-' }}</td>
-      <td>{{ (t.started_at or '')[:16] }}</td>
+      <td>{{ (t.started_at or '')[:16] | replace('T', ' ') }}</td>
       <td>
         {% if t.duration_seconds %}
           {{ t.duration_seconds // 3600 }}h {{ (t.duration_seconds % 3600) // 60 }}m
