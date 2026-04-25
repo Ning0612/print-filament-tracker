@@ -2,9 +2,19 @@
 {% block title %}耗材管理 — BambuPrintManager{% endblock %}
 
 {% block content %}
-<div style="display:flex;justify-content:space-between;align-items:center;">
-  <h1>耗材管理</h1>
-  <a href="{{ url_for('spools.new_view') }}" role="button">+ 新增耗材</a>
+<div style="display:flex;justify-content:space-between;align-items:center;gap:0.5rem;flex-wrap:wrap;">
+  <h1 style="margin-bottom:0;">耗材管理</h1>
+  <div style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap;">
+    <form method="post" action="{{ url_for('spools.import_view') }}" enctype="multipart/form-data" style="margin:0;">
+      <input type="file" name="file" id="import-file" accept=".json,.csv" style="display:none;"
+             onchange="this.form.submit();">
+      <button type="button" class="outline" style="margin-bottom:0;"
+              onclick="document.getElementById('import-file').click();">匯入</button>
+    </form>
+    <a href="{{ url_for('spools.export_csv_view') }}" role="button" class="outline">匯出 CSV</a>
+    <a href="{{ url_for('spools.export_json_view') }}" role="button" class="outline">匯出 JSON</a>
+    <a href="{{ url_for('spools.new_view') }}" role="button">+ 新增耗材</a>
+  </div>
 </div>
 
 {% if spools %}

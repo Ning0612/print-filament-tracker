@@ -46,17 +46,10 @@
     </label>
   </div>
 
-  <div class="grid">
-    <label>
-      開封日期
-      <input type="date" name="opened_at" value="{{ (spool.opened_at or '')[:10] if spool else '' }}">
-      <small>設定後耗材狀態將自動改為「使用中」</small>
-    </label>
-    <label>
-      商品連結
-      <input type="url" name="product_url" value="{{ spool.product_url if spool else '' }}" placeholder="https://…">
-    </label>
-  </div>
+  <label>
+    商品連結
+    <input type="url" name="product_url" value="{{ spool.product_url if spool else '' }}" placeholder="https://…">
+  </label>
 
   <label>
     備註

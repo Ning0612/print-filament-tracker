@@ -1,0 +1,16 @@
+<form hx-post="{{ url_for('mapping.material_save', ptf_id=ptf_id) }}"
+      hx-target="#mat-{{ ptf_id }}"
+      hx-swap="innerHTML"
+      style="display:flex;gap:0.3rem;margin:0;align-items:center;">
+  <input type="text" name="material" value="{{ current }}"
+         style="margin:0;padding:0.2rem 0.4rem;min-width:70px;max-width:110px;font-size:0.9rem;" autofocus>
+  <button type="submit"
+          style="margin:0;padding:0.2rem 0.45rem;font-size:0.85rem;line-height:1.2;"
+          aria-label="儲存">✓</button>
+  <button type="button" class="outline"
+          hx-get="{{ url_for('mapping.material_cancel', ptf_id=ptf_id) }}"
+          hx-target="#mat-{{ ptf_id }}"
+          hx-swap="innerHTML"
+          style="margin:0;padding:0.2rem 0.45rem;font-size:0.85rem;line-height:1.2;"
+          aria-label="取消">✕</button>
+</form>

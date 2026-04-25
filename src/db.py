@@ -182,8 +182,8 @@ def insert_spool(conn: sqlite3.Connection, spool: dict) -> int:
         """
         INSERT INTO filament_spool
           (uid, material, color_name, color_hex, initial_weight_g,
-           price, purchased_at, opened_at, product_url, note)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+           price, purchased_at, product_url, note)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             spool["uid"],
@@ -193,7 +193,6 @@ def insert_spool(conn: sqlite3.Connection, spool: dict) -> int:
             spool["initial_weight_g"],
             spool.get("price"),
             spool.get("purchased_at"),
-            spool.get("opened_at"),
             spool.get("product_url"),
             spool.get("note"),
         ),
@@ -206,7 +205,7 @@ def update_spool(conn: sqlite3.Connection, spool_id: int, spool: dict) -> None:
         """
         UPDATE filament_spool SET
           material=?, color_name=?, color_hex=?, initial_weight_g=?,
-          price=?, purchased_at=?, opened_at=?, product_url=?, note=?
+          price=?, purchased_at=?, product_url=?, note=?
         WHERE id=?
         """,
         (
@@ -216,7 +215,6 @@ def update_spool(conn: sqlite3.Connection, spool_id: int, spool: dict) -> None:
             spool["initial_weight_g"],
             spool.get("price"),
             spool.get("purchased_at"),
-            spool.get("opened_at"),
             spool.get("product_url"),
             spool.get("note"),
             spool_id,
@@ -283,6 +281,40 @@ def get_ptf_by_id(conn: sqlite3.Connection, ptf_id: int):
     return conn.execute(
         "SELECT id FROM print_task_filament WHERE id=?", (ptf_id,)
     ).fetchone()
+
+
+def get_ptf_material(conn: sqlite3.Connection, ptf_id: int):
+    return conn.execute(
+        "SELECT material FROM print_task_filament WHERE id=?", (ptf_id,)
+    ).fetchone()
+
+
+def get_mapped_filaments(conn: sqlite3.Connection) -> list:
+    return conn.execute(
+        """
+        SELECT
+          ptf.id, ptf.print_task_id, ptf.slot_id,
+          ptf.used_weight_g, ptf.color_hex, ptf.material,
+          ptf.filament_spool_id,
+          pt.print_name, pt.started_at, pt.cover_url,
+          fs.color_name AS spool_color_name,
+          fs.color_hex AS spool_color_hex,
+          fs.material AS spool_material
+        FROM print_task_filament ptf
+        JOIN print_task pt ON pt.id = ptf.print_task_id
+        JOIN filament_spool fs ON fs.id = ptf.filament_spool_id
+        WHERE ptf.filament_spool_id IS NOT NULL
+        ORDER BY pt.started_at DESC
+        """
+    ).fetchall()
+
+
+def update_ptf_material(conn: sqlite3.Connection, ptf_id: int, material) -> int:
+    cursor = conn.execute(
+        "UPDATE print_task_filament SET material=? WHERE id=? AND filament_spool_id IS NULL",
+        (material, ptf_id),
+    )
+    return cursor.rowcount
 
 
 def map_filament_to_spool(conn: sqlite3.Connection, ptf_id: int, spool_id: int) -> None:

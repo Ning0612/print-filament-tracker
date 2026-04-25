@@ -65,24 +65,16 @@
 
 /* === 顏色色塊 === */
 .color-swatch {
-  position: relative;
   display: inline-block;
-  width: 14px;
-  height: 14px;
-  border-radius: 3px;
-  background-color: #ffffff;
-  outline: 1.5px solid rgba(128,128,128,0.4);
+  width: 22px;
+  height: 22px;
+  border-radius: 5px;
+  background-color: var(--swatch-color, #ffffff);
+  outline: 2px solid rgba(128,128,128,0.35);
   outline-offset: 0;
   vertical-align: middle;
-  margin-right: 4px;
-  forced-color-adjust: none;
-}
-.color-swatch::after {
-  content: '';
-  position: absolute;
-  inset: 2px;
-  border-radius: 1px;
-  background-color: var(--swatch-color, transparent);
+  margin-right: 6px;
+  flex-shrink: 0;
   forced-color-adjust: none;
 }
 

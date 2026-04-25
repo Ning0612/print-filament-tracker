@@ -2,77 +2,152 @@
 {% block title %}耗材對照 — BambuPrintManager{% endblock %}
 
 {% block content %}
-<h1>耗材對照</h1>
-
-{% if not spools %}
-<div role="alert">
-  ⚠ 目前沒有任何 spool 記錄。請先至
-  <a href="{{ url_for('spools.new_view') }}">耗材管理</a>
-  新增耗材後再進行 mapping。
+<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.5rem;">
+  <h1 style="margin-bottom:0;">耗材對照</h1>
+  <div style="display:flex;gap:0.5rem;">
+    <a href="{{ url_for('mapping.list_view', show='unmapped') }}"
+       role="button" {% if show != 'unmapped' %}class="outline"{% endif %}>
+      未對照 ({{ unmapped|length }})
+    </a>
+    <a href="{{ url_for('mapping.list_view', show='mapped') }}"
+       role="button" {% if show != 'mapped' %}class="outline"{% endif %}>
+      已對照 ({{ mapped|length }})
+    </a>
+  </div>
 </div>
-{% endif %}
 
-{% if unmapped %}
-<p style="color:var(--pico-muted-color);">共 {{ unmapped | length }} 筆未 mapping 記錄，請為每筆選擇對應的耗材線圈。</p>
-<div class="overflow-auto">
-<table id="mapping-table">
-  <thead>
-    <tr>
-      <th style="width:60px;">圖片</th>
-      <th>列印任務</th>
-      <th>日期</th>
-      <th>材料</th>
-      <th>顏色</th>
-      <th>用量</th>
-      <th>選擇 Spool</th>
-      <th>操作</th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for r in unmapped %}
-    <tr id="ptf-row-{{ r.id }}">
-      <td>
-        {% if r.cover_url %}
-        <div class="cover-thumb cover-thumb--sm">
-          <img src="{{ r.cover_url }}" alt="" loading="lazy" decoding="async">
-        </div>
-        {% else %}<span style="color:var(--pico-muted-color);">—</span>{% endif %}
-      </td>
-      <td><a href="{{ url_for('tasks.detail_view', task_id=r.print_task_id) }}">{{ r.print_name or '(未命名)' }}</a></td>
-      <td>{{ (r.started_at or '')[:10] }}</td>
-      <td>{{ r.material or '-' }}</td>
-      <td>
-        {% if r.color_hex %}
-        <span class="color-swatch" style="--swatch-color:{{ r.color_hex }};"></span>
-        {% endif %}
-        <code>{{ r.color_hex or '-' }}</code>
-      </td>
-      <td>{{ '%.1f' % r.used_weight_g if r.used_weight_g else '-' }}g</td>
-      <td>
-        <select name="spool_id" id="spool-select-{{ r.id }}" style="min-width:200px;" {% if not spools %}disabled{% endif %}>
-          <option value="">— 選擇 spool —</option>
-          {% for s in spools %}
-          <option value="{{ s.id }}">
-            [{{ s.id }}] {{ s.color_name or s.color_hex or '-' }} {{ s.material or '' }} (剩{{ '%.0f' % s.remaining_weight_g }}g)
-          </option>
-          {% endfor %}
-        </select>
-      </td>
-      <td>
-        <button
-          hx-post="{{ url_for('mapping.map_view', ptf_id=r.id) }}"
-          hx-include="#spool-select-{{ r.id }}"
-          hx-target="#ptf-row-{{ r.id }}"
-          hx-swap="outerHTML"
-          {% if not spools %}disabled{% endif %}
-        >確認</button>
-      </td>
-    </tr>
-    {% endfor %}
-  </tbody>
-</table>
-</div>
+{% if show == 'unmapped' %}
+  {% if not spools %}
+  <div role="alert" style="margin-top:1rem;">
+    ⚠ 目前沒有任何耗材記錄。請先至
+    <a href="{{ url_for('spools.new_view') }}">耗材管理</a>
+    新增耗材後再進行對照。
+  </div>
+  {% endif %}
+
+  {% if unmapped %}
+  <p style="color:var(--pico-muted-color);margin-top:0.75rem;">共 {{ unmapped|length }} 筆未對照，請為每筆選擇對應的耗材線圈。</p>
+  <div class="overflow-auto">
+  <table id="mapping-table">
+    <thead>
+      <tr>
+        <th style="width:60px;">圖片</th>
+        <th>列印任務</th>
+        <th>日期</th>
+        <th>材料</th>
+        <th>顏色</th>
+        <th>用量</th>
+        <th>選擇 Spool</th>
+        <th>操作</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in unmapped %}
+      <tr id="ptf-row-{{ r.id }}">
+        <td>
+          {% if r.cover_url %}
+          <div class="cover-thumb cover-thumb--sm">
+            <img src="{{ r.cover_url }}" alt="" loading="lazy" decoding="async">
+          </div>
+          {% else %}<span style="color:var(--pico-muted-color);">—</span>{% endif %}
+        </td>
+        <td><a href="{{ url_for('tasks.detail_view', task_id=r.print_task_id) }}">{{ r.print_name or '(未命名)' }}</a></td>
+        <td>{{ (r.started_at or '')[:10] }}</td>
+        <td id="mat-{{ r.id }}" style="white-space:nowrap;">
+          <span>{{ r.material or '-' }}</span>
+          <button class="outline"
+                  hx-get="{{ url_for('mapping.material_edit_form', ptf_id=r.id) }}"
+                  hx-target="#mat-{{ r.id }}"
+                  hx-swap="innerHTML"
+                  style="padding:0.1rem 0.4rem;font-size:0.8rem;margin:0 0 0 0.3rem;line-height:1.2;"
+                  aria-label="編輯材料">✏</button>
+        </td>
+        <td>
+          {% if r.color_hex %}
+          <span class="color-swatch" style="--swatch-color:{{ r.color_hex }};"></span>
+          {% endif %}
+          <code>{{ r.color_hex or '-' }}</code>
+        </td>
+        <td>{{ '%.1f' % r.used_weight_g if r.used_weight_g else '-' }}g</td>
+        <td>
+          <select name="spool_id" id="spool-select-{{ r.id }}" style="min-width:200px;" {% if not spools %}disabled{% endif %}>
+            <option value="">— 選擇 spool —</option>
+            {% for s in spools %}
+            <option value="{{ s.id }}">
+              [{{ s.id }}] {{ s.color_name or s.color_hex or '-' }} {{ s.material or '' }} (剩{{ '%.0f' % s.remaining_weight_g }}g)
+            </option>
+            {% endfor %}
+          </select>
+        </td>
+        <td>
+          <button
+            hx-post="{{ url_for('mapping.map_view', ptf_id=r.id) }}"
+            hx-include="#spool-select-{{ r.id }}"
+            hx-target="#ptf-row-{{ r.id }}"
+            hx-swap="outerHTML"
+            {% if not spools %}disabled{% endif %}
+          >確認</button>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  {% else %}
+  <p style="margin-top:1rem;">✅ 所有耗材記錄均已對照，沒有待處理項目。</p>
+  {% endif %}
+
 {% else %}
-<p>✅ 所有耗材記錄均已 mapping，沒有待處理項目。</p>
+  {# ── 已對照 view ── #}
+  {% if mapped %}
+  <p style="color:var(--pico-muted-color);margin-top:0.75rem;">共 {{ mapped|length }} 筆已完成對照。</p>
+  <div class="overflow-auto">
+  <table>
+    <thead>
+      <tr>
+        <th style="width:60px;">圖片</th>
+        <th>列印任務</th>
+        <th>日期</th>
+        <th>材料</th>
+        <th>顏色</th>
+        <th>用量</th>
+        <th>已對照耗材</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in mapped %}
+      <tr>
+        <td>
+          {% if r.cover_url %}
+          <div class="cover-thumb cover-thumb--sm">
+            <img src="{{ r.cover_url }}" alt="" loading="lazy" decoding="async">
+          </div>
+          {% else %}<span style="color:var(--pico-muted-color);">—</span>{% endif %}
+        </td>
+        <td><a href="{{ url_for('tasks.detail_view', task_id=r.print_task_id) }}">{{ r.print_name or '(未命名)' }}</a></td>
+        <td>{{ (r.started_at or '')[:10] }}</td>
+        <td>{{ r.material or '-' }}</td>
+        <td>
+          {% if r.color_hex %}
+          <span class="color-swatch" style="--swatch-color:{{ r.color_hex }};"></span>
+          {% endif %}
+          <code>{{ r.color_hex or '-' }}</code>
+        </td>
+        <td>{{ '%.1f' % r.used_weight_g if r.used_weight_g else '-' }}g</td>
+        <td>
+          {% if r.spool_color_hex %}
+          <span class="color-swatch" style="--swatch-color:{{ r.spool_color_hex }};"></span>
+          {% endif %}
+          {{ r.spool_color_name or r.spool_color_hex or '-' }}
+          {% if r.spool_material %}<small style="color:var(--pico-muted-color);"> {{ r.spool_material }}</small>{% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  {% else %}
+  <p style="margin-top:1rem;">尚無已對照記錄。</p>
+  {% endif %}
 {% endif %}
 {% endblock %}

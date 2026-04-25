@@ -22,6 +22,7 @@ def create_app(db_path: Path | None = None) -> Flask:
     app.config["DB_PATH"] = db_path
     app.config["COVERS_DIR"] = (db_path.parent / "covers").resolve()
     app.secret_key = "bambu-print-manager-local"
+    app.config["MAX_CONTENT_LENGTH"] = 10 * 1024 * 1024  # 10 MB
 
     from web.routes.dashboard import bp as dashboard_bp
     from web.routes.mapping import bp as mapping_bp
@@ -32,6 +33,12 @@ def create_app(db_path: Path | None = None) -> Flask:
     app.register_blueprint(spools_bp, url_prefix="/spools")
     app.register_blueprint(tasks_bp, url_prefix="/tasks")
     app.register_blueprint(mapping_bp, url_prefix="/mapping")
+
+    @app.errorhandler(413)
+    def request_entity_too_large(e):
+        from flask import flash, redirect, url_for
+        flash("檔案過大，請上傳 10 MB 以內的檔案。", "error")
+        return redirect(url_for("spools.list_view")), 413
 
     @app.route("/covers/<path:filename>")
     def covers(filename: str):
