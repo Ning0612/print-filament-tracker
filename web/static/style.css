@@ -103,6 +103,56 @@ button.danger, [type="submit"].danger {
 .overflow-auto { overflow-x: auto; }
 
 
+/* === 手動任務標籤 === */
+.manual-badge {
+  display: inline-block;
+  padding: 0.1rem 0.45rem;
+  border-radius: 99px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  background: rgba(88, 86, 214, 0.15);
+  color: #5856d6;
+  vertical-align: middle;
+  margin-left: 0.35rem;
+}
+[data-theme="dark"] .manual-badge {
+  background: rgba(140, 138, 255, 0.2);
+  color: #a29bfe;
+}
+
+/* === 耗材表單列 === */
+.filament-row {
+  border: 1px solid var(--pico-muted-border-color);
+  border-radius: 6px;
+  padding: 0.75rem;
+  margin-bottom: 0.6rem;
+}
+.filament-row-fields {
+  display: grid;
+  grid-template-columns: 60px 1fr 54px 100px 1fr auto;
+  gap: 0.5rem;
+  align-items: start;
+}
+@media (max-width: 680px) {
+  .filament-row-fields {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+.filament-row-fields label { margin: 0; }
+.filament-row-fields input,
+.filament-row-fields select { margin-bottom: 0; }
+input[type="color"].filament-color-input {
+  height: 2.6rem;
+  padding: 0.2rem;
+  width: 100%;
+  cursor: pointer;
+}
+.form-hint {
+  font-size: 0.82rem;
+  color: var(--pico-muted-color);
+  margin-top: -0.5rem;
+}
+
 /* === 設定頁面 === */
 .settings-layout {
   display: grid;

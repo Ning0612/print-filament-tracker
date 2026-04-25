@@ -2,7 +2,10 @@
 {% block title %}列印歷史 — BambuPrintManager{% endblock %}
 
 {% block content %}
-<h1>列印歷史</h1>
+<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem;margin-bottom:1rem;">
+  <h1 style="margin:0;">列印歷史</h1>
+  <a href="{{ url_for('tasks.new_manual') }}" role="button" style="white-space:nowrap;">＋ 新增手動任務</a>
+</div>
 
 <form method="get" action="{{ url_for('tasks.list_view') }}" style="display:flex;gap:0.5rem;margin-bottom:1rem;">
   <input type="search" name="q" value="{{ search }}" placeholder="搜尋列印名稱…" style="flex:1;">
@@ -23,6 +26,7 @@
       <th>開始時間</th>
       <th>耗時</th>
       <th>用量</th>
+      <th style="width:90px;"></th>
     </tr>
   </thead>
   <tbody>
@@ -35,7 +39,12 @@
         </div>
         {% else %}<span style="color:var(--pico-muted-color);">—</span>{% endif %}
       </td>
-      <td><a href="{{ url_for('tasks.detail_view', task_id=t.id) }}">{{ t.print_name or '(未命名)' }}</a></td>
+      <td>
+        <a href="{{ url_for('tasks.detail_view', task_id=t.id) }}">{{ t.print_name or '(未命名)' }}</a>
+        {% if t.is_manual %}
+          <span class="manual-badge">手動</span>
+        {% endif %}
+      </td>
       <td>{{ t.printer_name or '-' }}</td>
       <td>{{ (t.started_at or '')[:16] | replace('T', ' ') }}</td>
       <td>
@@ -44,6 +53,19 @@
         {% else %}-{% endif %}
       </td>
       <td>{{ '%.1f' % t.total_weight_g if t.total_weight_g else '-' }}g</td>
+      <td>
+        {% if t.is_manual %}
+        <div style="display:flex;gap:0.4rem;">
+          <a href="{{ url_for('tasks.edit_manual', task_id=t.id) }}"
+             role="button" class="outline" style="padding:0.2rem 0.5rem;font-size:0.8rem;">編輯</a>
+          <form method="post" action="{{ url_for('tasks.delete_manual', task_id=t.id) }}"
+                onsubmit="return confirm('確定刪除此手動任務？');" style="margin:0;">
+            <button type="submit" class="danger outline"
+                    style="padding:0.2rem 0.5rem;font-size:0.8rem;">刪除</button>
+          </form>
+        </div>
+        {% endif %}
+      </td>
     </tr>
     {% endfor %}
   </tbody>

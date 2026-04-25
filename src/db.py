@@ -1,5 +1,6 @@
 import json
 import sqlite3
+import time
 from contextlib import contextmanager
 from pathlib import Path
 from typing import Iterator
@@ -40,7 +41,8 @@ CREATE TABLE IF NOT EXISTS print_task (
   duration_seconds INTEGER,
   total_weight_g REAL,
   cover_url TEXT,
-  raw_json TEXT
+  raw_json TEXT,
+  is_manual INTEGER NOT NULL DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS print_task_filament (
@@ -72,16 +74,22 @@ def get_db_path(output_dir: Path) -> Path:
     return output_dir / DB_FILENAME
 
 
+def _migrate_add_column(conn: sqlite3.Connection, table: str, column_def: str) -> None:
+    col_name = column_def.split()[0]
+    try:
+        conn.execute(f"ALTER TABLE {table} ADD COLUMN {column_def}")
+        conn.commit()
+    except sqlite3.OperationalError as exc:
+        if "duplicate column name" not in str(exc).lower():
+            raise
+
+
 def init_db(db_path: Path) -> None:
     db_path.parent.mkdir(parents=True, exist_ok=True)
     with sqlite3.connect(db_path) as conn:
         conn.executescript(_SCHEMA_SQL)
-        try:
-            conn.execute("ALTER TABLE print_task ADD COLUMN cover_url TEXT")
-            conn.commit()
-        except sqlite3.OperationalError as exc:
-            if "duplicate column name" not in str(exc).lower():
-                raise
+        _migrate_add_column(conn, "print_task", "cover_url TEXT")
+        _migrate_add_column(conn, "print_task", "is_manual INTEGER NOT NULL DEFAULT 0")
 
 
 @contextmanager
@@ -435,3 +443,100 @@ def get_recent_tasks(conn: sqlite3.Connection, limit: int = 10) -> list:
         (limit,),
     ).fetchall()
     return [dict(r) for r in rows]
+
+
+# --- Manual task CRUD ---
+
+def get_all_printers(conn: sqlite3.Connection) -> list:
+    return conn.execute(
+        "SELECT id, name FROM printer ORDER BY name"
+    ).fetchall()
+
+
+def insert_manual_task(conn: sqlite3.Connection, task: dict) -> int:
+    # Use negative nanosecond timestamp as a unique external_id that never
+    # conflicts with positive Bambu Cloud IDs.
+    external_id = -time.time_ns()
+    cursor = conn.execute(
+        """
+        INSERT INTO print_task
+          (external_id, print_name, printer_id, started_at, ended_at,
+           duration_seconds, total_weight_g, is_manual)
+        VALUES (?, ?, ?, ?, ?, ?, ?, 1)
+        """,
+        (
+            external_id,
+            task.get("print_name"),
+            task.get("printer_id"),
+            task.get("started_at"),
+            task.get("ended_at"),
+            task.get("duration_seconds"),
+            task.get("total_weight_g"),
+        ),
+    )
+    return cursor.lastrowid
+
+
+def update_manual_task(conn: sqlite3.Connection, task_id: int, task: dict) -> bool:
+    cursor = conn.execute(
+        """
+        UPDATE print_task SET
+          print_name=?, printer_id=?, started_at=?, ended_at=?,
+          duration_seconds=?, total_weight_g=?, cover_url=?
+        WHERE id=? AND is_manual=1
+        """,
+        (
+            task.get("print_name"),
+            task.get("printer_id"),
+            task.get("started_at"),
+            task.get("ended_at"),
+            task.get("duration_seconds"),
+            task.get("total_weight_g"),
+            task.get("cover_url"),
+            task_id,
+        ),
+    )
+    return cursor.rowcount > 0
+
+
+def update_task_cover_url(conn: sqlite3.Connection, task_id: int, cover_url: str | None) -> None:
+    conn.execute(
+        "UPDATE print_task SET cover_url=? WHERE id=?", (cover_url, task_id)
+    )
+
+
+def delete_manual_task(conn: sqlite3.Connection, task_id: int) -> bool:
+    # Check is_manual BEFORE touching filaments — prevents accidental data
+    # loss if a non-manual task_id is submitted.
+    row = conn.execute(
+        "SELECT id FROM print_task WHERE id=? AND is_manual=1", (task_id,)
+    ).fetchone()
+    if row is None:
+        return False
+    conn.execute(
+        "DELETE FROM print_task_filament WHERE print_task_id=?", (task_id,)
+    )
+    conn.execute("DELETE FROM print_task WHERE id=?", (task_id,))
+    return True
+
+
+def replace_task_filaments(conn: sqlite3.Connection, task_id: int, filaments: list[dict]) -> None:
+    conn.execute(
+        "DELETE FROM print_task_filament WHERE print_task_id=?", (task_id,)
+    )
+    for f in filaments:
+        conn.execute(
+            """
+            INSERT INTO print_task_filament
+              (print_task_id, filament_spool_id, slot_id, used_weight_g, color_hex, material)
+            VALUES (?, ?, ?, ?, ?, ?)
+            """,
+            (
+                task_id,
+                f.get("filament_spool_id"),
+                f.get("slot_id"),
+                f.get("used_weight_g"),
+                f.get("color_hex"),
+                f.get("material"),
+            ),
+        )

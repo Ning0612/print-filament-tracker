@@ -1,0 +1,246 @@
+{% extends "base.html" %}
+{% block title %}{% if task and task.id %}編輯手動任務{% else %}新增手動任務{% endif %} — BambuPrintManager{% endblock %}
+
+{% block content %}
+<p><a href="{% if task and task.id %}{{ url_for('tasks.detail_view', task_id=task.id) }}{% else %}{{ url_for('tasks.list_view') }}{% endif %}">← 返回</a></p>
+<h1>{% if task and task.id %}編輯手動列印任務{% else %}新增手動列印任務{% endif %}</h1>
+
+<form method="post" enctype="multipart/form-data" style="max-width:680px;">
+
+  <!-- ── 基本資訊 ─────────────────────────────────────── -->
+  <fieldset>
+    <legend>基本資訊</legend>
+
+    <label>
+      列印名稱 <span style="color:var(--pico-del-color);">*</span>
+      <input type="text" name="print_name" required
+             value="{{ task.print_name or '' if task else '' }}"
+             placeholder="例：Benchy 25%">
+    </label>
+
+    <label>
+      印表機
+      <select name="printer_id">
+        <option value="">— 不指定 —</option>
+        {% for p in printers %}
+        <option value="{{ p.id }}"
+          {% if task and task.printer_id == p.id %}selected{% endif %}>
+          {{ p.name }}
+        </option>
+        {% endfor %}
+      </select>
+    </label>
+
+    <div class="grid" style="grid-template-columns:1fr 1fr;gap:1rem;">
+      <label>
+        開始時間
+        <input type="datetime-local" name="started_at"
+               value="{{ task.started_at_input if task else '' }}"
+               id="started_at">
+      </label>
+      <label>
+        結束時間
+        <input type="datetime-local" name="ended_at"
+               value="{{ task.ended_at_input if task else '' }}"
+               id="ended_at">
+      </label>
+    </div>
+
+    <div class="grid" style="grid-template-columns:1fr 1fr 1fr;gap:1rem;align-items:end;">
+      <label>
+        耗時（小時）
+        <input type="number" name="duration_h" min="0" step="1" id="duration_h"
+               value="{{ task.duration_h_input if task else 0 }}"
+               placeholder="0">
+      </label>
+      <label>
+        耗時（分鐘）
+        <input type="number" name="duration_m" min="0" max="59" step="1" id="duration_m"
+               value="{{ task.duration_m_input if task else 0 }}"
+               placeholder="0">
+      </label>
+      <label>
+        總用量（g）
+        <input type="number" name="total_weight_g" min="0" step="0.1" id="total_weight_g"
+               value="{{ '%.2f' % task.total_weight_g if task and task.total_weight_g is not none else '' }}"
+               placeholder="自動加總">
+      </label>
+    </div>
+    <p class="form-hint">耗時若開始／結束時間皆填寫，儲存時會自動計算。總用量若留空，將由耗材記錄加總。</p>
+
+    <label>封面圖片</label>
+    {% if task and task.cover_url %}
+    <div style="display:flex;align-items:flex-start;gap:1rem;flex-wrap:wrap;margin-bottom:0.75rem;">
+      <div class="cover-thumb cover-thumb--sm">
+        <img src="{{ task.cover_url }}" alt="" loading="lazy" decoding="async">
+      </div>
+      <div style="display:flex;flex-direction:column;gap:0.5rem;justify-content:center;">
+        <label style="display:flex;align-items:center;gap:0.5rem;margin:0;font-weight:normal;">
+          <input type="checkbox" name="clear_cover" value="1" role="switch">
+          清除現有封面圖
+        </label>
+        <small style="color:var(--pico-muted-color);">上傳新圖片將自動取代現有封面</small>
+      </div>
+    </div>
+    {% endif %}
+    <input type="file" name="cover" accept="image/png,image/jpeg,image/webp,image/gif"
+           style="margin-bottom:0.25rem;">
+    <small class="form-hint" style="margin-top:0;">支援 PNG、JPEG、WebP、GIF，上限 10 MB</small>
+  </fieldset>
+
+  <!-- ── 耗材記錄 ─────────────────────────────────────── -->
+  <fieldset>
+    <legend>耗材記錄</legend>
+    <div id="filament-rows">
+      {% set existing = task.filaments if task and task.filaments else [] %}
+      {% for f in existing %}
+      <div class="filament-row">
+        <div class="filament-row-fields">
+          <label>
+            <small>Slot</small>
+            <input type="number" name="filament_slot" min="0" step="1" value="{{ f.slot_id if f.slot_id is not none else '' }}" placeholder="—">
+          </label>
+          <label>
+            <small>材料</small>
+            <input type="text" name="filament_material" value="{{ f.material or '' }}" placeholder="PLA, ABS…">
+          </label>
+          <label>
+            <small>顏色</small>
+            <input type="color" name="filament_color"
+                   value="{{ f.color_hex or '#ffffff' }}"
+                   class="filament-color-input">
+          </label>
+          <label>
+            <small>用量 (g)</small>
+            <input type="number" name="filament_weight" min="0" step="0.1"
+                   value="{{ '%.2f' % f.used_weight_g if f.used_weight_g is not none else '' }}"
+                   placeholder="0.0" class="filament-weight-input">
+          </label>
+          <label>
+            <small>對應 Spool</small>
+            <select name="filament_spool">
+              <option value="">— 不指定 —</option>
+              {% for s in spools %}
+              <option value="{{ s.id }}"
+                {% if f.filament_spool_id == s.id %}selected{% endif %}>
+                {{ s.material or '?' }} · {{ s.color_name or s.color_hex or '#' + s.uid[:6] }}
+              </option>
+              {% endfor %}
+            </select>
+          </label>
+          <button type="button" class="outline danger remove-row-btn"
+                  style="align-self:flex-end;padding:0.3rem 0.6rem;">✕</button>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <button type="button" id="add-filament-row" class="outline secondary" style="margin-top:0.5rem;">
+      ＋ 新增耗材
+    </button>
+  </fieldset>
+
+  <div style="display:flex;gap:0.75rem;margin-top:1rem;">
+    <button type="submit">儲存</button>
+    <a href="{{ url_for('tasks.list_view') }}" role="button" class="outline secondary">取消</a>
+  </div>
+
+</form>
+
+<!-- Hidden template row for JS cloning -->
+<template id="filament-row-template">
+  <div class="filament-row">
+    <div class="filament-row-fields">
+      <label>
+        <small>Slot</small>
+        <input type="number" name="filament_slot" min="0" step="1" placeholder="—">
+      </label>
+      <label>
+        <small>材料</small>
+        <input type="text" name="filament_material" placeholder="PLA, ABS…">
+      </label>
+      <label>
+        <small>顏色</small>
+        <input type="color" name="filament_color" value="#ffffff" class="filament-color-input">
+      </label>
+      <label>
+        <small>用量 (g)</small>
+        <input type="number" name="filament_weight" min="0" step="0.1" placeholder="0.0" class="filament-weight-input">
+      </label>
+      <label>
+        <small>對應 Spool</small>
+        <select name="filament_spool">
+          <option value="">— 不指定 —</option>
+          {% for s in spools %}
+          <option value="{{ s.id }}">
+            {{ s.material or '?' }} · {{ s.color_name or s.color_hex or '#' + s.uid[:6] }}
+          </option>
+          {% endfor %}
+        </select>
+      </label>
+      <button type="button" class="outline danger remove-row-btn"
+              style="align-self:flex-end;padding:0.3rem 0.6rem;">✕</button>
+    </div>
+  </div>
+</template>
+
+<script>
+(function () {
+  var container  = document.getElementById('filament-rows');
+  var addBtn     = document.getElementById('add-filament-row');
+  var template   = document.getElementById('filament-row-template');
+  var totalField = document.getElementById('total_weight_g');
+  var startField = document.getElementById('started_at');
+  var endField   = document.getElementById('ended_at');
+  var hField     = document.getElementById('duration_h');
+  var mField     = document.getElementById('duration_m');
+
+  function addRow() {
+    var clone = template.content.cloneNode(true);
+    container.appendChild(clone);
+    bindRemove(container.lastElementChild);
+    bindWeightSum(container.lastElementChild);
+  }
+
+  function bindRemove(row) {
+    row.querySelector('.remove-row-btn').addEventListener('click', function () {
+      row.remove();
+      recalcTotal();
+    });
+  }
+
+  function bindWeightSum(row) {
+    var input = row.querySelector('.filament-weight-input');
+    if (input) input.addEventListener('input', recalcTotal);
+  }
+
+  function recalcTotal() {
+    var sum = 0;
+    container.querySelectorAll('.filament-weight-input').forEach(function (inp) {
+      var v = parseFloat(inp.value);
+      if (!isNaN(v) && v > 0) sum += v;
+    });
+    if (sum > 0) totalField.value = sum.toFixed(2);
+  }
+
+  function recalcDuration() {
+    if (!startField.value || !endField.value) return;
+    var diff = (new Date(endField.value) - new Date(startField.value)) / 1000;
+    if (diff > 0) {
+      hField.value = Math.floor(diff / 3600);
+      mField.value = Math.floor((diff % 3600) / 60);
+    }
+  }
+
+  addBtn.addEventListener('click', addRow);
+  startField.addEventListener('change', recalcDuration);
+  endField.addEventListener('change', recalcDuration);
+
+  // Bind existing rows
+  container.querySelectorAll('.filament-row').forEach(function (row) {
+    bindRemove(row);
+    bindWeightSum(row);
+  });
+}());
+</script>
+{% endblock %}

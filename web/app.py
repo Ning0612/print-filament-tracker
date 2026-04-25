@@ -60,14 +60,16 @@ def create_app(db_path: Path | None = None) -> Flask:
 
     @app.errorhandler(413)
     def request_entity_too_large(e):
-        from flask import flash, redirect, url_for
+        from flask import flash, redirect, request as req, url_for
         flash("檔案過大，請上傳 10 MB 以內的檔案。", "error")
-        return redirect(url_for("spools.list_view")), 413
+        return redirect(req.referrer or url_for("dashboard.index")), 413
+
+    _COVER_EXTS = {".png", ".jpg", ".jpeg", ".webp", ".gif"}
 
     @app.route("/covers/<path:filename>")
     def covers(filename: str):
-        if not filename.lower().endswith(".png"):
-            from flask import abort
+        from flask import abort
+        if Path(filename).suffix.lower() not in _COVER_EXTS:
             abort(404)
         resp = make_response(send_from_directory(app.config["COVERS_DIR"], filename))
         resp.headers["Cache-Control"] = "public, max-age=2592000"

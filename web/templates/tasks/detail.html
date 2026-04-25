@@ -2,7 +2,21 @@
 {% block title %}{{ task.print_name or '任務詳情' }} — BambuPrintManager{% endblock %}
 
 {% block content %}
-<p><a href="{{ url_for('tasks.list_view') }}">← 返回列表</a></p>
+<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem;margin-bottom:0.5rem;">
+  <a href="{{ url_for('tasks.list_view') }}">← 返回列表</a>
+  {% if task.is_manual %}
+  <div style="display:flex;gap:0.5rem;align-items:center;">
+    <span class="manual-badge" style="font-size:0.85rem;">手動任務</span>
+    <a href="{{ url_for('tasks.edit_manual', task_id=task.id) }}" role="button" class="outline secondary"
+       style="padding:0.3rem 0.8rem;font-size:0.85rem;">編輯</a>
+    <form method="post" action="{{ url_for('tasks.delete_manual', task_id=task.id) }}"
+          onsubmit="return confirm('確定刪除此手動任務？');" style="margin:0;">
+      <button type="submit" class="danger outline"
+              style="padding:0.3rem 0.8rem;font-size:0.85rem;">刪除</button>
+    </form>
+  </div>
+  {% endif %}
+</div>
 
 <h1>{{ task.print_name or '(未命名)' }}</h1>
 
