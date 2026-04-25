@@ -46,6 +46,23 @@
   </footer>
 <script>
 (function () {
+  function initCoverThumbs(root) {
+    (root || document).querySelectorAll('.cover-thumb img').forEach(function (img) {
+      function done() { img.classList.add('img-loaded'); }
+      function fail() { img.classList.add('img-error'); img.style.display = 'none'; }
+      if (img.complete) { img.naturalWidth > 0 ? done() : fail(); }
+      else {
+        img.addEventListener('load',  done, { once: true });
+        img.addEventListener('error', fail, { once: true });
+      }
+    });
+  }
+  document.addEventListener('DOMContentLoaded', function () { initCoverThumbs(); });
+  document.addEventListener('htmx:afterSwap', function (e) { initCoverThumbs(e.detail.target); });
+}());
+</script>
+<script>
+(function () {
   var KEY = 'bambu-theme';
 
   function syncBtn(theme) {

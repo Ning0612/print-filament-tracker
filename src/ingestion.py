@@ -1,4 +1,5 @@
 import json
+import requests
 from pathlib import Path
 
 from .config import AppConfig
@@ -7,12 +8,49 @@ from .db import (
     get_db_path,
     insert_print_task_filament,
     insert_print_task_ignore,
+    update_task_cover_if_null,
     upsert_printer,
 )
 
 
 class IngestionError(Exception):
     pass
+
+
+_ALLOWED_COVER_HOSTS = (
+    ".bambulab.com",
+    ".amazonaws.com",
+)
+
+
+def _is_allowed_cover_url(url: str) -> bool:
+    try:
+        from urllib.parse import urlparse
+        parsed = urlparse(url)
+        if parsed.scheme != "https":
+            return False
+        host = parsed.netloc.lower()
+        return any(host == h.lstrip(".") or host.endswith(h) for h in _ALLOWED_COVER_HOSTS)
+    except Exception:
+        return False
+
+
+def _cache_cover(external_id: int, url: str, covers_dir: Path) -> str | None:
+    if not _is_allowed_cover_url(url):
+        print(f"[WARN] cover URL 來源不在白名單，已跳過：{url[:80]}")
+        return None
+    covers_dir.mkdir(parents=True, exist_ok=True)
+    out_path = covers_dir / f"{external_id}.png"
+    if out_path.exists():
+        return f"/covers/{external_id}.png"
+    try:
+        resp = requests.get(url, timeout=15)
+        resp.raise_for_status()
+        out_path.write_bytes(resp.content)
+        return f"/covers/{external_id}.png"
+    except Exception as exc:
+        print(f"[WARN] 封面圖下載失敗（id={external_id}），可能為過期 URL：{exc}")
+        return None
 
 
 def _extract_slot_id(item: dict) -> int | None:
@@ -72,7 +110,9 @@ def _build_filament_rows(raw_task: dict, print_task_id: int) -> list[dict]:
     ]
 
 
-def ingest_raw_tasks(raw_hits: list[dict], db_path: Path) -> dict[str, int]:
+def ingest_raw_tasks(
+    raw_hits: list[dict], db_path: Path, covers_dir: Path | None = None
+) -> dict[str, int]:
     stats: dict[str, int] = {"inserted": 0, "skipped": 0, "filaments": 0}
 
     errors: list[str] = []
@@ -84,6 +124,11 @@ def ingest_raw_tasks(raw_hits: list[dict], db_path: Path) -> dict[str, int]:
             continue
 
         try:
+            local_cover: str | None = None
+            raw_cover = raw.get("cover")
+            if raw_cover and covers_dir:
+                local_cover = _cache_cover(raw["id"], raw_cover, covers_dir)
+
             with get_connection(db_path) as conn:
                 device_id = raw.get("deviceId")
                 printer_id = None
@@ -103,12 +148,15 @@ def ingest_raw_tasks(raw_hits: list[dict], db_path: Path) -> dict[str, int]:
                     "ended_at": raw.get("endTime"),
                     "duration_seconds": raw.get("costTime"),
                     "total_weight_g": raw.get("weight"),
+                    "cover_url": local_cover,
                     "raw_json": json.dumps(raw, ensure_ascii=False),
                 }
 
                 task_db_id = insert_print_task_ignore(conn, task_row)
                 if task_db_id is None:
                     stats["skipped"] += 1
+                    if local_cover:
+                        update_task_cover_if_null(conn, raw["id"], local_cover)
                     continue
 
                 stats["inserted"] += 1
@@ -160,7 +208,8 @@ def run_ingestion_from_file(raw_file: Path, db_path: Path) -> dict[str, int]:
     hits = _parse_raw_file(raw_file)
     if not hits:
         raise IngestionError("raw_tasks.json 中沒有任何列印記錄。")
-    return ingest_raw_tasks(hits, db_path)
+    covers_dir = (db_path.parent / "covers").resolve()
+    return ingest_raw_tasks(hits, db_path, covers_dir)
 
 
 def run_ingestion_from_cloud(config: AppConfig, db_path: Path) -> dict[str, int]:
@@ -168,4 +217,5 @@ def run_ingestion_from_cloud(config: AppConfig, db_path: Path) -> dict[str, int]
     client = BambuCloudClient(config)
     hits = client.fetch_all_tasks()
     client.save_raw_tasks(config.output_dir / "raw_tasks.json")
-    return ingest_raw_tasks(hits, db_path)
+    covers_dir = (db_path.parent / "covers").resolve()
+    return ingest_raw_tasks(hits, db_path, covers_dir)

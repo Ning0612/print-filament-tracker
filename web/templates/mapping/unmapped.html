@@ -18,6 +18,7 @@
 <table id="mapping-table">
   <thead>
     <tr>
+      <th style="width:60px;">圖片</th>
       <th>列印任務</th>
       <th>日期</th>
       <th>材料</th>
@@ -30,6 +31,13 @@
   <tbody>
     {% for r in unmapped %}
     <tr id="ptf-row-{{ r.id }}">
+      <td>
+        {% if r.cover_url %}
+        <div class="cover-thumb cover-thumb--sm">
+          <img src="{{ r.cover_url }}" alt="" loading="lazy" decoding="async">
+        </div>
+        {% else %}<span style="color:var(--pico-muted-color);">—</span>{% endif %}
+      </td>
       <td><a href="{{ url_for('tasks.detail_view', task_id=r.print_task_id) }}">{{ r.print_name or '(未命名)' }}</a></td>
       <td>{{ (r.started_at or '')[:10] }}</td>
       <td>{{ r.material or '-' }}</td>

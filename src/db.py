@@ -39,6 +39,7 @@ CREATE TABLE IF NOT EXISTS print_task (
   ended_at DATETIME,
   duration_seconds INTEGER,
   total_weight_g REAL,
+  cover_url TEXT,
   raw_json TEXT
 );
 
@@ -75,6 +76,12 @@ def init_db(db_path: Path) -> None:
     db_path.parent.mkdir(parents=True, exist_ok=True)
     with sqlite3.connect(db_path) as conn:
         conn.executescript(_SCHEMA_SQL)
+        try:
+            conn.execute("ALTER TABLE print_task ADD COLUMN cover_url TEXT")
+            conn.commit()
+        except sqlite3.OperationalError as exc:
+            if "duplicate column name" not in str(exc).lower():
+                raise
 
 
 @contextmanager
@@ -132,8 +139,8 @@ def insert_print_task_ignore(conn: sqlite3.Connection, task: dict) -> int | None
         """
         INSERT OR IGNORE INTO print_task
           (external_id, print_name, printer_id, started_at, ended_at,
-           duration_seconds, total_weight_g, raw_json)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+           duration_seconds, total_weight_g, cover_url, raw_json)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             task["external_id"],
@@ -143,6 +150,7 @@ def insert_print_task_ignore(conn: sqlite3.Connection, task: dict) -> int | None
             task.get("ended_at"),
             task.get("duration_seconds"),
             task.get("total_weight_g"),
+            task.get("cover_url"),
             task.get("raw_json"),
         ),
     )
@@ -254,13 +262,21 @@ def get_unmapped_filaments(conn: sqlite3.Connection) -> list:
         SELECT
           ptf.id, ptf.print_task_id, ptf.slot_id,
           ptf.used_weight_g, ptf.color_hex, ptf.material,
-          pt.print_name, pt.started_at, pt.external_id
+          pt.print_name, pt.started_at, pt.external_id, pt.cover_url
         FROM print_task_filament ptf
         JOIN print_task pt ON pt.id = ptf.print_task_id
         WHERE ptf.filament_spool_id IS NULL
         ORDER BY pt.started_at DESC
         """
     ).fetchall()
+
+
+def update_task_cover_if_null(conn: sqlite3.Connection, external_id: int, cover_url: str) -> bool:
+    cursor = conn.execute(
+        "UPDATE print_task SET cover_url=? WHERE external_id=? AND cover_url IS NULL",
+        (cover_url, external_id),
+    )
+    return cursor.rowcount > 0
 
 
 def get_ptf_by_id(conn: sqlite3.Connection, ptf_id: int):

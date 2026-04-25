@@ -103,3 +103,56 @@ button.danger, [type="submit"].danger {
 
 /* === 表格捲動容器 === */
 .overflow-auto { overflow-x: auto; }
+
+/* === 封面縮圖 skeleton === */
+.cover-thumb {
+  position: relative;
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--pico-muted-border-color);
+  flex-shrink: 0;
+}
+.cover-thumb::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.22) 50%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: cover-shimmer 1.4s ease-in-out infinite;
+}
+[data-theme="dark"] .cover-thumb::before {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.08) 50%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+}
+@keyframes cover-shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+.cover-thumb img {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+.cover-thumb img.img-loaded { opacity: 1; }
+.cover-thumb--sm { width: 80px;  height: 80px; }
+.cover-thumb--md { width: 96px;  height: 96px; }
+.cover-thumb--lg {
+  max-width: 400px;
+  aspect-ratio: 4 / 3;
+  margin-bottom: 1.5rem;
+}
+.cover-thumb--lg img { object-fit: contain; }

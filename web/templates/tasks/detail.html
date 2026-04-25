@@ -6,6 +6,12 @@
 
 <h1>{{ task.print_name or '(未命名)' }}</h1>
 
+{% if task.cover_url %}
+<div class="cover-thumb cover-thumb--lg">
+  <img src="{{ task.cover_url }}" alt="{{ task.print_name or '' }}" loading="lazy" decoding="async">
+</div>
+{% endif %}
+
 <div class="grid">
   <dl>
     <dt>印表機</dt><dd>{{ task.printer_name or '-' }}</dd>
