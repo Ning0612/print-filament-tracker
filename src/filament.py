@@ -18,6 +18,7 @@ from .db import (
     get_spool_by_id,
     get_spool_last_used_map,
     get_spool_used_weight,
+    get_tasks_grouped_by_spool,
     get_unmapped_filaments,
     insert_spool,
     map_filament_to_spool,
@@ -152,9 +153,17 @@ def delete_spool_data(db_path: Path, spool_id: int) -> None:
 def list_spools(db_path: Path) -> list[dict]:
     with get_connection(db_path) as conn:
         rows = get_all_spools(conn)
-        # 批次取得所有 spool 的 used_weight（單一查詢，避免 N+1）
         used_map = _get_all_used_weights(conn)
         return [enrich_spool(row, used_map.get(row["id"], 0.0)) for row in rows]
+
+
+def list_spools_with_tasks(db_path: Path) -> tuple[list[dict], dict]:
+    with get_connection(db_path) as conn:
+        rows = get_all_spools(conn)
+        used_map = _get_all_used_weights(conn)
+        spools = [enrich_spool(row, used_map.get(row["id"], 0.0)) for row in rows]
+        tasks_by_spool = get_tasks_grouped_by_spool(conn)
+    return spools, tasks_by_spool
 
 
 def _get_all_used_weights(conn) -> dict[int, float]:

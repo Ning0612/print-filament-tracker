@@ -10,56 +10,69 @@ from src.filament import (
     export_spools_json,
     import_spools_csv,
     import_spools_json,
-    list_spools,
+    list_spools_with_tasks,
     read_spool,
     update_spool_data,
 )
 
 bp = Blueprint("spools", __name__)
 
+# (status_key, display_label, default_sort_field, default_sort_dir)
+_SECTION_CONFIG = [
+    ("low",    "偏低",  "usage_ratio", "desc"),
+    ("active", "使用中", "usage_ratio", "desc"),
+    ("sealed", "未開封", "purchased_at", "desc"),
+    ("empty",  "用盡",  "purchased_at", "desc"),
+]
+
 
 @bp.route("/")
 def list_view():
     db_path = current_app.config["DB_PATH"]
-    all_spools = list_spools(db_path)
+    all_spools, tasks_by_spool = list_spools_with_tasks(db_path)
 
-    materials = sorted({s["material"].strip() for s in all_spools if s.get("material") and s["material"].strip()})
+    # Per-section sort params (s_<status> = field, d_<status> = asc|desc)
+    section_sorts: dict[str, dict] = {}
+    for status, _, default_field, default_dir in _SECTION_CONFIG:
+        field = request.args.get(f"s_{status}", default_field)
+        direction = request.args.get(f"d_{status}", default_dir)
+        if field not in ("usage_ratio", "purchased_at"):
+            field = default_field
+        if direction not in ("asc", "desc"):
+            direction = default_dir
+        section_sorts[status] = {"sort_by": field, "sort_dir": direction}
 
-    is_filtered = bool(request.args.get("_filtered"))
-    status_filter = (
-        request.args.getlist("status") if is_filtered else ["sealed", "active", "low"]
-    )
-    material_filter = request.args.get("material", "").strip()
+    # Group spools by status
+    grouped: dict[str, list] = {s: [] for s, *_ in _SECTION_CONFIG}
+    for spool in all_spools:
+        st = spool.get("status", "active")
+        if st in grouped:
+            grouped[st].append(spool)
 
-    sort_by = request.args.get("sort_by", "usage_ratio")
-    sort_dir = request.args.get("sort_dir", "desc")
-    if sort_by not in ("usage_ratio", "purchased_at"):
-        sort_by = "usage_ratio"
-    if sort_dir not in ("asc", "desc"):
-        sort_dir = "desc"
+    # Sort each group
+    for status, _, _, _ in _SECTION_CONFIG:
+        grp = grouped[status]
+        sb = section_sorts[status]["sort_by"]
+        reverse = section_sorts[status]["sort_dir"] == "desc"
+        if sb == "usage_ratio":
+            grp.sort(key=lambda s: s["usage_ratio"], reverse=reverse)
+        else:
+            dated = [s for s in grp if s.get("purchased_at")]
+            undated = [s for s in grp if not s.get("purchased_at")]
+            dated.sort(key=lambda s: s["purchased_at"], reverse=reverse)
+            grouped[status] = dated + undated
 
-    spools = [s for s in all_spools if s["status"] in status_filter]
-    if material_filter:
-        spools = [s for s in spools if (s["material"] or "").strip().lower() == material_filter.strip().lower()]
-
-    reverse = sort_dir == "desc"
-    if sort_by == "usage_ratio":
-        spools.sort(key=lambda s: s["usage_ratio"], reverse=reverse)
-    else:
-        dated = [s for s in spools if s.get("purchased_at")]
-        undated = [s for s in spools if not s.get("purchased_at")]
-        dated.sort(key=lambda s: s["purchased_at"], reverse=reverse)
-        spools = dated + undated
+    sections = [
+        {"status": status, "label": label, "spools": grouped[status]}
+        for status, label, _, _ in _SECTION_CONFIG
+    ]
 
     return render_template(
         "spools/list.html",
-        spools=spools,
+        sections=sections,
+        section_sorts=section_sorts,
+        tasks_by_spool=tasks_by_spool,
         total_count=len(all_spools),
-        materials=materials,
-        status_filter=status_filter,
-        material_filter=material_filter,
-        sort_by=sort_by,
-        sort_dir=sort_dir,
     )
 
 

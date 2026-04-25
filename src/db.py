@@ -520,6 +520,29 @@ def delete_manual_task(conn: sqlite3.Connection, task_id: int) -> bool:
     return True
 
 
+def get_tasks_grouped_by_spool(conn: sqlite3.Connection) -> dict:
+    rows = conn.execute(
+        """
+        SELECT
+          pt.id, pt.print_name, pt.started_at, pt.cover_url,
+          SUM(ptf.used_weight_g) AS used_weight_g,
+          ptf.filament_spool_id
+        FROM print_task pt
+        JOIN print_task_filament ptf ON ptf.print_task_id = pt.id
+        WHERE ptf.filament_spool_id IS NOT NULL
+        GROUP BY ptf.filament_spool_id, pt.id
+        ORDER BY ptf.filament_spool_id, pt.started_at DESC
+        """
+    ).fetchall()
+    result: dict = {}
+    for r in rows:
+        sid = r["filament_spool_id"]
+        if sid not in result:
+            result[sid] = []
+        result[sid].append(dict(r))
+    return result
+
+
 def replace_task_filaments(conn: sqlite3.Connection, task_id: int, filaments: list[dict]) -> None:
     conn.execute(
         "DELETE FROM print_task_filament WHERE print_task_id=?", (task_id,)

@@ -3,22 +3,29 @@
 
 {% block content %}
 
-{# ── Macros ── #}
-{% macro sort_link(label, col) %}
-  {% if sort_by == col %}
-    {% set new_dir = 'asc' if sort_dir == 'desc' else 'desc' %}
-    {% set arrow = ' ↓' if sort_dir == 'desc' else ' ↑' %}
+{# ── 排序連結 macro：切換指定 section 的排序，保留其他 section 的排序參數 ── #}
+{% macro sort_link(cur_status, label, col) %}
+  {% set cur = section_sorts[cur_status] %}
+  {% if cur.sort_by == col %}
+    {% set new_dir = 'asc' if cur.sort_dir == 'desc' else 'desc' %}
+    {% set arrow = ' ↓' if cur.sort_dir == 'desc' else ' ↑' %}
+    {% set active = true %}
   {% else %}
     {% set new_dir = 'desc' %}
     {% set arrow = '' %}
+    {% set active = false %}
   {% endif %}
-  <a href="{{ url_for('spools.list_view', _filtered=1,
-               status=status_filter,
-               material=material_filter if material_filter else None,
-               sort_by=col, sort_dir=new_dir) }}"
-     style="color:inherit;text-decoration:none;white-space:nowrap;font-weight:{% if sort_by == col %}bold{% else %}normal{% endif %};">
-    {{- label -}}{{- arrow -}}
-  </a>
+  <a href="{{ url_for('spools.list_view',
+      s_low    = col     if cur_status == 'low'    else section_sorts.low.sort_by,
+      d_low    = new_dir if cur_status == 'low'    else section_sorts.low.sort_dir,
+      s_active = col     if cur_status == 'active' else section_sorts.active.sort_by,
+      d_active = new_dir if cur_status == 'active' else section_sorts.active.sort_dir,
+      s_sealed = col     if cur_status == 'sealed' else section_sorts.sealed.sort_by,
+      d_sealed = new_dir if cur_status == 'sealed' else section_sorts.sealed.sort_dir,
+      s_empty  = col     if cur_status == 'empty'  else section_sorts.empty.sort_by,
+      d_empty  = new_dir if cur_status == 'empty'  else section_sorts.empty.sort_dir
+    ) }}"
+     class="sort-btn{% if active %} sort-btn--active{% endif %}">{{ label }}{{ arrow }}</a>
 {% endmacro %}
 
 {# ── 頂部按鈕列 ── #}
@@ -37,118 +44,129 @@
   </div>
 </div>
 
-{# ── Filter form ── #}
-<form method="get" action="{{ url_for('spools.list_view') }}" id="filter-form"
-      style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap;margin:1rem 0 0.5rem;">
-  <input type="hidden" name="_filtered" value="1">
-  <input type="hidden" name="sort_by" value="{{ sort_by }}">
-  <input type="hidden" name="sort_dir" value="{{ sort_dir }}">
+<p style="color:var(--pico-muted-color);font-size:0.88rem;margin:0.75rem 0 1.75rem;">共 {{ total_count }} 筆耗材</p>
 
-  <div style="display:flex;gap:0.75rem;align-items:center;flex-wrap:wrap;">
-    <small style="color:var(--pico-muted-color);white-space:nowrap;">狀態：</small>
-    {% for st, label in [('sealed','未開封'),('active','使用中'),('low','偏低'),('empty','已用盡')] %}
-    <label style="display:inline-flex;align-items:center;gap:0.3rem;margin:0;cursor:pointer;white-space:nowrap;">
-      <input type="checkbox" name="status" value="{{ st }}"
-             {% if st in status_filter %}checked{% endif %}
-             style="margin:0;">
-      <small>{{ label }}</small>
-    </label>
-    {% endfor %}
-  </div>
-
-  <div style="display:flex;align-items:center;gap:0.4rem;">
-    <small style="color:var(--pico-muted-color);white-space:nowrap;">材料：</small>
-    <select name="material" style="margin:0;padding:0.25rem 0.5rem;font-size:0.9rem;width:auto;min-width:120px;">
-      <option value="">全部</option>
-      {% for m in materials %}
-      <option value="{{ m }}" {% if material_filter == m %}selected{% endif %}>{{ m }}</option>
-      {% endfor %}
-    </select>
-  </div>
-</form>
-
-{# ── 結果計數 ── #}
-<p style="color:var(--pico-muted-color);font-size:0.88rem;margin-bottom:0.5rem;">
-  顯示 {{ spools|length }} / {{ total_count }} 筆
-</p>
-
-{# ── Table ── #}
-{% if spools %}
-<div class="overflow-auto">
-<table>
-  <thead>
-    <tr>
-      <th>顏色</th>
-      <th>材料</th>
-      <th>初始重量</th>
-      <th>已使用</th>
-      <th>{{ sort_link('使用率 / 剩餘', 'usage_ratio') }}</th>
-      <th>狀態</th>
-      <th>{{ sort_link('購買日期', 'purchased_at') }}</th>
-      <th>操作</th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for s in spools %}
-    <tr>
-      <td>
-        {% if s.color_hex %}
-        <span class="color-swatch" style="--swatch-color:{{ s.color_hex }};"></span>
-        {% endif %}
-        {{ s.color_name or '-' }}
-        {% if s.color_hex %}<small style="color:var(--pico-muted-color);font-size:0.78rem;"> {{ s.color_hex }}</small>{% endif %}
-      </td>
-      <td>{{ s.material or '-' }}</td>
-      <td>{{ '%.0f' % s.initial_weight_g }}g</td>
-      <td>{{ '%.1f' % s.used_weight_g }}g</td>
-      <td>
-        {% set pct = [[(s.remaining_weight_g / s.initial_weight_g * 100) | round | int, 0] | max, 100] | min %}
-        {% if pct >= 50 %}{% set bar_cls = '' %}
-        {% elif pct >= 25 %}{% set bar_cls = 'bar-yellow' %}
-        {% elif pct >= 10 %}{% set bar_cls = 'bar-orange' %}
-        {% else %}{% set bar_cls = 'bar-red' %}{% endif %}
-        <div class="progress-bar-container" title="{{ '%.1f' % s.remaining_weight_g }}g 剩餘">
-          <div class="progress-bar {{ bar_cls }}" style="width:{{ pct }}%"></div>
-        </div>
-        <small>{{ '%.1f' % s.remaining_weight_g }}g
-          <span style="color:var(--pico-muted-color);">({{ '%.0f' % (s.usage_ratio * 100) }}%)</span>
-        </small>
-      </td>
-      <td>
-        {% set status_label = {'active': '使用中', 'low': '偏低', 'empty': '已用盡', 'sealed': '未開封'} %}
-        <span class="status-badge status-{{ s.status }}">{{ status_label.get(s.status, s.status) }}</span>
-      </td>
-      <td style="color:var(--pico-muted-color);font-size:0.88rem;white-space:nowrap;">
-        {{ (s.purchased_at or '')[:10] or '-' }}
-      </td>
-      <td>
-        <div style="display:flex;gap:0.4rem;align-items:stretch;">
-          <a href="{{ url_for('spools.edit_view', spool_id=s.id) }}" role="button" class="outline"
-             style="flex:1;display:flex;align-items:center;justify-content:center;padding:0.3rem 0.5rem;font-size:0.85rem;">編輯</a>
-          <form method="post" action="{{ url_for('spools.delete_view', spool_id=s.id) }}"
-                style="flex:1;margin:0;display:flex;" onsubmit="return confirm('確定刪除此耗材？');">
-            <button type="submit" class="outline danger"
-                    style="flex:1;padding:0.3rem 0.5rem;font-size:0.85rem;margin-bottom:0;">刪除</button>
-          </form>
-        </div>
-      </td>
-    </tr>
-    {% endfor %}
-  </tbody>
-</table>
-</div>
-{% elif total_count == 0 %}
+{% if total_count == 0 %}
 <p>尚無耗材記錄。點擊右上角「新增耗材」開始管理。</p>
-{% else %}
-<p style="color:var(--pico-muted-color);">目前篩選條件下沒有符合的耗材。</p>
 {% endif %}
 
+{# ── 四個狀態區塊 ── #}
+{% for section in sections %}
+{% set st = section.status %}
+{% set spools = section.spools %}
+
+<section class="spool-section">
+  <div class="section-header">
+    <div class="section-title">
+      <span class="status-badge status-{{ st }}">{{ section.label }}</span>
+      <span class="section-count">{{ spools|length }} 筆</span>
+    </div>
+    {% if spools %}
+    <div class="section-sorts">
+      <span style="color:var(--pico-muted-color);">排序：</span>
+      {{ sort_link(st, '用量', 'usage_ratio') }}
+      {{ sort_link(st, '購買日期', 'purchased_at') }}
+    </div>
+    {% endif %}
+  </div>
+
+  {% if spools %}
+  <div class="spool-list">
+    {% for s in spools %}
+    {% set pct = [[(s.remaining_weight_g / s.initial_weight_g * 100)|round|int, 0]|max, 100]|min %}
+    {% if pct >= 50 %}{% set bar_cls = '' %}
+    {% elif pct >= 25 %}{% set bar_cls = 'bar-yellow' %}
+    {% elif pct >= 10 %}{% set bar_cls = 'bar-orange' %}
+    {% else %}{% set bar_cls = 'bar-red' %}{% endif %}
+    {% set stasks = tasks_by_spool.get(s.id, []) %}
+
+    <div class="spool-item" id="spool-{{ s.id }}">
+      <div class="spool-row">
+
+        {# 顏色欄 — 點擊展開畫廊 #}
+        <div class="spool-col-color" onclick="toggleSpoolGallery({{ s.id }})"
+             title="點擊展開 / 收起列印任務">
+          <span class="gallery-toggle-icon">▶</span>
+          {% if s.color_hex %}
+          <span class="color-swatch" style="--swatch-color:{{ s.color_hex }};"></span>
+          {% endif %}
+          <span class="spool-color-name">{{ s.color_name or '未命名' }}</span>
+          {% if stasks %}
+          <small class="spool-task-count">{{ stasks|length }} 次</small>
+          {% endif %}
+        </div>
+
+        {# 材料 #}
+        <div class="spool-col-material">
+          <small>{{ s.material or '-' }}</small>
+        </div>
+
+        {# 剩餘量 #}
+        <div class="spool-col-weight">
+          <div class="progress-bar-container" title="{{ '%.1f'|format(s.remaining_weight_g) }}g 剩餘">
+            <div class="progress-bar {{ bar_cls }}" style="width:{{ pct }}%"></div>
+          </div>
+          <small>{{ '%.1f'|format(s.remaining_weight_g) }}g
+            <span style="color:var(--pico-muted-color);">({{ '%.0f'|format(s.usage_ratio * 100) }}%)</span>
+          </small>
+        </div>
+
+        {# 購買日期 #}
+        <div class="spool-col-date">
+          <small style="color:var(--pico-muted-color);">{{ (s.purchased_at or '')[:10] or '-' }}</small>
+        </div>
+
+        {# 操作 #}
+        <div class="spool-col-actions">
+          <a href="{{ url_for('spools.edit_view', spool_id=s.id) }}" role="button" class="outline"
+             style="padding:0.3rem 0.6rem;font-size:0.85rem;margin-bottom:0;">編輯</a>
+          <form method="post" action="{{ url_for('spools.delete_view', spool_id=s.id) }}"
+                style="margin:0;display:inline;"
+                onsubmit="return confirm('確定刪除此耗材？');">
+            <button type="submit" class="outline danger"
+                    style="padding:0.3rem 0.6rem;font-size:0.85rem;margin-bottom:0;">刪除</button>
+          </form>
+        </div>
+      </div>
+
+      {# 任務畫廊 #}
+      <div class="spool-gallery" id="gallery-{{ s.id }}">
+        {% if stasks %}
+        <div class="task-gallery-grid">
+          {% for task in stasks %}
+          <a href="{{ url_for('tasks.detail_view', task_id=task.id) }}"
+             class="task-gallery-card" title="{{ task.print_name or '' }}">
+            <div class="task-gallery-thumb">
+              {% if task.cover_url %}
+              <img src="{{ task.cover_url }}" alt="{{ task.print_name or '' }}" decoding="async">
+              {% endif %}
+            </div>
+            <div class="task-gallery-info">
+              <div class="task-gallery-date">{{ (task.started_at or '')[:10] or '-' }}</div>
+              <div class="task-gallery-weight">{{ '%.1f'|format(task.used_weight_g or 0) }}g</div>
+            </div>
+          </a>
+          {% endfor %}
+        </div>
+        {% else %}
+        <p style="color:var(--pico-muted-color);font-size:0.85rem;padding:0.5rem 0 0.75rem;">
+          此耗材尚無已對照的列印任務。
+        </p>
+        {% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  {% else %}
+  <p style="color:var(--pico-muted-color);font-size:0.88rem;padding:0.4rem 0 0.6rem;">此狀態目前沒有耗材。</p>
+  {% endif %}
+</section>
+{% endfor %}
+
 <script>
-(function () {
-  var form = document.getElementById('filter-form');
-  form.querySelectorAll('input[type=checkbox], select').forEach(function (el) {
-    el.addEventListener('change', function () { form.submit(); });
-  });
-}());
+function toggleSpoolGallery(spoolId) {
+  document.getElementById('spool-' + spoolId).classList.toggle('is-expanded');
+}
 </script>
 {% endblock %}
