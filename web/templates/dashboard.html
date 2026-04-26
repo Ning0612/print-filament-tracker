@@ -4,6 +4,7 @@
 {% block content %}
 <h1>儀表板</h1>
 
+<p class="dashboard-section-label">耗材狀態</p>
 <div class="stats-grid">
   <article>
     <header>耗材總數</header>
@@ -33,6 +34,29 @@
     </p>
   </article>
   {% endif %}
+</div>
+
+<p class="dashboard-section-label" style="margin-top:1.5rem;">列印總計</p>
+<div class="stats-grid">
+  <article>
+    <header>總任務數</header>
+    <p class="stat-number">{{ print_stats.total_tasks }}</p>
+  </article>
+  <article>
+    <header>總用料重量</header>
+    {% set kg = print_stats.total_weight_g / 1000 %}
+    {% if print_stats.total_weight_g >= 1000 %}
+      <p class="stat-number">{{ '%.1f' % kg }}<small style="font-size:1rem;font-weight:normal;">kg</small></p>
+    {% else %}
+      <p class="stat-number">{{ print_stats.total_weight_g | int }}<small style="font-size:1rem;font-weight:normal;">g</small></p>
+    {% endif %}
+  </article>
+  <article>
+    <header>總列印時長</header>
+    {% set h = print_stats.total_duration_seconds // 3600 %}
+    {% set m = (print_stats.total_duration_seconds % 3600) // 60 %}
+    <p class="stat-number">{{ h }}<small style="font-size:1rem;font-weight:normal;">h</small> {{ '%02d' % m }}<small style="font-size:1rem;font-weight:normal;">m</small></p>
+  </article>
 </div>
 
 <h2 style="margin-top:2rem;">

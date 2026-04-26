@@ -54,12 +54,14 @@ def create_app(db_path: Path | None = None) -> Flask:
 
     from web.routes.dashboard import bp as dashboard_bp
     from web.routes.mapping import bp as mapping_bp
+    from web.routes.printers import bp as printers_bp
     from web.routes.settings import bp as settings_bp
     from web.routes.spools import bp as spools_bp
     from web.routes.tasks import bp as tasks_bp
 
     app.register_blueprint(dashboard_bp)
     app.register_blueprint(spools_bp, url_prefix="/spools")
+    app.register_blueprint(printers_bp, url_prefix="/printers")
     app.register_blueprint(tasks_bp, url_prefix="/tasks")
     app.register_blueprint(mapping_bp, url_prefix="/mapping")
     app.register_blueprint(settings_bp)

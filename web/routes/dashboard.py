@@ -22,6 +22,19 @@ def index():
 
     with get_connection(db_path) as conn:
         recent_tasks = get_recent_tasks(conn, limit=10)
+        row = conn.execute(
+            """
+            SELECT COUNT(*) AS cnt,
+                   COALESCE(SUM(total_weight_g), 0.0) AS weight_g,
+                   COALESCE(SUM(duration_seconds), 0) AS duration_s
+            FROM print_task
+            """
+        ).fetchone()
+        print_stats = {
+            "total_tasks": row["cnt"],
+            "total_weight_g": row["weight_g"],
+            "total_duration_seconds": row["duration_s"],
+        }
 
     return render_template(
         "dashboard.html",
@@ -29,4 +42,5 @@ def index():
         stats=stats,
         unmapped_count=unmapped_count,
         recent_tasks=recent_tasks,
+        print_stats=print_stats,
     )
