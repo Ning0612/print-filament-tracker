@@ -9,7 +9,7 @@ from src.filament import (
     do_unmap,
     edit_ptf_material,
     list_ignored,
-    list_mapped,
+    list_mapped_by_spool,
     list_spools_for_mapping,
     list_unmapped,
     read_mapped_filament,
@@ -27,13 +27,14 @@ def list_view():
     if show not in ("unmapped", "mapped", "ignored"):
         show = "unmapped"
     unmapped = list_unmapped(db_path)
-    mapped = list_mapped(db_path)
+    mapped_by_spool, mapped_count = list_mapped_by_spool(db_path)
     ignored = list_ignored(db_path)
     spools = list_spools_for_mapping(db_path)
     return render_template(
         "mapping/unmapped.html",
         unmapped=unmapped,
-        mapped=mapped,
+        mapped_by_spool=mapped_by_spool,
+        mapped_count=mapped_count,
         ignored=ignored,
         spools=spools,
         show=show,

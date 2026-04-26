@@ -1,4 +1,4 @@
-<tr id="mapped-row-{{ r.id }}">
+<tr id="mapped-row-{{ r.id }}" class="spool-detail-{{ r.filament_spool_id }}">
   <td>
     {% if r.cover_url %}
     <div class="cover-thumb cover-thumb--sm">
@@ -29,13 +29,13 @@
               hx-get="{{ url_for('mapping.remap_form', ptf_id=r.id) }}"
               hx-target="#mapped-row-{{ r.id }}"
               hx-swap="outerHTML"
-              style="padding:0.1rem 0.5rem;font-size:0.8rem;margin:0;line-height:1.4;">修改</button>
+              style="padding:0.3rem 0.75rem;font-size:0.875rem;margin:0;line-height:1.4;">修改</button>
       <button class="outline"
               hx-post="{{ url_for('mapping.unmap_view', ptf_id=r.id) }}"
               hx-target="#mapped-row-{{ r.id }}"
               hx-swap="outerHTML"
               hx-confirm="確定要移除此對照嗎？"
-              style="padding:0.1rem 0.5rem;font-size:0.8rem;margin:0;line-height:1.4;color:var(--pico-del-color);">移除</button>
+              style="padding:0.3rem 0.75rem;font-size:0.875rem;margin:0;line-height:1.4;color:var(--pico-del-color);">移除</button>
     </div>
   </td>
 </tr>

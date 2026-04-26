@@ -212,6 +212,34 @@ def list_mapped(db_path: Path) -> list[dict]:
         return [dict(r) for r in rows]
 
 
+def list_mapped_by_spool(db_path: Path) -> tuple[list[dict], int]:
+    """Return (groups, total_count). Each group: spool meta + filaments list."""
+    with get_connection(db_path) as conn:
+        rows = get_mapped_filaments(conn)
+        used_map = _get_all_used_weights(conn)
+
+    groups: dict[int, dict] = {}
+    for row in rows:
+        r = dict(row)
+        sid = r["filament_spool_id"]
+        if sid not in groups:
+            initial = r.get("spool_initial_weight_g") or 0.0
+            used = used_map.get(sid, 0.0)
+            groups[sid] = {
+                "spool_id": sid,
+                "spool_color_name": r["spool_color_name"],
+                "spool_color_hex": r["spool_color_hex"],
+                "spool_material": r["spool_material"],
+                "spool_remaining_weight_g": max(0.0, initial - used),
+                "filaments": [],
+            }
+        groups[sid]["filaments"].append(r)
+
+    group_list = list(groups.values())
+    total = sum(len(g["filaments"]) for g in group_list)
+    return group_list, total
+
+
 def list_ignored(db_path: Path) -> list[dict]:
     with get_connection(db_path) as conn:
         rows = get_ignored_filaments(conn)

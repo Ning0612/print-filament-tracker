@@ -11,7 +11,7 @@
     </a>
     <a href="{{ url_for('mapping.list_view', show='mapped') }}"
        role="button" {% if show != 'mapped' %}class="outline"{% endif %}>
-      已對照 ({{ mapped|length }})
+      已對照 ({{ mapped_count }})
     </a>
     <a href="{{ url_for('mapping.list_view', show='ignored') }}"
        role="button" {% if show != 'ignored' %}class="outline"{% endif %}>
@@ -63,7 +63,7 @@
                   hx-get="{{ url_for('mapping.material_edit_form', ptf_id=r.id) }}"
                   hx-target="#mat-{{ r.id }}"
                   hx-swap="innerHTML"
-                  style="padding:0.1rem 0.5rem;font-size:0.8rem;margin:0 0 0 0.3rem;line-height:1.4;"
+                  style="padding:0.3rem 0.5rem;font-size:0.875rem;margin:0 0 0 0.3rem;line-height:1.4;"
                   aria-label="編輯材料">✏</button>
         </td>
         <td>
@@ -90,7 +90,7 @@
             hx-include="#spool-select-{{ r.id }}"
             hx-target="#ptf-row-{{ r.id }}"
             hx-swap="outerHTML"
-            style="padding:0.1rem 0.5rem;font-size:0.8rem;margin:0;line-height:1.4;"
+            style="padding:0.3rem 0.75rem;font-size:0.875rem;margin:0;line-height:1.4;"
           >確認</button>
         </td>
       </tr>
@@ -103,11 +103,11 @@
   {% endif %}
 
 {% elif show == 'mapped' %}
-  {# ── 已對照 view ── #}
-  {% if mapped %}
-  <p style="color:var(--pico-muted-color);margin-top:0.75rem;">共 {{ mapped|length }} 筆已完成對照。</p>
+  {# ── 已對照 view（依 spool 分組）── #}
+  {% if mapped_by_spool %}
+  <p style="color:var(--pico-muted-color);margin-top:0.75rem;">共 {{ mapped_count }} 筆已完成對照，分屬 {{ mapped_by_spool|length }} 個耗材線圈。點擊線圈列展開任務。</p>
   <div class="overflow-auto">
-  <table>
+  <table id="mapped-table">
     <thead>
       <tr>
         <th style="width:60px;">圖片</th>
@@ -121,8 +121,23 @@
       </tr>
     </thead>
     <tbody>
-      {% for r in mapped %}
-      <tr id="mapped-row-{{ r.id }}">
+      {% for g in mapped_by_spool %}
+      <tr class="spool-group-header"
+          onclick="toggleSpoolGroup({{ g.spool_id }})"
+          style="cursor:pointer;">
+        <td colspan="6">
+          <span id="toggle-{{ g.spool_id }}" style="font-size:0.75rem;margin-right:0.35rem;display:inline-block;width:0.8em;">▶</span>
+          {% if g.spool_color_hex %}
+          <span class="color-swatch" style="--swatch-color:{{ g.spool_color_hex }};"></span>
+          {% endif %}
+          <strong>{{ g.spool_color_name or g.spool_color_hex or '未命名' }}</strong>
+          {% if g.spool_material %}<small style="color:var(--pico-muted-color);"> {{ g.spool_material }}</small>{% endif %}
+        </td>
+        <td><small style="color:var(--pico-muted-color);">剩 {{ '%.0f' % g.spool_remaining_weight_g }}g</small></td>
+        <td><small style="color:var(--pico-muted-color);">{{ g.filaments|length }} 筆</small></td>
+      </tr>
+      {% for r in g.filaments %}
+      <tr id="mapped-row-{{ r.id }}" class="spool-detail-{{ g.spool_id }}" style="display:none;">
         <td>
           {% if r.cover_url %}
           <div class="cover-thumb cover-thumb--sm">
@@ -153,20 +168,30 @@
                     hx-get="{{ url_for('mapping.remap_form', ptf_id=r.id) }}"
                     hx-target="#mapped-row-{{ r.id }}"
                     hx-swap="outerHTML"
-                    style="padding:0.1rem 0.5rem;font-size:0.8rem;margin:0;line-height:1.4;">修改</button>
+                    style="padding:0.3rem 0.75rem;font-size:0.875rem;margin:0;line-height:1.4;">修改</button>
             <button class="outline"
                     hx-post="{{ url_for('mapping.unmap_view', ptf_id=r.id) }}"
                     hx-target="#mapped-row-{{ r.id }}"
                     hx-swap="outerHTML"
                     hx-confirm="確定要移除此對照嗎？"
-                    style="padding:0.1rem 0.5rem;font-size:0.8rem;margin:0;line-height:1.4;color:var(--pico-del-color);">移除</button>
+                    style="padding:0.3rem 0.75rem;font-size:0.875rem;margin:0;line-height:1.4;color:var(--pico-del-color);">移除</button>
           </div>
         </td>
       </tr>
       {% endfor %}
+      {% endfor %}
     </tbody>
   </table>
   </div>
+  <script>
+  function toggleSpoolGroup(spoolId) {
+    const rows = document.querySelectorAll('.spool-detail-' + spoolId);
+    const icon = document.getElementById('toggle-' + spoolId);
+    const expand = rows.length > 0 && rows[0].style.display === 'none';
+    rows.forEach(r => { r.style.display = expand ? '' : 'none'; });
+    if (icon) icon.textContent = expand ? '▼' : '▶';
+  }
+  </script>
   {% else %}
   <p style="margin-top:1rem;">尚無已對照記錄。</p>
   {% endif %}
@@ -214,7 +239,7 @@
                   hx-target="#ignored-row-{{ r.id }}"
                   hx-swap="outerHTML"
                   hx-confirm="確定要取消忽略嗎？"
-                  style="padding:0.1rem 0.5rem;font-size:0.8rem;margin:0;line-height:1.4;">取消忽略</button>
+                  style="padding:0.3rem 0.75rem;font-size:0.875rem;margin:0;line-height:1.4;">取消忽略</button>
         </td>
       </tr>
       {% endfor %}

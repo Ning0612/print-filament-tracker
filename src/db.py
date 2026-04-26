@@ -354,7 +354,8 @@ def get_mapped_filaments(conn: sqlite3.Connection) -> list:
           pt.print_name, pt.started_at, pt.cover_url,
           fs.color_name AS spool_color_name,
           fs.color_hex AS spool_color_hex,
-          fs.material AS spool_material
+          fs.material AS spool_material,
+          fs.initial_weight_g AS spool_initial_weight_g
         FROM print_task_filament ptf
         JOIN print_task pt ON pt.id = ptf.print_task_id
         JOIN filament_spool fs ON fs.id = ptf.filament_spool_id

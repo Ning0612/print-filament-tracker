@@ -18,12 +18,12 @@
               hx-include="#remap-spool-{{ r.id }}"
               hx-target="#mapped-row-{{ r.id }}"
               hx-swap="outerHTML"
-              style="padding:0.1rem 0.5rem;font-size:0.8rem;margin:0;line-height:1.4;">確認</button>
+              style="padding:0.3rem 0.75rem;font-size:0.875rem;margin:0;line-height:1.4;">確認</button>
       <button class="outline"
               hx-get="{{ url_for('mapping.mapped_row_view', ptf_id=r.id) }}"
               hx-target="#mapped-row-{{ r.id }}"
               hx-swap="outerHTML"
-              style="padding:0.1rem 0.5rem;font-size:0.8rem;margin:0;line-height:1.4;">取消</button>
+              style="padding:0.3rem 0.75rem;font-size:0.875rem;margin:0;line-height:1.4;">取消</button>
     </div>
   </td>
 </tr>
