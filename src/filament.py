@@ -11,6 +11,7 @@ from .db import (
     delete_spool,
     get_all_spools,
     get_connection,
+    get_ignored_filaments,
     get_mapped_filament_by_id,
     get_mapped_filaments,
     get_ptf_by_id,
@@ -20,8 +21,10 @@ from .db import (
     get_spool_used_weight,
     get_tasks_grouped_by_spool,
     get_unmapped_filaments,
+    ignore_filament,
     insert_spool,
     map_filament_to_spool,
+    unignore_filament,
     unmap_filament,
     update_ptf_material,
     update_spool,
@@ -207,6 +210,30 @@ def list_mapped(db_path: Path) -> list[dict]:
     with get_connection(db_path) as conn:
         rows = get_mapped_filaments(conn)
         return [dict(r) for r in rows]
+
+
+def list_ignored(db_path: Path) -> list[dict]:
+    with get_connection(db_path) as conn:
+        rows = get_ignored_filaments(conn)
+        return [dict(r) for r in rows]
+
+
+def do_ignore(db_path: Path, ptf_id: int) -> None:
+    with get_connection(db_path) as conn:
+        if get_ptf_by_id(conn, ptf_id) is None:
+            raise SpoolNotFoundError(f"耗材記錄 id={ptf_id} 不存在。")
+        try:
+            ignore_filament(conn, ptf_id)
+        except DatabaseError as exc:
+            raise SpoolNotFoundError(str(exc)) from exc
+
+
+def do_unignore(db_path: Path, ptf_id: int) -> None:
+    with get_connection(db_path) as conn:
+        try:
+            unignore_filament(conn, ptf_id)
+        except DatabaseError as exc:
+            raise SpoolNotFoundError(str(exc)) from exc
 
 
 def read_ptf_material(db_path: Path, ptf_id: int):

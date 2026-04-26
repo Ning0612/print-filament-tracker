@@ -13,15 +13,19 @@
        role="button" {% if show != 'mapped' %}class="outline"{% endif %}>
       已對照 ({{ mapped|length }})
     </a>
+    <a href="{{ url_for('mapping.list_view', show='ignored') }}"
+       role="button" {% if show != 'ignored' %}class="outline"{% endif %}>
+      已忽略 ({{ ignored|length }})
+    </a>
   </div>
 </div>
 
 {% if show == 'unmapped' %}
   {% if not spools %}
   <div role="alert" style="margin-top:1rem;">
-    ⚠ 目前沒有任何耗材記錄。請先至
+    ⚠ 目前沒有任何耗材記錄，請先至
     <a href="{{ url_for('spools.new_view') }}">耗材管理</a>
-    新增耗材後再進行對照。
+    新增耗材後再對照；或在下方下拉選單選擇「忽略」跳過。
   </div>
   {% endif %}
 
@@ -59,7 +63,7 @@
                   hx-get="{{ url_for('mapping.material_edit_form', ptf_id=r.id) }}"
                   hx-target="#mat-{{ r.id }}"
                   hx-swap="innerHTML"
-                  style="padding:0.1rem 0.4rem;font-size:0.8rem;margin:0 0 0 0.3rem;line-height:1.2;"
+                  style="padding:0.1rem 0.5rem;font-size:0.8rem;margin:0 0 0 0.3rem;line-height:1.4;"
                   aria-label="編輯材料">✏</button>
         </td>
         <td>
@@ -70,13 +74,14 @@
         </td>
         <td>{{ '%.1f' % r.used_weight_g if r.used_weight_g else '-' }}g</td>
         <td>
-          <select name="spool_id" id="spool-select-{{ r.id }}" style="min-width:200px;" {% if not spools %}disabled{% endif %}>
+          <select name="spool_id" id="spool-select-{{ r.id }}" style="min-width:200px;">
             <option value="">— 選擇 spool —</option>
             {% for s in spools %}
             <option value="{{ s.id }}">
               [{{ s.id }}] {{ s.color_name or s.color_hex or '-' }} {{ s.material or '' }} (剩{{ '%.0f' % s.remaining_weight_g }}g)
             </option>
             {% endfor %}
+            <option value="__ignore__">— 忽略此記錄 —</option>
           </select>
         </td>
         <td>
@@ -85,7 +90,7 @@
             hx-include="#spool-select-{{ r.id }}"
             hx-target="#ptf-row-{{ r.id }}"
             hx-swap="outerHTML"
-            {% if not spools %}disabled{% endif %}
+            style="padding:0.1rem 0.5rem;font-size:0.8rem;margin:0;line-height:1.4;"
           >確認</button>
         </td>
       </tr>
@@ -97,7 +102,7 @@
   <p style="margin-top:1rem;">✅ 所有耗材記錄均已對照，沒有待處理項目。</p>
   {% endif %}
 
-{% else %}
+{% elif show == 'mapped' %}
   {# ── 已對照 view ── #}
   {% if mapped %}
   <p style="color:var(--pico-muted-color);margin-top:0.75rem;">共 {{ mapped|length }} 筆已完成對照。</p>
@@ -165,5 +170,60 @@
   {% else %}
   <p style="margin-top:1rem;">尚無已對照記錄。</p>
   {% endif %}
+
+{% elif show == 'ignored' %}
+  {# ── 已忽略 view ── #}
+  {% if ignored %}
+  <p style="color:var(--pico-muted-color);margin-top:0.75rem;">共 {{ ignored|length }} 筆已忽略。移除忽略後可重新對照。</p>
+  <div class="overflow-auto">
+  <table>
+    <thead>
+      <tr>
+        <th style="width:60px;">圖片</th>
+        <th>列印任務</th>
+        <th>日期</th>
+        <th>材料</th>
+        <th>顏色</th>
+        <th>用量</th>
+        <th>操作</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in ignored %}
+      <tr id="ignored-row-{{ r.id }}">
+        <td>
+          {% if r.cover_url %}
+          <div class="cover-thumb cover-thumb--sm">
+            <img src="{{ r.cover_url }}" alt="" loading="lazy" decoding="async">
+          </div>
+          {% else %}<span style="color:var(--pico-muted-color);">—</span>{% endif %}
+        </td>
+        <td><a href="{{ url_for('tasks.detail_view', task_id=r.print_task_id) }}">{{ r.print_name or '(未命名)' }}</a></td>
+        <td>{{ (r.started_at or '')[:10] }}</td>
+        <td>{{ r.material or '-' }}</td>
+        <td>
+          {% if r.color_hex %}
+          <span class="color-swatch" style="--swatch-color:{{ r.color_hex }};"></span>
+          {% endif %}
+          <code>{{ r.color_hex or '-' }}</code>
+        </td>
+        <td>{{ '%.1f' % r.used_weight_g if r.used_weight_g else '-' }}g</td>
+        <td>
+          <button class="outline"
+                  hx-post="{{ url_for('mapping.unignore_view', ptf_id=r.id) }}"
+                  hx-target="#ignored-row-{{ r.id }}"
+                  hx-swap="outerHTML"
+                  hx-confirm="確定要取消忽略嗎？"
+                  style="padding:0.1rem 0.5rem;font-size:0.8rem;margin:0;line-height:1.4;">取消忽略</button>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  {% else %}
+  <p style="margin-top:1rem;">尚無已忽略記錄。</p>
+  {% endif %}
+
 {% endif %}
 {% endblock %}

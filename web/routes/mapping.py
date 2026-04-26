@@ -3,9 +3,12 @@ from markupsafe import escape
 
 from src.filament import (
     SpoolNotFoundError,
+    do_ignore,
     do_map,
+    do_unignore,
     do_unmap,
     edit_ptf_material,
+    list_ignored,
     list_mapped,
     list_spools_for_mapping,
     list_unmapped,
@@ -21,15 +24,17 @@ bp = Blueprint("mapping", __name__)
 def list_view():
     db_path = current_app.config["DB_PATH"]
     show = request.args.get("show", "unmapped")
-    if show not in ("unmapped", "mapped"):
+    if show not in ("unmapped", "mapped", "ignored"):
         show = "unmapped"
     unmapped = list_unmapped(db_path)
     mapped = list_mapped(db_path)
+    ignored = list_ignored(db_path)
     spools = list_spools_for_mapping(db_path)
     return render_template(
         "mapping/unmapped.html",
         unmapped=unmapped,
         mapped=mapped,
+        ignored=ignored,
         spools=spools,
         show=show,
     )
@@ -41,7 +46,14 @@ def map_view(ptf_id: int):
     spool_id_str = request.form.get("spool_id", "").strip()
 
     if not spool_id_str:
-        return _row_error(ptf_id, "請選擇一個 spool。")
+        return _row_error(ptf_id, "請選擇一個 spool 或選擇忽略。")
+
+    if spool_id_str == "__ignore__":
+        try:
+            do_ignore(db_path, ptf_id)
+        except SpoolNotFoundError as exc:
+            return _row_error(ptf_id, str(exc))
+        return render_template("mapping/ignored_row.html", ptf_id=ptf_id)
 
     try:
         spool_id = int(spool_id_str)
@@ -132,6 +144,16 @@ def mapped_row_view(ptf_id: int):
     if r is None:
         return f'<tr id="mapped-row-{ptf_id}" style="display:none;"></tr>'
     return render_template("mapping/_mapped_detail_row.html", r=r)
+
+
+@bp.route("/<int:ptf_id>/unignore", methods=["POST"])
+def unignore_view(ptf_id: int):
+    db_path = current_app.config["DB_PATH"]
+    try:
+        do_unignore(db_path, ptf_id)
+    except SpoolNotFoundError:
+        pass
+    return f'<tr id="ignored-row-{ptf_id}" style="display:none;"></tr>'
 
 
 def _row_error(ptf_id: int, msg: str) -> str:

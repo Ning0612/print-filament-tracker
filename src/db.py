@@ -90,6 +90,8 @@ def init_db(db_path: Path) -> None:
         conn.executescript(_SCHEMA_SQL)
         _migrate_add_column(conn, "print_task", "cover_url TEXT")
         _migrate_add_column(conn, "print_task", "is_manual INTEGER NOT NULL DEFAULT 0")
+        _migrate_add_column(conn, "print_task_filament", "is_ignored INTEGER NOT NULL DEFAULT 0")
+        _migrate_add_column(conn, "print_task_filament", "mapped_at DATETIME")
 
 
 @contextmanager
@@ -271,10 +273,43 @@ def get_unmapped_filaments(conn: sqlite3.Connection) -> list:
           pt.print_name, pt.started_at, pt.external_id, pt.cover_url
         FROM print_task_filament ptf
         JOIN print_task pt ON pt.id = ptf.print_task_id
-        WHERE ptf.filament_spool_id IS NULL
+        WHERE ptf.filament_spool_id IS NULL AND ptf.is_ignored = 0
         ORDER BY pt.started_at DESC
         """
     ).fetchall()
+
+
+def get_ignored_filaments(conn: sqlite3.Connection) -> list:
+    return conn.execute(
+        """
+        SELECT
+          ptf.id, ptf.print_task_id, ptf.slot_id,
+          ptf.used_weight_g, ptf.color_hex, ptf.material,
+          pt.print_name, pt.started_at, pt.external_id, pt.cover_url
+        FROM print_task_filament ptf
+        JOIN print_task pt ON pt.id = ptf.print_task_id
+        WHERE ptf.filament_spool_id IS NULL AND ptf.is_ignored = 1
+        ORDER BY pt.started_at DESC
+        """
+    ).fetchall()
+
+
+def ignore_filament(conn: sqlite3.Connection, ptf_id: int) -> None:
+    cursor = conn.execute(
+        "UPDATE print_task_filament SET is_ignored=1 WHERE id=? AND filament_spool_id IS NULL AND is_ignored=0",
+        (ptf_id,),
+    )
+    if cursor.rowcount == 0:
+        raise DatabaseError(f"print_task_filament id={ptf_id} 不存在、已對照或已忽略。")
+
+
+def unignore_filament(conn: sqlite3.Connection, ptf_id: int) -> None:
+    cursor = conn.execute(
+        "UPDATE print_task_filament SET is_ignored=0 WHERE id=? AND is_ignored=1",
+        (ptf_id,),
+    )
+    if cursor.rowcount == 0:
+        raise DatabaseError(f"print_task_filament id={ptf_id} 不存在或未被忽略。")
 
 
 def update_task_cover_if_null(conn: sqlite3.Connection, external_id: int, cover_url: str) -> bool:
@@ -300,11 +335,10 @@ def get_ptf_material(conn: sqlite3.Connection, ptf_id: int):
 def get_spool_last_used_map(conn: sqlite3.Connection) -> dict:
     rows = conn.execute(
         """
-        SELECT ptf.filament_spool_id, MAX(pt.started_at) AS last_used_at
-        FROM print_task_filament ptf
-        JOIN print_task pt ON pt.id = ptf.print_task_id
-        WHERE ptf.filament_spool_id IS NOT NULL
-        GROUP BY ptf.filament_spool_id
+        SELECT filament_spool_id, MAX(mapped_at) AS last_used_at
+        FROM print_task_filament
+        WHERE filament_spool_id IS NOT NULL AND mapped_at IS NOT NULL
+        GROUP BY filament_spool_id
         """
     ).fetchall()
     return {r["filament_spool_id"]: r["last_used_at"] for r in rows}
@@ -369,7 +403,7 @@ def unmap_filament(conn: sqlite3.Connection, ptf_id: int) -> None:
 
 def map_filament_to_spool(conn: sqlite3.Connection, ptf_id: int, spool_id: int) -> None:
     cursor = conn.execute(
-        "UPDATE print_task_filament SET filament_spool_id=? WHERE id=?",
+        "UPDATE print_task_filament SET filament_spool_id=?, is_ignored=0, mapped_at=CURRENT_TIMESTAMP WHERE id=?",
         (spool_id, ptf_id),
     )
     if cursor.rowcount == 0:
