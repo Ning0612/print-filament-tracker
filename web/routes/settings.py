@@ -1,4 +1,6 @@
+import os
 import threading
+from datetime import datetime, timedelta
 from pathlib import Path
 
 import requests
@@ -20,6 +22,19 @@ _TIMEOUT = 20
 _sync_lock = threading.Lock()
 _sync_state: dict = {"status": "idle", "message": "", "stats": None}
 
+_env_lock = threading.Lock()  # serialises all .env reads + writes
+
+_auto_sync_lock = threading.Lock()
+_auto_sync_state: dict = {
+    "interval_minutes": 0,
+    "last_sync_at": None,
+    "next_sync_at": None,
+}
+_scheduler_event = threading.Event()
+_scheduler_thread: threading.Thread | None = None
+
+_VALID_INTERVALS = frozenset({0, 60, 120, 360, 720, 1440})
+
 
 def _api_post(base_url: str, path: str, payload: dict) -> tuple[dict | None, str | None]:
     try:
@@ -37,28 +52,48 @@ def _api_post(base_url: str, path: str, payload: dict) -> tuple[dict | None, str
 
 
 def _write_env(token: str, region: str, env_path: Path) -> None:
-    lines = []
-    has_token = has_region = False
-    if env_path.exists():
-        for line in env_path.read_text(encoding="utf-8").splitlines():
-            stripped = line.lstrip()
-            if stripped.startswith("BAMBU_ACCESS_TOKEN="):
-                lines.append(f"BAMBU_ACCESS_TOKEN={token}")
-                has_token = True
-            elif stripped.startswith("BAMBU_REGION="):
-                lines.append(f"BAMBU_REGION={region}")
-                has_region = True
-            else:
-                lines.append(line)
-    if not has_token:
-        lines.append(f"BAMBU_ACCESS_TOKEN={token}")
-    if not has_region:
-        lines.append(f"BAMBU_REGION={region}")
+    with _env_lock:
+        lines = []
+        has_token = has_region = False
+        if env_path.exists():
+            for line in env_path.read_text(encoding="utf-8").splitlines():
+                stripped = line.lstrip()
+                if stripped.startswith("BAMBU_ACCESS_TOKEN="):
+                    lines.append(f"BAMBU_ACCESS_TOKEN={token}")
+                    has_token = True
+                elif stripped.startswith("BAMBU_REGION="):
+                    lines.append(f"BAMBU_REGION={region}")
+                    has_region = True
+                else:
+                    lines.append(line)
+        if not has_token:
+            lines.append(f"BAMBU_ACCESS_TOKEN={token}")
+        if not has_region:
+            lines.append(f"BAMBU_REGION={region}")
 
-    # Atomic write: write to temp then rename
-    tmp_path = env_path.with_suffix(".env.tmp")
-    tmp_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
-    tmp_path.replace(env_path)
+        # Atomic write: write to temp then rename
+        tmp_path = env_path.with_suffix(".env.tmp")
+        tmp_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+        tmp_path.replace(env_path)
+
+
+def _write_env_key(key: str, value: str, env_path: Path) -> None:
+    """Update or append a single key-value pair in the .env file atomically."""
+    with _env_lock:
+        lines = []
+        found = False
+        if env_path.exists():
+            for line in env_path.read_text(encoding="utf-8").splitlines():
+                if line.lstrip().startswith(f"{key}="):
+                    lines.append(f"{key}={value}")
+                    found = True
+                else:
+                    lines.append(line)
+        if not found:
+            lines.append(f"{key}={value}")
+        tmp_path = env_path.with_suffix(".env.tmp")
+        tmp_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+        tmp_path.replace(env_path)
 
 
 def _apply_token(token: str, region: str) -> None:
@@ -81,16 +116,127 @@ def _mask_token(token: str) -> str:
     return token[:4] + "..." + token[-4:]
 
 
+def _run_sync(app) -> None:
+    """Execute cloud sync in any thread context. Updates _sync_state on completion."""
+    global _sync_state
+    try:
+        from src.config import AppConfig
+        from src.ingestion import run_ingestion_from_cloud
+
+        with app.app_context():
+            token = app.config.get("BAMBU_TOKEN", "")
+            region = app.config.get("BAMBU_REGION", "global")
+            api_base = (
+                app.config.get("BAMBU_API_BASE")
+                or (_GLOBAL_BASE if region == "global" else _CHINA_BASE)
+            )
+            db_path = app.config["DB_PATH"]
+
+        config = AppConfig(
+            access_token=token,
+            region=region,
+            api_base=api_base,
+            output_dir=db_path.parent,
+            request_timeout=30,
+        )
+        stats = run_ingestion_from_cloud(config, db_path)
+        with _sync_lock:
+            _sync_state = {
+                "status": "done",
+                "message": (
+                    f"同步完成！新增 {stats['inserted']} 筆，"
+                    f"略過 {stats['skipped']} 筆，"
+                    f"耗材記錄 {stats['filaments']} 筆。"
+                ),
+                "stats": stats,
+            }
+    except Exception as exc:
+        with _sync_lock:
+            _sync_state = {"status": "error", "message": str(exc), "stats": None}
+
+
+def _auto_sync_scheduler(app) -> None:
+    """Background daemon thread: wakes every 60 s, syncs when interval elapsed."""
+    global _auto_sync_state
+
+    with app.app_context():
+        interval = int(app.config.get("AUTO_SYNC_INTERVAL_MINUTES", 0))
+    with _auto_sync_lock:
+        _auto_sync_state["interval_minutes"] = interval
+        if interval > 0 and _auto_sync_state["next_sync_at"] is None:
+            _auto_sync_state["next_sync_at"] = datetime.now() + timedelta(minutes=interval)
+
+    while True:
+        _scheduler_event.wait(timeout=60)
+        _scheduler_event.clear()
+
+        with app.app_context():
+            interval = int(app.config.get("AUTO_SYNC_INTERVAL_MINUTES", 0))
+
+        with _auto_sync_lock:
+            _auto_sync_state["interval_minutes"] = interval
+            if interval <= 0:
+                _auto_sync_state["next_sync_at"] = None
+            elif _auto_sync_state["next_sync_at"] is None:
+                _auto_sync_state["next_sync_at"] = datetime.now() + timedelta(minutes=interval)
+            next_sync = _auto_sync_state["next_sync_at"]
+
+        if next_sync is None or datetime.now() < next_sync:
+            continue
+
+        with app.app_context():
+            token = app.config.get("BAMBU_TOKEN", "")
+        if not token:
+            continue
+
+        should_run = False
+        with _sync_lock:
+            if _sync_state.get("status") != "running":
+                _sync_state = {"status": "running", "message": "自動同步中...", "stats": None}
+                should_run = True
+
+        if not should_run:
+            continue
+
+        _run_sync(app)
+
+        now = datetime.now()
+        with _auto_sync_lock:
+            _auto_sync_state["last_sync_at"] = now
+            _auto_sync_state["next_sync_at"] = now + timedelta(minutes=interval)
+
+
+def start_auto_sync_scheduler(app) -> None:
+    global _scheduler_thread
+    # In debug/reloader mode, only start in the child (actual server) process
+    if app.debug and os.environ.get("WERKZEUG_RUN_MAIN") != "true":
+        return
+    if _scheduler_thread is not None and _scheduler_thread.is_alive():
+        return
+    _scheduler_thread = threading.Thread(
+        target=_auto_sync_scheduler,
+        args=(app,),
+        daemon=True,
+        name="auto-sync-scheduler",
+    )
+    _scheduler_thread.start()
+
+
 @bp.route("/")
 def index():
     token = current_app.config.get("BAMBU_TOKEN", "")
     region = current_app.config.get("BAMBU_REGION", "global")
+    with _auto_sync_lock:
+        auto_sync_interval = _auto_sync_state["interval_minutes"]
+        auto_sync_snap = dict(_auto_sync_state)
     return render_template(
         "settings/index.html",
         token_masked=_mask_token(token),
         has_token=bool(token),
         region=region,
         sync_state=_sync_state,
+        auto_sync_interval=auto_sync_interval,
+        auto_sync_state=auto_sync_snap,
     )
 
 
@@ -198,7 +344,6 @@ def login_step2():
 def start_sync():
     global _sync_state
 
-    # Atomic check-and-set to prevent concurrent syncs
     with _sync_lock:
         if _sync_state.get("status") == "running":
             return render_template("settings/_sync_status.html", sync_state=_sync_state)
@@ -214,47 +359,52 @@ def start_sync():
                        "message": "正在從 Bambu Cloud 下載列印歷史...",
                        "stats": None}
 
-    db_path = current_app.config["DB_PATH"]
-    region = current_app.config.get("BAMBU_REGION", "global")
-    # Preserve custom API base; fall back to regional default
-    api_base = (
-        current_app.config.get("BAMBU_API_BASE")
-        or (_GLOBAL_BASE if region == "global" else _CHINA_BASE)
-    )
-    output_dir = db_path.parent
-
-    from src.config import AppConfig
-    config = AppConfig(
-        access_token=token,
-        region=region,
-        api_base=api_base,
-        output_dir=output_dir,
-        request_timeout=30,
-    )
-
-    def _run() -> None:
-        global _sync_state
-        try:
-            from src.ingestion import run_ingestion_from_cloud
-            stats = run_ingestion_from_cloud(config, db_path)
-            with _sync_lock:
-                _sync_state = {
-                    "status": "done",
-                    "message": (
-                        f"同步完成！新增 {stats['inserted']} 筆，"
-                        f"略過 {stats['skipped']} 筆，"
-                        f"耗材記錄 {stats['filaments']} 筆。"
-                    ),
-                    "stats": stats,
-                }
-        except Exception as exc:
-            with _sync_lock:
-                _sync_state = {"status": "error", "message": str(exc), "stats": None}
-
-    threading.Thread(target=_run, daemon=True).start()
+    app = current_app._get_current_object()
+    threading.Thread(target=_run_sync, args=(app,), daemon=True).start()
     return render_template("settings/_sync_status.html", sync_state=_sync_state)
 
 
 @bp.route("/sync/status")
 def sync_status():
     return render_template("settings/_sync_status.html", sync_state=_sync_state)
+
+
+@bp.route("/auto-sync/status")
+def auto_sync_status():
+    with _auto_sync_lock:
+        snap = dict(_auto_sync_state)
+    return render_template("settings/_auto_sync_status.html", auto_sync_state=snap)
+
+
+@bp.route("/auto-sync", methods=["POST"])
+def set_auto_sync():
+    global _auto_sync_state
+
+    try:
+        interval = int(request.form.get("interval_minutes", "0"))
+    except (ValueError, TypeError):
+        interval = 0
+    if interval not in _VALID_INTERVALS:
+        interval = 0
+
+    current_app.config["AUTO_SYNC_INTERVAL_MINUTES"] = interval
+
+    env_path = current_app.config.get("ENV_PATH")
+    if env_path:
+        try:
+            _write_env_key("AUTO_SYNC_INTERVAL", str(interval), Path(env_path))
+        except OSError as exc:
+            current_app.logger.warning("無法寫入 .env AUTO_SYNC_INTERVAL：%s", exc)
+
+    now = datetime.now()
+    with _auto_sync_lock:
+        _auto_sync_state["interval_minutes"] = interval
+        if interval > 0:
+            _auto_sync_state["next_sync_at"] = now + timedelta(minutes=interval)
+        else:
+            _auto_sync_state["next_sync_at"] = None
+        snap = dict(_auto_sync_state)
+
+    _scheduler_event.set()
+
+    return render_template("settings/_auto_sync_status.html", auto_sync_state=snap)

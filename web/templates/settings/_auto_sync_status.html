@@ -1,0 +1,19 @@
+<div id="auto-sync-status-area"
+     {% if auto_sync_state.interval_minutes > 0 %}
+     hx-get="{{ url_for('settings.auto_sync_status') }}"
+     hx-trigger="every 30s"
+     hx-target="this"
+     hx-swap="outerHTML"
+     {% endif %}
+     style="margin-top:0.5rem;font-size:0.88rem;color:var(--pico-muted-color);">
+  {% if auto_sync_state.interval_minutes > 0 %}
+    {% if auto_sync_state.next_sync_at %}
+      <p style="margin:0 0 0.15rem;">下次同步：{{ auto_sync_state.next_sync_at.strftime('%Y-%m-%d %H:%M') }}</p>
+    {% endif %}
+    {% if auto_sync_state.last_sync_at %}
+      <p style="margin:0;">上次自動同步：{{ auto_sync_state.last_sync_at.strftime('%Y-%m-%d %H:%M') }}</p>
+    {% endif %}
+  {% else %}
+    <p style="margin:0;">自動同步已關閉。</p>
+  {% endif %}
+</div>

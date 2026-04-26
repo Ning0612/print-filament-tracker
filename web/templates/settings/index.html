@@ -33,6 +33,39 @@
     </div>
   </article>
 
+  <!-- ── 外觀設定 ─────────────────────────────────────── -->
+  <article>
+    <header><strong>外觀設定</strong></header>
+    <p>選擇介面顯示主題，設定即時生效並記憶於此瀏覽器。</p>
+
+    <div style="display:flex;gap:2rem;flex-wrap:wrap;">
+      <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;font-weight:normal;">
+        <input type="radio" name="theme" value="light" style="margin:0;">
+        ☀ 淺色模式
+      </label>
+      <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;font-weight:normal;">
+        <input type="radio" name="theme" value="dark" style="margin:0;">
+        ☾ 深色模式
+      </label>
+    </div>
+
+    <script>
+    (function () {
+      var KEY = 'bambu-theme';
+      var cur = document.documentElement.getAttribute('data-theme') || 'light';
+      var active = document.querySelector('input[name="theme"][value="' + cur + '"]');
+      if (active) active.checked = true;
+
+      document.querySelectorAll('input[name="theme"]').forEach(function (r) {
+        r.addEventListener('change', function () {
+          document.documentElement.setAttribute('data-theme', this.value);
+          try { localStorage.setItem(KEY, this.value); } catch (e) {}
+        });
+      });
+    }());
+    </script>
+  </article>
+
   <!-- ── 同步列印歷史 ────────────────────────────────── -->
   <article>
     <header><strong>同步列印歷史</strong></header>
@@ -49,6 +82,35 @@
     </form>
 
     {% include "settings/_sync_status.html" %}
+  </article>
+
+  <!-- ── 自動同步設定 ───────────────────────────────── -->
+  <article>
+    <header><strong>自動同步設定</strong></header>
+    <p>定時自動從 Bambu Cloud 下載最新列印記錄，無需手動觸發。</p>
+
+    <form hx-post="{{ url_for('settings.set_auto_sync') }}"
+          hx-target="#auto-sync-status-area"
+          hx-swap="outerHTML"
+          hx-disabled-elt="button[type=submit]"
+          style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;margin-bottom:0.5rem;">
+      <label for="auto-sync-interval" style="margin:0;white-space:nowrap;">同步間隔</label>
+      <select id="auto-sync-interval" name="interval_minutes" style="width:auto;margin:0;"
+              {% if not has_token %}disabled title="請先登入 Bambu 帳號"{% endif %}>
+        <option value="0"    {% if auto_sync_interval == 0    %}selected{% endif %}>關閉</option>
+        <option value="60"   {% if auto_sync_interval == 60   %}selected{% endif %}>每 1 小時</option>
+        <option value="120"  {% if auto_sync_interval == 120  %}selected{% endif %}>每 2 小時</option>
+        <option value="360"  {% if auto_sync_interval == 360  %}selected{% endif %}>每 6 小時</option>
+        <option value="720"  {% if auto_sync_interval == 720  %}selected{% endif %}>每 12 小時</option>
+        <option value="1440" {% if auto_sync_interval == 1440 %}selected{% endif %}>每 24 小時</option>
+      </select>
+      <button type="submit" style="margin:0;"
+              {% if not has_token %}disabled title="請先登入 Bambu 帳號"{% endif %}>
+        儲存
+      </button>
+    </form>
+
+    {% include "settings/_auto_sync_status.html" %}
   </article>
 
 </div>

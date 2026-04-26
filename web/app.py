@@ -1,3 +1,4 @@
+import os
 import secrets
 from pathlib import Path
 
@@ -36,6 +37,11 @@ def create_app(db_path: Path | None = None) -> Flask:
         app.config["BAMBU_API_BASE"] = _GLOBAL_BASE
         output_dir = Path(__file__).parent.parent / "data"
 
+    try:
+        app.config["AUTO_SYNC_INTERVAL_MINUTES"] = int(os.getenv("AUTO_SYNC_INTERVAL", "0"))
+    except (ValueError, TypeError):
+        app.config["AUTO_SYNC_INTERVAL_MINUTES"] = 0
+
     if db_path is None:
         output_dir.mkdir(parents=True, exist_ok=True)
         db_path = get_db_path(output_dir)
@@ -57,6 +63,9 @@ def create_app(db_path: Path | None = None) -> Flask:
     app.register_blueprint(tasks_bp, url_prefix="/tasks")
     app.register_blueprint(mapping_bp, url_prefix="/mapping")
     app.register_blueprint(settings_bp)
+
+    from web.routes.settings import start_auto_sync_scheduler
+    start_auto_sync_scheduler(app)
 
     @app.errorhandler(413)
     def request_entity_too_large(e):

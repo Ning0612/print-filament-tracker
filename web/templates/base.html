@@ -22,13 +22,6 @@
         <li><a href="{{ url_for('mapping.list_view') }}" {% if request.path.startswith('/mapping') %}aria-current="page"{% endif %}>耗材對照</a></li>
         <li><a href="{{ url_for('settings.index') }}" {% if request.path.startswith('/settings') %}aria-current="page"{% endif %}>設定</a></li>
       </ul>
-      <ul>
-        <li>
-          <button id="theme-toggle" type="button" class="outline"
-                  style="padding:0.2rem 0.55rem;font-size:1.05rem;line-height:1;margin-bottom:0;"
-                  title="切換深色模式"></button>
-        </li>
-      </ul>
     </nav>
   </header>
 
@@ -107,32 +100,6 @@
   });
 
   document.addEventListener('htmx:afterSwap', function (e) { initCoverThumbs(e.detail.target); });
-}());
-</script>
-<script>
-(function () {
-  var KEY = 'bambu-theme';
-
-  function syncBtn(theme) {
-    var btn = document.getElementById('theme-toggle');
-    if (!btn) return;
-    var isDark = theme === 'dark';
-    btn.textContent = isDark ? '☀' : '☾';
-    btn.title = isDark ? '切換淺色模式' : '切換深色模式';
-  }
-
-  function setTheme(t) {
-    document.documentElement.setAttribute('data-theme', t);
-    try { localStorage.setItem(KEY, t); } catch (e) {}
-    syncBtn(t);
-  }
-
-  document.getElementById('theme-toggle').addEventListener('click', function () {
-    var cur = document.documentElement.getAttribute('data-theme') || 'light';
-    setTheme(cur === 'light' ? 'dark' : 'light');
-  });
-
-  syncBtn(document.documentElement.getAttribute('data-theme') || 'light');
 }());
 </script>
 </body>
