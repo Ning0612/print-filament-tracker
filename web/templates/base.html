@@ -35,7 +35,7 @@
             <input type="hidden" name="next" value="{{ request.full_path.rstrip('?') }}">
             <select name="lang" onchange="this.form.submit()"
                     aria-label="{{ t('lang.label') }}"
-                    style="margin:0;padding:0.2rem 0.4rem;font-size:0.85rem;width:auto;height:auto;cursor:pointer;">
+                    style="margin:0;padding:0.2rem 2rem 0.2rem 0.5rem;font-size:0.85rem;width:auto;height:auto;cursor:pointer;">
               {% for code, name in supported_langs() %}
               <option value="{{ code }}" {% if code == current_lang() %}selected{% endif %}>{{ name }}</option>
               {% endfor %}

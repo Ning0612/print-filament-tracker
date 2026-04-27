@@ -270,7 +270,24 @@
     "login_tfa_hint": "Two-factor authentication (2FA) is enabled on this account.",
     "login_tfa_label": "Authenticator App 6-digit code",
     "login_verify_btn": "Verify & Login",
-    "login_restart_btn": "← Start over"
+    "login_restart_btn": "← Start over",
+    "backup_section": "Database Backup",
+    "backup_hint": "Back up the local database including all print records, spools, and mappings. Files are saved under data/backups/.",
+    "backup_btn": "↓ Backup Now",
+    "backup_interval_label": "Auto backup interval",
+    "backup_off": "Off",
+    "backup_1h": "Every 1 hour",
+    "backup_6h": "Every 6 hours",
+    "backup_12h": "Every 12 hours",
+    "backup_24h": "Every 24 hours",
+    "backup_keep_count_label": "Keep copies",
+    "backup_recent_list": "Recent backups",
+    "backup_table_name": "Filename",
+    "backup_table_size": "Size",
+    "backup_table_time": "Backup time",
+    "backup_no_backups": "No backup files yet.",
+    "next_backup": "Next backup:",
+    "last_backup_label": "Last backup:"
   },
   "analytics": {
     "title": "Analytics",
@@ -322,6 +339,11 @@
       "running": "Downloading print history from Bambu Cloud...",
       "auto_running": "Auto-syncing...",
       "done": "Sync complete! Added {inserted}, skipped {skipped}, filament records {filaments}."
+    },
+    "backup": {
+      "running": "Backup in progress...",
+      "done": "Backup complete: {file}",
+      "error": "Backup failed: {msg}"
     },
     "tasks": {
       "added": "Manual task added.",

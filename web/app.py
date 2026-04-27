@@ -68,6 +68,16 @@ def create_app(db_path: Path | None = None) -> Flask:
             set_app_config(conn, "auto_sync_interval", env_interval)
             db_interval = env_interval
 
+        db_backup_interval = get_app_config(conn, "backup_interval_minutes")
+        if db_backup_interval is None:
+            set_app_config(conn, "backup_interval_minutes", "0")
+            db_backup_interval = "0"
+
+        db_backup_keep = get_app_config(conn, "backup_keep_count")
+        if db_backup_keep is None:
+            set_app_config(conn, "backup_keep_count", "7")
+            db_backup_keep = "7"
+
     app.config["BAMBU_TOKEN"] = db_token or ""
     app.config["BAMBU_REGION"] = db_region or "global"
     app.config["BAMBU_API_BASE"] = api_base
@@ -75,6 +85,14 @@ def create_app(db_path: Path | None = None) -> Flask:
         app.config["AUTO_SYNC_INTERVAL_MINUTES"] = int(db_interval or "0")
     except (ValueError, TypeError):
         app.config["AUTO_SYNC_INTERVAL_MINUTES"] = 0
+    try:
+        app.config["BACKUP_INTERVAL_MINUTES"] = int(db_backup_interval or "0")
+    except (ValueError, TypeError):
+        app.config["BACKUP_INTERVAL_MINUTES"] = 0
+    try:
+        app.config["BACKUP_KEEP_COUNT"] = max(1, min(30, int(db_backup_keep or "7")))
+    except (ValueError, TypeError):
+        app.config["BACKUP_KEEP_COUNT"] = 7
 
     # SECRET_KEY: read from env, generate and persist to .env if absent.
     _secret_key = os.getenv("SECRET_KEY", "").strip()
@@ -131,8 +149,9 @@ def create_app(db_path: Path | None = None) -> Flask:
     app.register_blueprint(analytics_bp, url_prefix="/analytics")
     app.register_blueprint(settings_bp)
 
-    from web.routes.settings import start_auto_sync_scheduler
+    from web.routes.settings import start_auto_sync_scheduler, start_backup_scheduler
     start_auto_sync_scheduler(app)
+    start_backup_scheduler(app)
 
     @app.errorhandler(413)
     def request_entity_too_large(e):

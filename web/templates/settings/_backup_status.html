@@ -1,0 +1,65 @@
+<div id="backup-status-area"
+     {% if backup_state.status == 'running' %}
+     hx-get="{{ url_for('settings.backup_status') }}"
+     hx-trigger="every 2s"
+     hx-target="this"
+     hx-swap="outerHTML"
+     {% endif %}
+     style="margin-top:0.5rem;">
+
+  {# Scheduler next-run info #}
+  {% if backup_auto_state and backup_auto_state.interval_minutes > 0 %}
+    <p style="margin:0 0 0.25rem;font-size:0.88rem;color:var(--pico-muted-color);">
+      {% if backup_auto_state.next_backup_at %}
+        {{ t('settings.next_backup') }}{{ backup_auto_state.next_backup_at.strftime('%Y-%m-%d %H:%M') }}
+      {% endif %}
+      {% if backup_state.last_backup_at %}
+        &ensp;{{ t('settings.last_backup_label') }}{{ backup_state.last_backup_at }}
+      {% endif %}
+    </p>
+  {% endif %}
+
+  {# Current job status #}
+  {% if backup_state.status == 'running' %}
+    <p aria-busy="true" style="margin:0 0 0.5rem;">{{ t('flash.backup.running') }}</p>
+  {% elif backup_state.status == 'done' %}
+    <div class="flash flash-success" style="margin-bottom:0.5rem;">
+      ✓ {{ t('flash.backup.done', file=backup_state.last_backup_file or '') }}
+    </div>
+  {% elif backup_state.status == 'error' %}
+    <div class="flash flash-error" style="margin-bottom:0.5rem;">
+      ✗ {{ t('flash.backup.error', msg=backup_state.error or '') }}
+    </div>
+  {% endif %}
+
+  {# Recent backup file list #}
+  {% if backup_list %}
+  <details style="font-size:0.88rem;">
+    <summary style="color:var(--pico-muted-color);cursor:pointer;">
+      {{ t('settings.backup_recent_list') }}（{{ backup_list | length }}）
+    </summary>
+    <table style="margin-top:0.5rem;font-size:0.85rem;">
+      <thead>
+        <tr>
+          <th>{{ t('settings.backup_table_name') }}</th>
+          <th>{{ t('settings.backup_table_size') }}</th>
+          <th>{{ t('settings.backup_table_time') }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for b in backup_list[:5] %}
+        <tr>
+          <td><code style="font-size:0.8rem;">{{ b.name }}</code></td>
+          <td>{{ b.size_kb }} KB</td>
+          <td>{{ b.created_at }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </details>
+  {% else %}
+  <p style="margin:0.25rem 0 0;font-size:0.88rem;color:var(--pico-muted-color);">
+    {{ t('settings.backup_no_backups') }}
+  </p>
+  {% endif %}
+</div>

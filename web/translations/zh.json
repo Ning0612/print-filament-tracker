@@ -270,7 +270,24 @@
     "login_tfa_hint": "帳號已啟用兩步驟驗證（2FA）。",
     "login_tfa_label": "驗證器 App 6 位數驗證碼",
     "login_verify_btn": "驗證並登入",
-    "login_restart_btn": "← 重新開始"
+    "login_restart_btn": "← 重新開始",
+    "backup_section": "資料庫備份",
+    "backup_hint": "備份資料庫至本機，包含所有列印記錄、耗材與對照資訊。備份檔儲存於 data/backups/ 目錄。",
+    "backup_btn": "↓ 立即備份",
+    "backup_interval_label": "自動備份間隔",
+    "backup_off": "關閉",
+    "backup_1h": "每 1 小時",
+    "backup_6h": "每 6 小時",
+    "backup_12h": "每 12 小時",
+    "backup_24h": "每 24 小時",
+    "backup_keep_count_label": "保留份數",
+    "backup_recent_list": "最近備份",
+    "backup_table_name": "檔案名稱",
+    "backup_table_size": "大小",
+    "backup_table_time": "備份時間",
+    "backup_no_backups": "尚無備份檔案。",
+    "next_backup": "下次備份：",
+    "last_backup_label": "上次備份："
   },
   "analytics": {
     "title": "分析",
@@ -322,6 +339,11 @@
       "running": "正在從 Bambu Cloud 下載列印歷史...",
       "auto_running": "自動同步中...",
       "done": "同步完成！新增 {inserted} 筆，略過 {skipped} 筆，耗材記錄 {filaments} 筆。"
+    },
+    "backup": {
+      "running": "備份進行中...",
+      "done": "備份完成：{file}",
+      "error": "備份失敗：{msg}"
     },
     "tasks": {
       "added": "手動任務已新增。",

@@ -137,5 +137,40 @@
     {% include "settings/_auto_sync_status.html" %}
   </article>
 
+  <!-- ── Database Backup ── -->
+  <article>
+    <header><strong>{{ t('settings.backup_section') }}</strong></header>
+    <p>{{ t('settings.backup_hint') }}</p>
+
+    <form hx-post="{{ url_for('settings.set_backup_config') }}"
+          hx-target="#backup-status-area"
+          hx-swap="outerHTML"
+          hx-disabled-elt="button[type=submit]"
+          style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;margin-bottom:0.5rem;">
+      <label for="backup-interval" style="margin:0;white-space:nowrap;">{{ t('settings.backup_interval_label') }}</label>
+      <select id="backup-interval" name="interval_minutes" style="width:auto;margin:0;">
+        <option value="0"    {% if backup_interval == 0    %}selected{% endif %}>{{ t('settings.backup_off') }}</option>
+        <option value="60"   {% if backup_interval == 60   %}selected{% endif %}>{{ t('settings.backup_1h') }}</option>
+        <option value="360"  {% if backup_interval == 360  %}selected{% endif %}>{{ t('settings.backup_6h') }}</option>
+        <option value="720"  {% if backup_interval == 720  %}selected{% endif %}>{{ t('settings.backup_12h') }}</option>
+        <option value="1440" {% if backup_interval == 1440 %}selected{% endif %}>{{ t('settings.backup_24h') }}</option>
+      </select>
+      <label for="backup-keep-count" style="margin:0;white-space:nowrap;">{{ t('settings.backup_keep_count_label') }}</label>
+      <input id="backup-keep-count" name="keep_count" type="number" min="1" max="30"
+             value="{{ backup_keep_count }}" style="width:5rem;margin:0;">
+      <button type="submit" style="margin:0;">{{ t('settings.save_btn') }}</button>
+    </form>
+
+    <form hx-post="{{ url_for('settings.start_backup') }}"
+          hx-target="#backup-status-area"
+          hx-swap="outerHTML"
+          hx-disabled-elt="button[type=submit]"
+          style="margin-bottom:0;">
+      <button type="submit">{{ t('settings.backup_btn') }}</button>
+    </form>
+
+    {% include "settings/_backup_status.html" %}
+  </article>
+
 </div>
 {% endblock %}
