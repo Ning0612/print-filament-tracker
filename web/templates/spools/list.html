@@ -33,6 +33,7 @@
   <h1 style="margin-bottom:0;">耗材管理</h1>
   <div style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap;">
     <form method="post" action="{{ url_for('spools.import_view') }}" enctype="multipart/form-data" style="margin:0;">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <input type="file" name="file" id="import-file" accept=".json,.csv" style="display:none;"
              onchange="this.form.submit();">
       <button type="button" class="outline" style="margin-bottom:0;"
@@ -123,6 +124,7 @@
           <form method="post" action="{{ url_for('spools.delete_view', spool_id=s.id) }}"
                 style="margin:0;display:inline;"
                 onsubmit="return confirm('確定刪除此耗材？');">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <button type="submit" class="outline danger"
                     style="padding:0.3rem 0.6rem;font-size:0.85rem;margin-bottom:0;">刪除</button>
           </form>

@@ -5,6 +5,7 @@
 <h1>{{ '編輯' if printer else '新增' }}印表機</h1>
 
 <form method="post" action="{{ action }}" enctype="multipart/form-data">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
   <div class="task-form-grid">
 
     <div class="task-form-cover-col">

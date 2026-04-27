@@ -2,7 +2,9 @@ import os
 import secrets
 from pathlib import Path
 
+from dotenv import load_dotenv, set_key as _dotenv_set_key
 from flask import Flask, make_response, send_from_directory
+from flask_wtf.csrf import CSRFProtect
 
 from src.config import ConfigError, load_config
 from src.db import get_db_path, init_db
@@ -49,7 +51,20 @@ def create_app(db_path: Path | None = None) -> Flask:
     init_db(db_path)
     app.config["DB_PATH"] = db_path
     app.config["COVERS_DIR"] = (db_path.parent / "covers").resolve()
-    app.secret_key = secrets.token_hex(32)
+
+    # Load .env again to pick up SECRET_KEY if present (load_config may have
+    # raised ConfigError before processing it).
+    load_dotenv(dotenv_path=env_path, override=False)
+    _secret_key = os.getenv("SECRET_KEY", "").strip()
+    if not _secret_key:
+        _secret_key = secrets.token_hex(32)
+        try:
+            _dotenv_set_key(str(env_path), "SECRET_KEY", _secret_key)
+        except OSError:
+            pass
+    app.secret_key = _secret_key
+
+    CSRFProtect(app)
     app.config["MAX_CONTENT_LENGTH"] = 10 * 1024 * 1024  # 10 MB
 
     from web.routes.analytics import bp as analytics_bp

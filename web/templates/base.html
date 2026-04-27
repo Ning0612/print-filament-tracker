@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="csrf-token" content="{{ csrf_token() }}">
   <title>{% block title %}BambuPrintManager{% endblock %}</title>
   <script>(function(){try{var t=localStorage.getItem('bambu-theme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}}());</script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -57,6 +58,12 @@
 
 <script>
 (function () {
+  /* ── CSRF: inject token into every HTMX request header ── */
+  document.addEventListener('htmx:configRequest', function (evt) {
+    var meta = document.querySelector('meta[name="csrf-token"]');
+    if (meta) evt.detail.headers['X-CSRFToken'] = meta.getAttribute('content');
+  });
+
   /* ── Theme toggle ── */
   var THEME_KEY = 'bambu-theme';
   var html = document.documentElement;

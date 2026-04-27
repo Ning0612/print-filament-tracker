@@ -5,6 +5,7 @@
 <h1>{{ '編輯' if spool else '新增' }}耗材</h1>
 
 <form method="post" action="{{ action }}">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
   <div class="grid">
     <label>
       材料 *

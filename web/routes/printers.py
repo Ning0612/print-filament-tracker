@@ -18,9 +18,25 @@ bp = Blueprint("printers", __name__)
 _ALLOWED_EXTS = {".png", ".jpg", ".jpeg", ".webp", ".gif"}
 
 
+def _is_valid_image(header: bytes) -> bool:
+    if header[:8] == b'\x89PNG\r\n\x1a\n':
+        return True
+    if header[:3] == b'\xff\xd8\xff':
+        return True
+    if header[:4] in (b'GIF8',) and header[4:5] in (b'7', b'9'):
+        return True
+    if header[:4] == b'RIFF' and len(header) >= 12 and header[8:12] == b'WEBP':
+        return True
+    return False
+
+
 def _save_printer_image(covers_dir: Path, printer_id: int, file) -> "str | None":
     ext = Path(file.filename).suffix.lower()
     if ext not in _ALLOWED_EXTS:
+        return None
+    header = file.read(12)
+    file.stream.seek(0)
+    if not _is_valid_image(header):
         return None
     filename = f"p{printer_id}{ext}"
     file.save(covers_dir / filename)
@@ -102,8 +118,16 @@ def edit_view(printer_id: int):
             if ext not in _ALLOWED_EXTS:
                 flash("圖片格式不支援，圖片未更新。", "error")
                 new_image_url = printer.get("image_url")
+                file = None
             else:
-                new_image_url = f"/covers/p{printer_id}{ext}"
+                header = file.read(12)
+                file.stream.seek(0)
+                if not _is_valid_image(header):
+                    flash("圖片格式不支援，圖片未更新。", "error")
+                    new_image_url = printer.get("image_url")
+                    file = None
+                else:
+                    new_image_url = f"/covers/p{printer_id}{ext}"
         elif clear_image:
             new_image_url = None
         else:

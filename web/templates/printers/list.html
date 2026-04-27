@@ -57,6 +57,7 @@
         <a href="{{ url_for('printers.edit_view', printer_id=p.id) }}" role="button" class="outline">編輯</a>
         <form method="post" action="{{ url_for('printers.delete_view', printer_id=p.id) }}"
               onsubmit="return confirm('確定刪除「{{ p.name }}」？\n此印表機共有 {{ p.task_count }} 筆列印記錄，刪除後記錄將不再關聯印表機。');">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
           <button type="submit" class="outline" style="color:var(--pico-del-color);border-color:var(--pico-del-color);">刪除</button>
         </form>
       </div>

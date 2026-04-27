@@ -11,6 +11,7 @@
        style="padding:0.3rem 0.8rem;font-size:0.85rem;margin:0;">編輯</a>
     <form method="post" action="{{ url_for('tasks.delete_manual', task_id=task.id) }}"
           onsubmit="return confirm('確定刪除此手動任務？');" style="margin:0;display:flex;">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <button type="submit" class="danger outline"
               style="padding:0.3rem 0.8rem;font-size:0.85rem;margin:0;">刪除</button>
     </form>

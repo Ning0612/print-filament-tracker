@@ -195,6 +195,8 @@ def import_view():
 
 
 def _form_to_spool(form) -> dict:
+    raw_url = form.get("product_url", "").strip()
+    product_url = raw_url if raw_url.lower().startswith(("http://", "https://")) else None
     return {
         "material": form.get("material", "").strip() or None,
         "color_name": form.get("color_name", "").strip() or None,
@@ -202,6 +204,6 @@ def _form_to_spool(form) -> dict:
         "initial_weight_g": form.get("initial_weight_g", "").strip() or None,
         "price": form.get("price", "").strip() or None,
         "purchased_at": form.get("purchased_at", "").strip() or None,
-        "product_url": form.get("product_url", "").strip() or None,
+        "product_url": product_url,
         "note": form.get("note", "").strip() or None,
     }

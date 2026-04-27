@@ -21,6 +21,18 @@ _ALLOWED_COVER_EXTS = {".png", ".jpg", ".jpeg", ".webp", ".gif"}
 
 bp = Blueprint("tasks", __name__)
 
+
+def _is_valid_image(header: bytes) -> bool:
+    if header[:8] == b'\x89PNG\r\n\x1a\n':
+        return True
+    if header[:3] == b'\xff\xd8\xff':
+        return True
+    if header[:4] in (b'GIF8',) and header[4:5] in (b'7', b'9'):
+        return True
+    if header[:4] == b'RIFF' and len(header) >= 12 and header[8:12] == b'WEBP':
+        return True
+    return False
+
 PER_PAGE = 20
 
 
@@ -101,7 +113,9 @@ def _parse_task_form(form) -> dict:
     raw_w = form.get("total_weight_g", "").strip()
     if raw_w:
         try:
-            total_weight_g = float(raw_w)
+            val = float(raw_w)
+            if 0 <= val <= 100_000:
+                total_weight_g = val
         except ValueError:
             pass
 
@@ -140,14 +154,18 @@ def _parse_filament_form(form) -> list[dict]:
         weight = None
         if weight_raw:
             try:
-                weight = float(weight_raw)
+                val = float(weight_raw)
+                if 0 <= val <= 100_000:
+                    weight = val
             except ValueError:
                 pass
 
         slot = None
         if slot_raw:
             try:
-                slot = int(slot_raw)
+                val = int(slot_raw)
+                if 0 <= val <= 255:
+                    slot = val
             except ValueError:
                 pass
 
@@ -175,6 +193,10 @@ def _save_manual_cover(covers_dir: Path, task_id: int, file) -> str | None:
         return None
     ext = Path(file.filename).suffix.lower()
     if ext not in _ALLOWED_COVER_EXTS:
+        return None
+    header = file.read(12)
+    file.stream.seek(0)
+    if not _is_valid_image(header):
         return None
     covers_dir.mkdir(parents=True, exist_ok=True)
     filename = f"m{task_id}{ext}"

@@ -6,6 +6,7 @@
 <h1>{% if task and task.id %}編輯手動列印任務{% else %}新增手動列印任務{% endif %}</h1>
 
 <form method="post" enctype="multipart/form-data">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
   <div class="task-form-grid">
 
     <!-- ── 左欄：封面圖片 ── -->

@@ -865,22 +865,28 @@ def get_printer_usage_stats(conn: sqlite3.Connection) -> list:
 
 
 def replace_task_filaments(conn: sqlite3.Connection, task_id: int, filaments: list[dict]) -> None:
-    conn.execute(
-        "DELETE FROM print_task_filament WHERE print_task_id=?", (task_id,)
-    )
-    for f in filaments:
+    conn.execute("SAVEPOINT replace_filaments")
+    try:
         conn.execute(
-            """
-            INSERT INTO print_task_filament
-              (print_task_id, filament_spool_id, slot_id, used_weight_g, color_hex, material)
-            VALUES (?, ?, ?, ?, ?, ?)
-            """,
-            (
-                task_id,
-                f.get("filament_spool_id"),
-                f.get("slot_id"),
-                f.get("used_weight_g"),
-                f.get("color_hex"),
-                f.get("material"),
-            ),
+            "DELETE FROM print_task_filament WHERE print_task_id=?", (task_id,)
         )
+        for f in filaments:
+            conn.execute(
+                """
+                INSERT INTO print_task_filament
+                  (print_task_id, filament_spool_id, slot_id, used_weight_g, color_hex, material)
+                VALUES (?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    task_id,
+                    f.get("filament_spool_id"),
+                    f.get("slot_id"),
+                    f.get("used_weight_g"),
+                    f.get("color_hex"),
+                    f.get("material"),
+                ),
+            )
+        conn.execute("RELEASE SAVEPOINT replace_filaments")
+    except Exception:
+        conn.execute("ROLLBACK TO SAVEPOINT replace_filaments")
+        raise
