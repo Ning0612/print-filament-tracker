@@ -1,4 +1,4 @@
-# BambuPrintManager
+# PrintNest
 
 ![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=flat-square&logo=python&logoColor=white)
 ![Flask](https://img.shields.io/badge/Flask-3.x-000000?style=flat-square&logo=flask&logoColor=white)
@@ -7,6 +7,17 @@
 ![Pico CSS](https://img.shields.io/badge/Pico_CSS-0172AD?style=flat-square&logo=css3&logoColor=white)
 
 本地化 Web 系統，用於管理 Bambu Lab 3D 列印機的列印歷史與耗材（Filament Spool）。
+
+> **⚠ 免責聲明**
+> PrintNest 是獨立的社群專案，**與 Bambu Lab Co., Ltd. 無任何關聯、背書或贊助關係**。
+> "Bambu"、"Bambu Lab" 為 Bambu Lab Co., Ltd. 的商標，僅用於描述本軟體所整合的第三方服務。
+>
+> 本軟體透過**非官方 API 端點**存取 Bambu Cloud。根據 [Bambu Lab 服務條款](https://bambulab.com/en-us/policies/terms)（2024 年 4 月 24 日版）：
+> - **§3.1** 禁止未經 Bambu Lab 事先同意，使用其技術或 IP 開發第三方軟體
+> - **§3.4** 禁止逆向工程或以任何方式對產品建立衍生品
+> - **§11.1** 違反條款可能導致 **Bambu 帳號被停用**
+>
+> 使用本軟體即代表您自行承擔相關法律與帳號風險。詳見 [DISCLAIMER.md](DISCLAIMER.md)。
 
 ## 功能
 
@@ -30,7 +41,7 @@
 
 ```bash
 git clone <repo-url>
-cd BambuPrintManager
+cd PrintNest
 
 # 1. 建立虛擬環境並安裝依賴
 python -m venv .venv
@@ -53,7 +64,7 @@ copy .env.example .env
 
 ```powershell
 # 4. 立即啟動
-Start-ScheduledTask -TaskName "BambuPrintManager-Web"
+Start-ScheduledTask -TaskName "PrintNest-Web"
 ```
 
 瀏覽器開啟 `http://127.0.0.1:5000`，在設定頁登入 Bambu 帳號即可開始使用。
@@ -79,7 +90,7 @@ Start-ScheduledTask -TaskName "BambuPrintManager-Web"
 ## 目錄結構
 
 ```
-BambuPrintManager/
+PrintNest/
 ├── src/            # 業務邏輯（無 Flask 依賴）
 ├── web/            # Flask 應用（routes, templates, i18n, static）
 ├── scripts/        # 工具腳本（取得 Token）

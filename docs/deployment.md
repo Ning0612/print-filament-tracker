@@ -1,6 +1,6 @@
 # 部署指南
 
-本文說明如何在 Windows 上部署 BambuPrintManager。
+本文說明如何在 Windows 上部署 PrintNest。
 
 ## 目錄
 
@@ -62,7 +62,7 @@ Copy-Item .env.example .env
 | 1. 環境驗證 | 檢查 `.venv`、`.env` 存在 |
 | 2. SECRET_KEY | 若 `.env` 尚未設定，自動生成 64 字元 hex 金鑰並寫入 |
 | 3. Waitress 安裝 | 若尚未安裝，執行 `pip install waitress` |
-| 4. Task Scheduler | 建立 `BambuPrintManager-Web` 任務，於使用者登入時自動啟動 Web 伺服器 |
+| 4. Task Scheduler | 建立 `PrintNest-Web` 任務，於使用者登入時自動啟動 Web 伺服器 |
 
 ### 腳本參數
 
@@ -81,7 +81,7 @@ Copy-Item .env.example .env
 
 ```powershell
 # 立即啟動（無需重新登入）
-Start-ScheduledTask -TaskName "BambuPrintManager-Web"
+Start-ScheduledTask -TaskName "PrintNest-Web"
 ```
 
 或直接雙擊 `scripts\start_server.bat`。
@@ -92,18 +92,18 @@ Start-ScheduledTask -TaskName "BambuPrintManager-Web"
 
 ```powershell
 # 查看任務狀態
-Get-ScheduledTask -TaskName "BambuPrintManager-Web"
+Get-ScheduledTask -TaskName "PrintNest-Web"
 
 # 停止伺服器
-Stop-ScheduledTask -TaskName "BambuPrintManager-Web"
+Stop-ScheduledTask -TaskName "PrintNest-Web"
 
 # 重新啟動
-Stop-ScheduledTask -TaskName "BambuPrintManager-Web"
+Stop-ScheduledTask -TaskName "PrintNest-Web"
 Start-Sleep -Seconds 2
-Start-ScheduledTask -TaskName "BambuPrintManager-Web"
+Start-ScheduledTask -TaskName "PrintNest-Web"
 
 # 移除任務
-Unregister-ScheduledTask -TaskName "BambuPrintManager-Web" -Confirm:$false
+Unregister-ScheduledTask -TaskName "PrintNest-Web" -Confirm:$false
 ```
 
 ---

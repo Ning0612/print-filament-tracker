@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}{{ t('settings.title') }} — BambuPrintManager{% endblock %}
+{% block title %}{{ t('settings.title') }} — PrintNest{% endblock %}
 
 {% block content %}
 <div class="settings-layout">
@@ -50,15 +50,15 @@
 
     <script>
     (function () {
-      var KEY = 'bambu-theme';
+      var KEY = 'printnest-theme';
       var cur = document.documentElement.getAttribute('data-theme') || 'light';
       var active = document.querySelector('input[name="theme"][value="' + cur + '"]');
       if (active) active.checked = true;
 
       document.querySelectorAll('input[name="theme"]').forEach(function (r) {
         r.addEventListener('change', function () {
-          if (window.bambuApplyTheme) {
-            window.bambuApplyTheme(this.value);
+          if (window.printNestApplyTheme) {
+            window.printNestApplyTheme(this.value);
           } else {
             document.documentElement.setAttribute('data-theme', this.value);
             try { localStorage.setItem(KEY, this.value); } catch (e) {}

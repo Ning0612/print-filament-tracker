@@ -1,0 +1,56 @@
+PrintNest
+Copyright (c) 2025 Ning0612
+
+This project includes the following third-party components:
+
+--------------------------------------------------------------------------------
+Flask
+Copyright (c) 2010 Pallets
+License: BSD 3-Clause
+https://flask.palletsprojects.com/
+--------------------------------------------------------------------------------
+Flask-WTF
+Copyright (c) 2010 Steve Losh and contributors
+License: BSD 3-Clause
+https://flask-wtf.readthedocs.io/
+--------------------------------------------------------------------------------
+Requests
+Copyright (c) 2019 Kenneth Reitz
+License: Apache License 2.0
+https://requests.readthedocs.io/
+  Notice: A copy of the Apache License 2.0 is available at
+  https://www.apache.org/licenses/LICENSE-2.0
+--------------------------------------------------------------------------------
+python-dotenv
+Copyright (c) 2014, Saurabh Kumar
+License: BSD 3-Clause
+https://github.com/theskumar/python-dotenv
+--------------------------------------------------------------------------------
+Pico CSS
+Copyright (c) 2019-2024 picocss.com
+License: MIT
+https://picocss.com/
+--------------------------------------------------------------------------------
+htmx
+Copyright (c) 2020, Big Sky Software
+License: BSD 2-Clause "Simplified" License
+https://htmx.org/
+--------------------------------------------------------------------------------
+Outfit Font
+Copyright (c) 2021 Mathieu Triay
+License: SIL Open Font License 1.1
+https://fonts.google.com/specimen/Outfit
+--------------------------------------------------------------------------------
+JetBrains Mono Font
+Copyright (c) 2020 The JetBrains Mono Project Authors
+License: SIL Open Font License 1.1
+https://www.jetbrains.com/lp/mono/
+--------------------------------------------------------------------------------
+SQLite
+The SQLite source code is in the public domain.
+https://www.sqlite.org/copyright.html
+--------------------------------------------------------------------------------
+
+TRADEMARK NOTICE
+"Bambu" and "Bambu Lab" are trademarks of Bambu Lab Co., Ltd.
+This project is not affiliated with, endorsed by, or sponsored by Bambu Lab.

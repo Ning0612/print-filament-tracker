@@ -12,7 +12,7 @@
            autocomplete="one-time-code" inputmode="numeric" autofocus>
   </label>
   <div style="display:flex;gap:0.75rem;margin-top:0.5rem;">
-    <button type="submit">{{ t('settings.login_verify_btn') }}</button>
+    <button type="submit" style="width:fit-content;">{{ t('settings.login_verify_btn') }}</button>
     <button type="button" class="outline secondary"
             hx-get="{{ url_for('settings.login_form') }}"
             hx-target="#login-form-area"
@@ -35,7 +35,7 @@
            maxlength="6" autofocus>
   </label>
   <div style="display:flex;gap:0.75rem;margin-top:0.5rem;">
-    <button type="submit">{{ t('settings.login_verify_btn') }}</button>
+    <button type="submit" style="width:fit-content;">{{ t('settings.login_verify_btn') }}</button>
     <button type="button" class="outline secondary"
             hx-get="{{ url_for('settings.login_form') }}"
             hx-target="#login-form-area"

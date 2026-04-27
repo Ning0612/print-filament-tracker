@@ -17,7 +17,7 @@ _SEND_CODE_PATH = "/v1/user-service/user/sendemail/code"
 _TFA_PATH = "/api/sign-in/tfa"
 _HEADERS = {
     "Content-Type": "application/json",
-    "User-Agent": "bambu_network_agent/01.09.05.01",
+    "User-Agent": "PrintNest/1.0 (community; unofficial Bambu Lab integration)",
 }
 _TIMEOUT = 20
 
@@ -47,7 +47,16 @@ _VALID_BACKUP_INTERVALS = frozenset({0, 60, 360, 720, 1440})
 _BACKUP_FILENAME_RE = re.compile(r"^bambu_\d{8}_\d{6}\.db$")
 
 
-def _api_post(base_url: str, path: str, payload: dict) -> tuple[dict | None, str | None]:
+def _api_post(
+    base_url: str, path: str, payload: dict, *, allow_empty_body: bool = False
+) -> tuple[dict | None, str | None]:
+    """POST to Bambu API and return (data, error).
+
+    Args:
+        allow_empty_body: If True, an HTTP 200 with an empty body is treated as
+            success and returns ({}, None).  Use only for endpoints whose contract
+            allows a non-JSON 200 response (e.g. /sendemail/code).
+    """
     try:
         resp = requests.post(base_url + path, json=payload, headers=_HEADERS, timeout=_TIMEOUT)
     except requests.Timeout:
@@ -59,7 +68,10 @@ def _api_post(base_url: str, path: str, payload: dict) -> tuple[dict | None, str
     try:
         return resp.json(), None
     except ValueError:
-        return None, "伺服器回傳非 JSON 格式"
+        if allow_empty_body and not resp.content.strip():
+            return {}, None
+        body_preview = resp.text[:200] if resp.text else "(空)"
+        return None, f"伺服器回傳非 JSON 格式：{body_preview}"
 
 
 def _save_app_config(key: str, value: str) -> None:
@@ -395,9 +407,11 @@ def login_step1():
         return resp
 
     if login_type == "verifyCode":
+        # Bambu Lab's /sendemail/code returns HTTP 200 with an empty body on success;
+        # allow_empty_body=True prevents a false-positive "非 JSON 格式" error.
         _, send_err = _api_post(base_url, _SEND_CODE_PATH, {
             "email": email, "type": "codeLogin",
-        })
+        }, allow_empty_body=True)
         if send_err:
             return render_template("settings/_login_error.html",
                                    error=t("flash.settings.send_code_failed", err=send_err))

@@ -22,7 +22,7 @@ TIMEOUT = 20
 
 _HEADERS = {
     "Content-Type": "application/json",
-    "User-Agent": "bambu_network_agent/01.09.05.01",
+    "User-Agent": "PrintNest/1.0 (community; unofficial Bambu Lab integration)",
 }
 
 

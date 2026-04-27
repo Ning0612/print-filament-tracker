@@ -1,14 +1,14 @@
 #Requires -Version 5.1
 <#
 .SYNOPSIS
-    BambuPrintManager deployment setup script.
+    PrintNest deployment setup script.
 
 .DESCRIPTION
     Automates the following steps:
       1. Validate / generate SECRET_KEY in .env
       2. Install Waitress WSGI server
       3. Register ONE Windows Task Scheduler task:
-           BambuPrintManager-Web - start web server at user logon
+           PrintNest-Web - start web server at user logon
 
     Auto-sync and DB backup are handled by the app itself (in-process scheduler).
 
@@ -143,7 +143,7 @@ if (-not $SkipTaskScheduler) {
     )
     $runLevel = if ($isAdmin) { "Highest" } else { "Limited" }
 
-    $taskWeb = "BambuPrintManager-Web"
+    $taskWeb = "PrintNest-Web"
 
     # Stop and remove existing task
     $existing = Get-ScheduledTask -TaskName $taskWeb -ErrorAction SilentlyContinue
@@ -179,7 +179,7 @@ if (-not $SkipTaskScheduler) {
         -Action $webAction `
         -Trigger $webTrigger `
         -Settings $webSettings `
-        -Description "BambuPrintManager Web Server (Waitress port $WebPort)" `
+        -Description "PrintNest Web Server (Waitress port $WebPort)" `
         -RunLevel $runLevel `
         | Out-Null
 
@@ -189,7 +189,7 @@ if (-not $SkipTaskScheduler) {
 # ── Summary ───────────────────────────────────────────────────────────────────
 Write-Host ""
 Write-Host ("=" * 60) -ForegroundColor Cyan
-Write-Host "  BambuPrintManager deployment setup complete!" -ForegroundColor Cyan
+Write-Host "  PrintNest deployment setup complete!" -ForegroundColor Cyan
 Write-Host ("=" * 60) -ForegroundColor Cyan
 Write-Host ""
 Write-Host "  Completed:" -ForegroundColor White
@@ -198,7 +198,7 @@ Write-Host "    OK  Waitress check" -ForegroundColor White
 
 if (-not $SkipTaskScheduler) {
     Write-Host "    OK  Task Scheduler:" -ForegroundColor White
-    Write-Host "          BambuPrintManager-Web (at logon, port $WebPort)" -ForegroundColor White
+    Write-Host "          PrintNest-Web (at logon, port $WebPort)" -ForegroundColor White
 }
 
 Write-Host ""
@@ -206,7 +206,7 @@ Write-Host "  Auto-sync and DB backup are managed by the app itself." -Foregroun
 Write-Host "  Configure intervals in the Web UI Settings page." -ForegroundColor DarkGray
 Write-Host ""
 Write-Host "  Start web server now:" -ForegroundColor Cyan
-Write-Host "    Start-ScheduledTask -TaskName `"BambuPrintManager-Web`"" -ForegroundColor White
+Write-Host "    Start-ScheduledTask -TaskName `"PrintNest-Web`"" -ForegroundColor White
 Write-Host "    or run: .\scripts\start_server.bat" -ForegroundColor White
 Write-Host ""
 Write-Host ("  Web UI: http://127.0.0.1:{0}" -f $WebPort) -ForegroundColor Cyan

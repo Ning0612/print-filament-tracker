@@ -1,6 +1,6 @@
 # 開發指南
 
-本文說明如何在 BambuPrintManager 上進行功能開發、新增翻譯、擴充模組及維護程式碼品質。
+本文說明如何在 PrintNest 上進行功能開發、新增翻譯、擴充模組及維護程式碼品質。
 
 ## 目錄
 
@@ -26,7 +26,7 @@
 ### 1. 建立虛擬環境
 
 ```bash
-cd F:\WorkSpace\BambuPrintManager
+cd F:\WorkSpace\PrintNest
 python -m venv .venv
 .venv/Scripts/python.exe -m pip install -r requirements.txt
 ```
@@ -75,7 +75,7 @@ Debug 模式下：
 ## 專案結構
 
 ```
-BambuPrintManager/
+PrintNest/
 ├── src/                    # 業務邏輯（無 Flask 依賴）
 │   ├── config.py
 │   ├── auth.py
@@ -226,7 +226,7 @@ print('OK')
 
 ## 新增資料庫欄位（Schema 遷移）
 
-BambuPrintManager 使用 `ALTER TABLE ADD COLUMN` 方式遷移，**禁止** DROP TABLE 或重建。
+PrintNest 使用 `ALTER TABLE ADD COLUMN` 方式遷移，**禁止** DROP TABLE 或重建。
 
 ### 流程
 

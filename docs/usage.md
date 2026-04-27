@@ -1,6 +1,6 @@
 # 使用說明
 
-本文說明 BambuPrintManager Web 介面的各項功能操作方式。
+本文說明 PrintNest Web 介面的各項功能操作方式。
 
 ## 目錄
 
