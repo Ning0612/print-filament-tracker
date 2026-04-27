@@ -26,7 +26,7 @@
 ### 1. 建立虛擬環境
 
 ```bash
-cd F:\WorkSpace\PrintFilamentTracker
+cd PrintFilamentTracker
 python -m venv .venv
 .venv/Scripts/python.exe -m pip install -r requirements.txt
 ```

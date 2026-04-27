@@ -41,17 +41,19 @@
 ### 環境需求
 
 - Python 3.10+
-- Windows 10/11
+- Windows 10/11 **或** macOS 12+（Monterey）
 
-### 安裝與部署（Windows 一鍵）
+### 安裝與部署
+
+#### Windows（一鍵）
 
 ```bash
-git clone <repo-url>
+git clone https://github.com/Ning0612/PrintFilamentTracker.git
 cd PrintFilamentTracker
 
 # 1. 建立虛擬環境並安裝依賴
 python -m venv .venv
-.venv/Scripts/python.exe -m pip install -r requirements.txt
+.venv\Scripts\python.exe -m pip install -r requirements.txt
 
 # 2. 設定環境變數
 copy .env.example .env
@@ -63,10 +65,28 @@ copy .env.example .env
 .\scripts\setup_deployment.ps1
 ```
 
-腳本會自動完成：
+#### macOS（一鍵）
+
+```bash
+git clone https://github.com/Ning0612/PrintFilamentTracker.git
+cd PrintFilamentTracker
+
+# 1. 建立虛擬環境並安裝依賴
+python3 -m venv .venv
+.venv/bin/python -m pip install -r requirements.txt
+
+# 2. 設定環境變數
+cp .env.example .env
+# 編輯 .env，至少填入 BAMBU_REGION=global（Token 可稍後在 Web 設定頁登入取得）
+
+# 3. 執行一鍵部署腳本
+bash scripts/setup_deployment.sh
+```
+
+部署腳本會自動完成：
 - 驗證並生成 `SECRET_KEY`
 - 安裝 Waitress WSGI 伺服器
-- 建立 Windows 工作排程器任務（登入時自動啟動 Web 伺服器）
+- 建立開機自動啟動任務（Windows：工作排程器；macOS：Launch Agent）
 - 立即啟動 Web 伺服器（背景執行，不顯示 terminal 視窗）
 
 腳本完成後，瀏覽器開啟 `http://127.0.0.1:5000`，在設定頁登入 Bambu 帳號即可開始使用。
