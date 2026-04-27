@@ -1,9 +1,8 @@
 {% extends "base.html" %}
-{% block title %}耗材管理 — BambuPrintManager{% endblock %}
+{% block title %}{{ t('spools.title') }} — BambuPrintManager{% endblock %}
 
 {% block content %}
 
-{# ── 排序連結 macro：切換指定 section 的排序，保留其他 section 的排序參數 ── #}
 {% macro sort_link(cur_status, label, col) %}
   {% set cur = section_sorts[cur_status] %}
   {% if cur.sort_by == col %}
@@ -28,30 +27,28 @@
      class="sort-btn{% if active %} sort-btn--active{% endif %}">{{ label }}{{ arrow }}</a>
 {% endmacro %}
 
-{# ── 頂部按鈕列 ── #}
 <div style="display:flex;justify-content:space-between;align-items:center;gap:0.5rem;flex-wrap:wrap;">
-  <h1 style="margin-bottom:0;">耗材管理</h1>
+  <h1 style="margin-bottom:0;">{{ t('spools.title') }}</h1>
   <div style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap;">
     <form method="post" action="{{ url_for('spools.import_view') }}" enctype="multipart/form-data" style="margin:0;">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <input type="file" name="file" id="import-file" accept=".json,.csv" style="display:none;"
              onchange="this.form.submit();">
       <button type="button" class="outline" style="margin-bottom:0;"
-              onclick="document.getElementById('import-file').click();">匯入</button>
+              onclick="document.getElementById('import-file').click();">{{ t('spools.import_btn') }}</button>
     </form>
-    <a href="{{ url_for('spools.export_csv_view') }}" role="button" class="outline">匯出 CSV</a>
-    <a href="{{ url_for('spools.export_json_view') }}" role="button" class="outline">匯出 JSON（含對照）</a>
-    <a href="{{ url_for('spools.new_view') }}" role="button">+ 新增耗材</a>
+    <a href="{{ url_for('spools.export_csv_view') }}" role="button" class="outline">{{ t('spools.export_csv') }}</a>
+    <a href="{{ url_for('spools.export_json_view') }}" role="button" class="outline">{{ t('spools.export_json') }}</a>
+    <a href="{{ url_for('spools.new_view') }}" role="button">{{ t('spools.add_btn') }}</a>
   </div>
 </div>
 
-<p style="color:var(--pico-muted-color);font-size:0.88rem;margin:0.75rem 0 1.75rem;">共 {{ total_count }} 筆耗材</p>
+<p style="color:var(--pico-muted-color);font-size:0.88rem;margin:0.75rem 0 1.75rem;">{{ t('spools.total_count', n=total_count) }}</p>
 
 {% if total_count == 0 %}
-<p>尚無耗材記錄。點擊右上角「新增耗材」開始管理。</p>
+<p>{{ t('spools.no_spools') }}</p>
 {% endif %}
 
-{# ── 四個狀態區塊 ── #}
 {% for section in sections %}
 {% set st = section.status %}
 {% set spools = section.spools %}
@@ -59,14 +56,14 @@
 <section class="spool-section">
   <div class="section-header">
     <div class="section-title">
-      <span class="status-badge status-{{ st }}">{{ section.label }}</span>
-      <span class="section-count">{{ spools|length }} 筆</span>
+      <span class="status-badge status-{{ st }}">{{ t('spools.status_' + st) }}</span>
+      <span class="section-count">{{ t('spools.section_count', n=spools|length) }}</span>
     </div>
     {% if spools %}
     <div class="section-sorts">
-      <span style="color:var(--pico-muted-color);">排序：</span>
-      {{ sort_link(st, '用量', 'usage_ratio') }}
-      {{ sort_link(st, '購買日期', 'purchased_at') }}
+      <span style="color:var(--pico-muted-color);">{{ t('spools.sort_label') }}</span>
+      {{ sort_link(st, t('spools.sort_usage'), 'usage_ratio') }}
+      {{ sort_link(st, t('spools.sort_purchased'), 'purchased_at') }}
     </div>
     {% endif %}
   </div>
@@ -84,27 +81,24 @@
     <div class="spool-item" id="spool-{{ s.id }}">
       <div class="spool-row">
 
-        {# 顏色欄 — 點擊展開畫廊 #}
         <div class="spool-col-color" onclick="toggleSpoolGallery({{ s.id }})"
-             title="點擊展開 / 收起列印任務">
+             title="{{ t('spools.expand_title') }}">
           <span class="gallery-toggle-icon">▶</span>
           {% if s.color_hex %}
           <span class="color-swatch" style="--swatch-color:{{ s.color_hex }};"></span>
           {% endif %}
-          <span class="spool-color-name">{{ s.color_name or '未命名' }}</span>
+          <span class="spool-color-name">{{ s.color_name or t('common.unnamed') }}</span>
           {% if stasks %}
-          <small class="spool-task-count">{{ stasks|length }} 次</small>
+          <small class="spool-task-count">{{ t('spools.task_count', n=stasks|length) }}</small>
           {% endif %}
         </div>
 
-        {# 材料 #}
         <div class="spool-col-material">
           <small>{{ s.material or '-' }}</small>
         </div>
 
-        {# 剩餘量 #}
         <div class="spool-col-weight">
-          <div class="progress-bar-container" title="{{ '%.1f'|format(s.remaining_weight_g) }}g 剩餘">
+          <div class="progress-bar-container" title="{{ t('spools.remaining', n='%.1f'|format(s.remaining_weight_g)) }}">
             <div class="progress-bar {{ bar_cls }}" style="width:{{ pct }}%"></div>
           </div>
           <small>{{ '%.1f'|format(s.remaining_weight_g) }}g
@@ -112,26 +106,23 @@
           </small>
         </div>
 
-        {# 購買日期 #}
         <div class="spool-col-date">
           <small style="color:var(--pico-muted-color);">{{ (s.purchased_at or '')[:10] or '-' }}</small>
         </div>
 
-        {# 操作 #}
         <div class="spool-col-actions">
           <a href="{{ url_for('spools.edit_view', spool_id=s.id) }}" role="button" class="outline"
-             style="padding:0.3rem 0.6rem;font-size:0.85rem;margin-bottom:0;">編輯</a>
+             style="padding:0.3rem 0.6rem;font-size:0.85rem;margin-bottom:0;">{{ t('common.edit') }}</a>
           <form method="post" action="{{ url_for('spools.delete_view', spool_id=s.id) }}"
                 style="margin:0;display:inline;"
-                onsubmit="return confirm('確定刪除此耗材？');">
+                onsubmit="return confirm('{{ t('common.confirm_delete_spool') }}');">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <button type="submit" class="outline danger"
-                    style="padding:0.3rem 0.6rem;font-size:0.85rem;margin-bottom:0;">刪除</button>
+                    style="padding:0.3rem 0.6rem;font-size:0.85rem;margin-bottom:0;">{{ t('common.delete') }}</button>
           </form>
         </div>
       </div>
 
-      {# 任務畫廊 #}
       <div class="spool-gallery" id="gallery-{{ s.id }}">
         {% if stasks %}
         <div class="task-gallery-grid">
@@ -152,7 +143,7 @@
         </div>
         {% else %}
         <p style="color:var(--pico-muted-color);font-size:0.85rem;padding:0.5rem 0 0.75rem;">
-          此耗材尚無已對照的列印任務。
+          {{ t('spools.no_tasks') }}
         </p>
         {% endif %}
       </div>
@@ -161,7 +152,7 @@
   </div>
 
   {% else %}
-  <p style="color:var(--pico-muted-color);font-size:0.88rem;padding:0.4rem 0 0.6rem;">此狀態目前沒有耗材。</p>
+  <p style="color:var(--pico-muted-color);font-size:0.88rem;padding:0.4rem 0 0.6rem;">{{ t('spools.no_status') }}</p>
   {% endif %}
 </section>
 {% endfor %}

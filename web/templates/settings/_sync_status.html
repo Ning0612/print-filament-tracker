@@ -7,10 +7,22 @@
      {% endif %}
      style="margin-top:1rem;">
   {% if sync_state.status == 'running' %}
-    <p aria-busy="true">{{ sync_state.message }}</p>
+    {% if sync_state.get('message_key') %}
+      <p aria-busy="true">{{ t(sync_state.message_key, **(sync_state.get('message_params') or {})) }}</p>
+    {% else %}
+      <p aria-busy="true">{{ sync_state.message }}</p>
+    {% endif %}
   {% elif sync_state.status == 'done' %}
-    <div class="flash flash-success">✓ {{ sync_state.message }}</div>
+    {% if sync_state.get('message_key') %}
+      <div class="flash flash-success">✓ {{ t(sync_state.message_key, **(sync_state.get('message_params') or {})) }}</div>
+    {% else %}
+      <div class="flash flash-success">✓ {{ sync_state.message }}</div>
+    {% endif %}
   {% elif sync_state.status == 'error' %}
-    <div class="flash flash-error">✗ {{ sync_state.message }}</div>
+    {% if sync_state.get('message_key') %}
+      <div class="flash flash-error">✗ {{ t(sync_state.message_key, **(sync_state.get('message_params') or {})) }}</div>
+    {% else %}
+      <div class="flash flash-error">✗ {{ sync_state.message }}</div>
+    {% endif %}
   {% endif %}
 </div>

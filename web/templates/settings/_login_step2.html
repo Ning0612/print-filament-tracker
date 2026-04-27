@@ -1,45 +1,45 @@
 {% if login_type == "verifyCode" %}
 <p class="flash flash-success" style="margin-bottom:1rem;">
-  驗證碼已發送至 <strong>{{ email }}</strong>，請查收信箱。
+  {{ t('settings.login_email_code_sent') }} <strong>{{ email }}</strong>{{ t('settings.login_email_code_hint') }}
 </p>
 <form hx-post="{{ url_for('settings.login_step2') }}"
       hx-target="#login-form-area"
       hx-swap="innerHTML"
       hx-disabled-elt="button[type=submit]">
   <label>
-    電子郵件驗證碼
+    {{ t('settings.login_email_code_label') }}
     <input type="text" name="code" required placeholder="123456"
            autocomplete="one-time-code" inputmode="numeric" autofocus>
   </label>
   <div style="display:flex;gap:0.75rem;margin-top:0.5rem;">
-    <button type="submit">驗證並登入</button>
+    <button type="submit">{{ t('settings.login_verify_btn') }}</button>
     <button type="button" class="outline secondary"
             hx-get="{{ url_for('settings.login_form') }}"
             hx-target="#login-form-area"
-            hx-swap="innerHTML">← 重新開始</button>
+            hx-swap="innerHTML">{{ t('settings.login_restart_btn') }}</button>
   </div>
 </form>
 
 {% elif login_type == "tfa" %}
 <p class="flash flash-success" style="margin-bottom:1rem;">
-  帳號已啟用兩步驟驗證（2FA）。
+  {{ t('settings.login_tfa_hint') }}
 </p>
 <form hx-post="{{ url_for('settings.login_step2') }}"
       hx-target="#login-form-area"
       hx-swap="innerHTML"
       hx-disabled-elt="button[type=submit]">
   <label>
-    驗證器 App 6 位數驗證碼
+    {{ t('settings.login_tfa_label') }}
     <input type="text" name="code" required placeholder="123456"
            autocomplete="one-time-code" inputmode="numeric"
            maxlength="6" autofocus>
   </label>
   <div style="display:flex;gap:0.75rem;margin-top:0.5rem;">
-    <button type="submit">驗證並登入</button>
+    <button type="submit">{{ t('settings.login_verify_btn') }}</button>
     <button type="button" class="outline secondary"
             hx-get="{{ url_for('settings.login_form') }}"
             hx-target="#login-form-area"
-            hx-swap="innerHTML">← 重新開始</button>
+            hx-swap="innerHTML">{{ t('settings.login_restart_btn') }}</button>
   </div>
 </form>
 {% endif %}

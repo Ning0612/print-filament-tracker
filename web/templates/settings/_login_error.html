@@ -3,4 +3,4 @@
 <button type="button" class="outline secondary"
         hx-get="{{ url_for('settings.login_form') }}"
         hx-target="#login-form-area"
-        hx-swap="innerHTML">← 重新開始</button>
+        hx-swap="innerHTML">{{ t('settings.login_restart_btn') }}</button>

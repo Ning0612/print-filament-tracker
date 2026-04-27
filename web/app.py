@@ -87,15 +87,19 @@ def create_app(db_path: Path | None = None) -> Flask:
     CSRFProtect(app)
     app.config["MAX_CONTENT_LENGTH"] = 10 * 1024 * 1024  # 10 MB
 
+    from web.i18n import register_i18n
     from web.routes.analytics import bp as analytics_bp
     from web.routes.dashboard import bp as dashboard_bp
+    from web.routes.lang import bp as lang_bp
     from web.routes.mapping import bp as mapping_bp
     from web.routes.printers import bp as printers_bp
     from web.routes.settings import bp as settings_bp
     from web.routes.spools import bp as spools_bp
     from web.routes.tasks import bp as tasks_bp
 
+    register_i18n(app)
     app.register_blueprint(dashboard_bp)
+    app.register_blueprint(lang_bp)
     app.register_blueprint(spools_bp, url_prefix="/spools")
     app.register_blueprint(printers_bp, url_prefix="/printers")
     app.register_blueprint(tasks_bp, url_prefix="/tasks")
@@ -109,7 +113,8 @@ def create_app(db_path: Path | None = None) -> Flask:
     @app.errorhandler(413)
     def request_entity_too_large(e):
         from flask import flash, redirect, request as req, url_for
-        flash("檔案過大，請上傳 10 MB 以內的檔案。", "error")
+        from web.i18n import t
+        flash(t("flash.app.file_too_large"), "error")
         return redirect(req.referrer or url_for("dashboard.index")), 413
 
     _COVER_EXTS = {".png", ".jpg", ".jpeg", ".webp", ".gif"}

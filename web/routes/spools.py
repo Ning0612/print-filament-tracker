@@ -1,5 +1,7 @@
 from flask import Blueprint, Response, current_app, flash, redirect, render_template, request, url_for
 
+from web.i18n import t
+
 from src.filament import (
     SpoolImportError,
     SpoolNotFoundError,
@@ -83,7 +85,7 @@ def new_view():
         data = _form_to_spool(request.form)
         try:
             create_spool(db_path, data)
-            flash("耗材已新增。", "success")
+            flash(t("flash.spools.added"), "success")
             return redirect(url_for("spools.list_view"))
         except SpoolValidationError as exc:
             flash(str(exc), "error")
@@ -96,14 +98,14 @@ def edit_view(spool_id: int):
     try:
         spool = read_spool(db_path, spool_id)
     except SpoolNotFoundError:
-        flash("找不到此耗材。", "error")
+        flash(t("flash.spools.not_found"), "error")
         return redirect(url_for("spools.list_view"))
 
     if request.method == "POST":
         data = _form_to_spool(request.form)
         try:
             update_spool_data(db_path, spool_id, data)
-            flash("耗材已更新。", "success")
+            flash(t("flash.spools.updated"), "success")
             return redirect(url_for("spools.list_view"))
         except SpoolValidationError as exc:
             flash(str(exc), "error")
@@ -120,9 +122,9 @@ def delete_view(spool_id: int):
     db_path = current_app.config["DB_PATH"]
     try:
         delete_spool_data(db_path, spool_id)
-        flash("耗材已刪除。", "success")
+        flash(t("flash.spools.deleted"), "success")
     except SpoolNotFoundError:
-        flash("找不到此耗材。", "error")
+        flash(t("flash.spools.not_found"), "error")
     return redirect(url_for("spools.list_view"))
 
 
@@ -153,14 +155,14 @@ def import_view():
     db_path = current_app.config["DB_PATH"]
     file = request.files.get("file")
     if not file or file.filename == "":
-        flash("請選擇檔案。", "error")
+        flash(t("flash.spools.no_file"), "error")
         return redirect(url_for("spools.list_view"))
 
     filename = file.filename.lower()
     try:
         content = file.read().decode("utf-8-sig")
     except UnicodeDecodeError:
-        flash("檔案編碼不支援，請確認檔案為 UTF-8 格式。", "error")
+        flash(t("flash.spools.encoding_error"), "error")
         return redirect(url_for("spools.list_view"))
 
     try:
@@ -169,23 +171,25 @@ def import_view():
         elif filename.endswith(".csv"):
             result = import_spools_csv(db_path, content)
         else:
-            flash("不支援的格式，請上傳 .json 或 .csv 檔案。", "error")
+            flash(t("flash.spools.unsupported_format"), "error")
             return redirect(url_for("spools.list_view"))
     except SpoolImportError as exc:
         flash(str(exc), "error")
         return redirect(url_for("spools.list_view"))
 
-    msg = f"匯入完成：耗材 {result['imported']} 筆成功，{result['skipped']} 筆略過，{result['failed']} 筆失敗。"
+    msg = t("flash.spools.import_done",
+            imported=result["imported"], skipped=result["skipped"], failed=result["failed"])
     all_errors = list(result.get("errors", []))
     mr = result.get("mappings")
     if mr is not None:
-        msg += f" 對照 {mr['applied']} 筆套用，{mr['skipped']} 筆略過，{mr['failed']} 筆失敗。"
+        msg += t("flash.spools.import_mappings",
+                 applied=mr["applied"], m_skipped=mr["skipped"], m_failed=mr["failed"])
         all_errors += mr.get("errors", [])
     if all_errors:
         shown = all_errors[:3]
-        msg += " 錯誤：" + "；".join(shown)
+        msg += t("flash.spools.import_errors", errors="；".join(shown))
         if len(all_errors) > 3:
-            msg += f"...等共 {len(all_errors)} 個。"
+            msg += t("flash.spools.import_more_errors", n=len(all_errors))
     any_ok = result["imported"] > 0 or result["skipped"] > 0 or (
         mr is not None and (mr["applied"] > 0 or mr["skipped"] > 0)
     )

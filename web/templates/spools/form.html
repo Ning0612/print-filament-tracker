@@ -1,65 +1,65 @@
 {% extends "base.html" %}
-{% block title %}{{ '編輯' if spool else '新增' }}耗材 — BambuPrintManager{% endblock %}
+{% block title %}{{ t('spools.form_edit_title') if spool else t('spools.form_new_title') }} — BambuPrintManager{% endblock %}
 
 {% block content %}
-<h1>{{ '編輯' if spool else '新增' }}耗材</h1>
+<h1>{{ t('spools.form_edit_title') if spool else t('spools.form_new_title') }}</h1>
 
 <form method="post" action="{{ action }}">
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
   <div class="grid">
     <label>
-      材料 *
+      {{ t('spools.form_material') }} *
       <input type="text" name="material" value="{{ spool.material if spool else '' }}" placeholder="PLA / PETG / ABS …" required>
     </label>
     <label>
-      顏色名稱
-      <input type="text" name="color_name" value="{{ spool.color_name if spool else '' }}" placeholder="灰色 / 白色 …">
+      {{ t('spools.form_color_name') }}
+      <input type="text" name="color_name" value="{{ spool.color_name if spool else '' }}">
     </label>
   </div>
 
   <div class="grid">
     <label>
-      色號（HEX）
+      {{ t('spools.form_color_hex') }}
       <div style="display:flex;align-items:center;gap:0.5rem;margin-top:0.3rem;">
         <input type="color" id="color_picker"
                value="{{ spool.color_hex if spool and spool.color_hex else '#808080' }}"
                style="width:3rem;height:2.4rem;padding:0.1rem 0.2rem;border-radius:4px;cursor:pointer;border:var(--pico-border-width,1px) solid var(--pico-border-color);">
         <input type="text" id="color_hex" name="color_hex"
                value="{{ spool.color_hex if spool and spool.color_hex else '' }}"
-               placeholder="#A6A9AA（留空則不儲存）"
+               placeholder="#A6A9AA"
                style="flex:1;margin-bottom:0;">
       </div>
     </label>
     <label>
-      初始重量（g）<span style="color:red;">*</span>
+      {{ t('spools.form_initial_weight') }} <span style="color:red;">*</span>
       <input type="number" name="initial_weight_g" value="{{ spool.initial_weight_g if spool else '1000' }}" min="1" step="0.1" required>
     </label>
   </div>
 
   <div class="grid">
     <label>
-      購入價格
+      {{ t('spools.form_price') }}
       <input type="number" name="price" value="{{ spool.price if spool else '' }}" min="0" step="0.01" placeholder="0.00">
     </label>
     <label>
-      購入日期
-      <input type="date" name="purchased_at" value="{{ (spool.purchased_at or '')[:10] if spool else '' }}">
+      {{ t('spools.form_purchased_at') }}
+      <input type="date" name="purchased_at" lang="en-CA" value="{{ (spool.purchased_at or '')[:10] if spool else '' }}">
     </label>
   </div>
 
   <label>
-    商品連結
+    {{ t('spools.form_product_url') }}
     <input type="url" name="product_url" value="{{ spool.product_url if spool else '' }}" placeholder="https://…">
   </label>
 
   <label>
-    備註
+    {{ t('spools.form_note') }}
     <textarea name="note" rows="2">{{ spool.note if spool else '' }}</textarea>
   </label>
 
   <div style="display:flex;gap:1rem;margin-top:1rem;">
-    <button type="submit">{{ '更新' if spool else '新增' }}</button>
-    <a href="{{ url_for('spools.list_view') }}" role="button" class="outline">取消</a>
+    <button type="submit">{{ t('spools.form_update_btn') if spool else t('spools.form_add_btn') }}</button>
+    <a href="{{ url_for('spools.list_view') }}" role="button" class="outline">{{ t('common.cancel') }}</a>
   </div>
 </form>
 

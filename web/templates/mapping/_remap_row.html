@@ -1,12 +1,12 @@
 <tr id="mapped-row-{{ r.id }}">
   <td colspan="7">
     <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
-      <span style="color:var(--pico-muted-color);font-size:0.85rem;">變更耗材：</span>
+      <span style="color:var(--pico-muted-color);font-size:0.85rem;">{{ t('mapping.remap_label') }}</span>
       <select name="spool_id" id="remap-spool-{{ r.id }}" style="min-width:200px;margin:0;">
-        <option value="">— 選擇新耗材 —</option>
+        <option value="">{{ t('mapping.select_new_spool') }}</option>
         {% for s in spools %}
         <option value="{{ s.id }}" {% if s.id == r.filament_spool_id %}selected{% endif %}>
-          [{{ s.id }}] {{ s.color_name or s.color_hex or '-' }} {{ s.material or '' }} (剩{{ '%.0f' % s.remaining_weight_g }}g)
+          [{{ s.id }}] {{ s.color_name or s.color_hex or '-' }} {{ s.material or '' }} ({{ t('mapping.remaining', n='%.0f'|format(s.remaining_weight_g)) }})
         </option>
         {% endfor %}
       </select>
@@ -18,12 +18,12 @@
               hx-include="#remap-spool-{{ r.id }}"
               hx-target="#mapped-row-{{ r.id }}"
               hx-swap="outerHTML"
-              style="padding:0.3rem 0.75rem;font-size:0.875rem;margin:0;line-height:1.4;">確認</button>
+              style="padding:0.3rem 0.75rem;font-size:0.875rem;margin:0;line-height:1.4;">{{ t('mapping.remap_confirm_btn') }}</button>
       <button class="outline"
               hx-get="{{ url_for('mapping.mapped_row_view', ptf_id=r.id) }}"
               hx-target="#mapped-row-{{ r.id }}"
               hx-swap="outerHTML"
-              style="padding:0.3rem 0.75rem;font-size:0.875rem;margin:0;line-height:1.4;">取消</button>
+              style="padding:0.3rem 0.75rem;font-size:0.875rem;margin:0;line-height:1.4;">{{ t('mapping.cancel_btn') }}</button>
     </div>
   </td>
 </tr>

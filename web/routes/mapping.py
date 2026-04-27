@@ -1,6 +1,8 @@
 from flask import Blueprint, current_app, render_template, request
 from markupsafe import escape
 
+from web.i18n import t
+
 from src.filament import (
     SpoolNotFoundError,
     do_ignore,
@@ -47,7 +49,7 @@ def map_view(ptf_id: int):
     spool_id_str = request.form.get("spool_id", "").strip()
 
     if not spool_id_str:
-        return _row_error(ptf_id, "請選擇一個 spool 或選擇忽略。")
+        return _row_error(ptf_id, t("flash.mapping.select_spool"))
 
     if spool_id_str == "__ignore__":
         try:
@@ -106,7 +108,7 @@ def remap_form(ptf_id: int):
     db_path = current_app.config["DB_PATH"]
     r = read_mapped_filament(db_path, ptf_id)
     if r is None:
-        return _mapped_row_error(ptf_id, "找不到已對照的耗材記錄。")
+        return _mapped_row_error(ptf_id, t("flash.mapping.not_found"))
     spools = list_spools_for_mapping(db_path)
     return render_template("mapping/_remap_row.html", r=r, spools=spools)
 
@@ -116,7 +118,7 @@ def remap_view(ptf_id: int):
     db_path = current_app.config["DB_PATH"]
     spool_id_str = request.form.get("spool_id", "").strip()
     if not spool_id_str:
-        return _mapped_row_error(ptf_id, "請選擇一個 spool。")
+        return _mapped_row_error(ptf_id, t("flash.mapping.select_spool_remap"))
     try:
         spool_id = int(spool_id_str)
         do_map(db_path, ptf_id, spool_id)
@@ -124,7 +126,7 @@ def remap_view(ptf_id: int):
         return _mapped_row_error(ptf_id, str(exc))
     r = read_mapped_filament(db_path, ptf_id)
     if r is None:
-        return _mapped_row_error(ptf_id, "對照完成但無法讀取結果。")
+        return _mapped_row_error(ptf_id, t("flash.mapping.remap_read_failed"))
     return render_template("mapping/_mapped_detail_row.html", r=r)
 
 
@@ -163,4 +165,5 @@ def _row_error(ptf_id: int, msg: str) -> str:
 
 def _mapped_row_error(ptf_id: int, msg: str) -> str:
     safe_msg = escape(msg)
-    return f'<tr id="mapped-row-{ptf_id}"><td colspan="8" style="color:var(--pico-del-color);">⚠ 錯誤：{safe_msg}</td></tr>'
+    safe_prefix = escape(t("common.error_prefix"))
+    return f'<tr id="mapped-row-{ptf_id}"><td colspan="8" style="color:var(--pico-del-color);">⚠ {safe_prefix}{safe_msg}</td></tr>'

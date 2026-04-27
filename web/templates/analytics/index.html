@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}分析 — BambuPrintManager{% endblock %}
+{% block title %}{{ t('analytics.title') }} — BambuPrintManager{% endblock %}
 
 {% block extra_head %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js" defer></script>
@@ -11,17 +11,26 @@ window._analyticsData = {
   cost:     {{ cost     | tojson }},
   printers: {{ printers | tojson }},
 };
+window._chartLabels = {
+  consumed:    {{ t('analytics.chart_consumed')   | tojson }},
+  remaining:   {{ t('analytics.chart_remaining')  | tojson }},
+  task_count:  {{ t('analytics.chart_task_count') | tojson }},
+  weight:      {{ t('analytics.chart_weight')     | tojson }},
+  duration_h:  {{ t('analytics.chart_duration_h') | tojson }},
+  count_axis:  {{ t('analytics.chart_count_axis') | tojson }},
+  weight_axis: {{ t('analytics.chart_weight_axis')| tojson }},
+};
 </script>
 {% endblock %}
 
 {% block content %}
 <div style="max-width:1400px;margin:0 auto;">
-  <h2 style="margin-bottom:1.5rem;">分析</h2>
+  <h2 style="margin-bottom:1.5rem;">{{ t('analytics.title') }}</h2>
 
-  {# ── 1. 熱力圖（全寬，年份選單） ── #}
+  {# ── 1. Heatmap ── #}
   <article style="margin-bottom:1.5rem;">
     <header style="display:flex;justify-content:space-between;align-items:center;gap:1rem;">
-      <strong style="white-space:nowrap;">列印活躍度</strong>
+      <strong style="white-space:nowrap;">{{ t('analytics.heatmap_title') }}</strong>
       {% if heatmap.years %}
       <select id="heatmap-year-select"
               style="width:auto;margin:0;"
@@ -31,11 +40,11 @@ window._analyticsData = {
               hx-trigger="change"
               name="year">
         {% for y in heatmap.years %}
-        <option value="{{ y }}" {% if y == heatmap.current_year %}selected{% endif %}>{{ y }} 年</option>
+        <option value="{{ y }}" {% if y == heatmap.current_year %}selected{% endif %}>{{ y }}{{ t('analytics.heatmap_year_suffix') }}</option>
         {% endfor %}
       </select>
       {% endif %}
-      <small class="muted-label" style="white-space:nowrap;">每格代表一天，顏色越深列印次數越多</small>
+      <small class="muted-label" style="white-space:nowrap;">{{ t('analytics.heatmap_hint') }}</small>
     </header>
 
     <div id="heatmap-container">
@@ -43,11 +52,11 @@ window._analyticsData = {
     </div>
   </article>
 
-  {# ── 2. 材料比例 + 費用分析 ── #}
+  {# ── 2. Material + Cost ── #}
   <div class="analytics-two-col" style="margin-bottom:1.5rem;">
 
     <article>
-      <header><strong>材料類型用量</strong></header>
+      <header><strong>{{ t('analytics.material_title') }}</strong></header>
       {% if material.has_data %}
       <div style="max-width:280px;margin:0 auto;">
         <canvas id="chart-material" height="280"></canvas>
@@ -62,65 +71,65 @@ window._analyticsData = {
         {% endfor %}
       </div>
       {% else %}
-      <p class="muted-label" style="text-align:center;padding:2rem 0;">尚無資料</p>
+      <p class="muted-label" style="text-align:center;padding:2rem 0;">{{ t('analytics.no_data') }}</p>
       {% endif %}
     </article>
 
     <article>
-      <header><strong>耗材費用分析</strong></header>
+      <header><strong>{{ t('analytics.cost_title') }}</strong></header>
       {% if cost.priced_spool_count > 0 %}
       <div style="max-width:340px;margin:0 auto 1rem;">
         <canvas id="chart-cost" height="200"></canvas>
       </div>
       <div class="cost-summary">
         <div class="cost-item">
-          <span class="cost-label">已消耗費用</span>
+          <span class="cost-label">{{ t('analytics.cost_used_label') }}</span>
           <span class="cost-value">${{ "%.2f"|format(cost.known_used) }}</span>
         </div>
         <div class="cost-item">
-          <span class="cost-label">剩餘庫存價值</span>
+          <span class="cost-label">{{ t('analytics.cost_remaining_label') }}</span>
           <span class="cost-value">${{ "%.2f"|format(cost.known_remaining) }}</span>
         </div>
         <div class="cost-item cost-total">
-          <span class="cost-label">合計（有定價）</span>
+          <span class="cost-label">{{ t('analytics.cost_total_label') }}</span>
           <span class="cost-value">${{ "%.2f"|format(cost.known_total) }}</span>
         </div>
       </div>
       {% if cost.unpriced_count > 0 %}
       <p class="muted-label" style="font-size:.8rem;margin-top:.75rem;">
-        另有 {{ cost.unpriced_count }} 捲耗材未定價（{{ "%.0f"|format(cost.unpriced_initial_g) }}g），不計入上方金額。
+        {{ t('analytics.no_price_hint', n=cost.unpriced_count, g="%.0f"|format(cost.unpriced_initial_g)) }}
       </p>
       {% endif %}
       {% else %}
-      <p class="muted-label" style="text-align:center;padding:2rem 0;">請先在耗材管理中填寫購買金額</p>
+      <p class="muted-label" style="text-align:center;padding:2rem 0;">{{ t('analytics.no_cost_hint') }}</p>
       {% endif %}
     </article>
   </div>
 
-  {# ── 3. 月趨勢 ── #}
+  {# ── 3. Monthly trend ── #}
   <article style="margin-bottom:1.5rem;">
-    <header><strong>每月列印趨勢（近 12 個月）</strong></header>
+    <header><strong>{{ t('analytics.trend_title') }}</strong></header>
     {% if trend.has_data %}
     <canvas id="chart-trend" height="120"></canvas>
     {% else %}
-    <p class="muted-label" style="text-align:center;padding:2rem 0;">尚無資料</p>
+    <p class="muted-label" style="text-align:center;padding:2rem 0;">{{ t('analytics.no_data') }}</p>
     {% endif %}
   </article>
 
-  {# ── 4. 印表機使用率 + 顏色分布 ── #}
+  {# ── 4. Printers + Colors ── #}
   <div class="analytics-two-col" style="margin-bottom:1.5rem;">
 
     <article>
-      <header><strong>印表機使用率</strong></header>
+      <header><strong>{{ t('analytics.printers_title') }}</strong></header>
       {% if printers.has_data %}
       <canvas id="chart-printers" height="220"></canvas>
       {% else %}
-      <p class="muted-label" style="text-align:center;padding:2rem 0;">尚無資料</p>
+      <p class="muted-label" style="text-align:center;padding:2rem 0;">{{ t('analytics.no_data') }}</p>
       {% endif %}
     </article>
 
     <article>
-      <header><strong>顏色使用分布（Top 15）</strong></header>
+      <header><strong>{{ t('analytics.colors_title') }}</strong></header>
       {% if colors %}
       <div class="swatch-list">
         {% set max_g = colors[0].total_g if colors else 1 %}
@@ -130,13 +139,13 @@ window._analyticsData = {
           <div class="swatch-bar-wrap">
             <div class="swatch-bar-fill" style="width:{{ [((c.total_g / max_g) * 100)|round|int, 100]|min }}%"></div>
           </div>
-          <span class="swatch-label">{{ c.color_name or c.material or '未知' }}</span>
+          <span class="swatch-label">{{ c.color_name or c.material or t('analytics.unknown_color') }}</span>
           <span class="muted-label swatch-weight">{{ "%.0f"|format(c.total_g) }}g</span>
         </div>
         {% endfor %}
       </div>
       {% else %}
-      <p class="muted-label" style="text-align:center;padding:2rem 0;">尚無已 mapping 的耗材顏色資料</p>
+      <p class="muted-label" style="text-align:center;padding:2rem 0;">{{ t('analytics.no_color_hint') }}</p>
       {% endif %}
     </article>
   </div>
@@ -147,6 +156,7 @@ window._analyticsData = {
 (function () {
   document.addEventListener('DOMContentLoaded', function () {
     var d = window._analyticsData;
+    var L = window._chartLabels;
     var style = getComputedStyle(document.documentElement);
     var colorMuted  = style.getPropertyValue('--pico-muted-color').trim()        || '#607090';
     var colorBorder = style.getPropertyValue('--pico-muted-border-color').trim() || '#DDE5F2';
@@ -156,7 +166,6 @@ window._analyticsData = {
     Chart.defaults.borderColor = colorBorder;
     Chart.defaults.font.family = "'Outfit', system-ui, sans-serif";
 
-    /* 材料甜甜圈 */
     var ctxMat = document.getElementById('chart-material');
     if (ctxMat && d.material.has_data) {
       new Chart(ctxMat, {
@@ -179,7 +188,6 @@ window._analyticsData = {
       });
     }
 
-    /* 費用堆疊橫條 */
     var ctxCost = document.getElementById('chart-cost');
     if (ctxCost && d.cost.priced_spool_count > 0) {
       new Chart(ctxCost, {
@@ -187,8 +195,8 @@ window._analyticsData = {
         data: {
           labels: [''],
           datasets: [
-            { label: '已消耗', data: [d.cost.known_used], backgroundColor: '#EF4444', borderRadius: 4 },
-            { label: '剩餘庫存', data: [d.cost.known_remaining], backgroundColor: '#10B981', borderRadius: 4 },
+            { label: L.consumed,  data: [d.cost.known_used],       backgroundColor: '#EF4444', borderRadius: 4 },
+            { label: L.remaining, data: [d.cost.known_remaining],  backgroundColor: '#10B981', borderRadius: 4 },
           ]
         },
         options: {
@@ -202,7 +210,6 @@ window._analyticsData = {
       });
     }
 
-    /* 月趨勢 */
     var ctxTrend = document.getElementById('chart-trend');
     if (ctxTrend && d.trend.has_data) {
       new Chart(ctxTrend, {
@@ -210,22 +217,21 @@ window._analyticsData = {
         data: {
           labels: d.trend.labels,
           datasets: [
-            { type: 'line', label: '重量 (g)', data: d.trend.weights, borderColor: '#3B82F6',
+            { type: 'line', label: L.weight,     data: d.trend.weights, borderColor: '#3B82F6',
               backgroundColor: 'rgba(59,130,246,0.12)', yAxisID: 'yW', tension: 0.3, fill: true, pointRadius: 3 },
-            { label: '列印次數', data: d.trend.counts, backgroundColor: 'rgba(16,185,129,0.7)', yAxisID: 'yC', borderRadius: 4 }
+            { label: L.task_count, data: d.trend.counts, backgroundColor: 'rgba(16,185,129,0.7)', yAxisID: 'yC', borderRadius: 4 }
           ]
         },
         options: {
           plugins: { legend: { position: 'bottom' } },
           scales: {
-            yC: { type: 'linear', position: 'left',  title: { display: true, text: '次數' } },
-            yW: { type: 'linear', position: 'right', title: { display: true, text: '重量 (g)' }, grid: { drawOnChartArea: false } }
+            yC: { type: 'linear', position: 'left',  title: { display: true, text: L.count_axis } },
+            yW: { type: 'linear', position: 'right', title: { display: true, text: L.weight_axis }, grid: { drawOnChartArea: false } }
           }
         }
       });
     }
 
-    /* 印表機橫條 */
     var ctxPrt = document.getElementById('chart-printers');
     if (ctxPrt && d.printers.has_data) {
       new Chart(ctxPrt, {
@@ -233,8 +239,8 @@ window._analyticsData = {
         data: {
           labels: d.printers.labels,
           datasets: [
-            { label: '列印次數', data: d.printers.tasks, backgroundColor: '#6366F1', borderRadius: 4 },
-            { label: '時長 (h)',  data: d.printers.durations_h, backgroundColor: '#F59E0B', borderRadius: 4 },
+            { label: L.task_count,  data: d.printers.tasks,       backgroundColor: '#6366F1', borderRadius: 4 },
+            { label: L.duration_h,  data: d.printers.durations_h, backgroundColor: '#F59E0B', borderRadius: 4 },
           ]
         },
         options: {

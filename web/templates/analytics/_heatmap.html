@@ -24,8 +24,8 @@
             {% elif day.count <= 9 %}{% set lvl = 3 %}
             {% else %}{% set lvl = 4 %}{% endif %}
           <div class="heatmap-cell level-{{ lvl }}"
-               data-tooltip="{{ day.date }}：{{ day.count }} 次 / {{ day.weight_g }}g"
-               aria-label="{{ day.date }}，{{ day.count }} 次列印"></div>
+               data-tooltip="{{ t('analytics.heatmap_tooltip', date=day.date, count=day.count, weight=day.weight_g) }}"
+               aria-label="{{ t('analytics.heatmap_aria', date=day.date, count=day.count) }}"></div>
           {% endif %}
         {% endfor %}
       </div>
@@ -35,20 +35,20 @@
     {# Legend + stats #}
     <div class="heatmap-footer">
       <span class="muted-label" style="font-size:.75rem;">
-        共 {{ heatmap.total_tasks }} 次列印 · {{ heatmap.total_days_active }} 天有活躍
+        {{ t('analytics.heatmap_stats', tasks=heatmap.total_tasks, days=heatmap.total_days_active) }}
       </span>
       <div class="heatmap-legend">
-        <span class="muted-label" style="font-size:.72rem;">少</span>
+        <span class="muted-label" style="font-size:.72rem;">{{ t('analytics.heatmap_legend_less') }}</span>
         <div class="heatmap-cell level-0"></div>
         <div class="heatmap-cell level-1"></div>
         <div class="heatmap-cell level-2"></div>
         <div class="heatmap-cell level-3"></div>
         <div class="heatmap-cell level-4"></div>
-        <span class="muted-label" style="font-size:.72rem;">多</span>
+        <span class="muted-label" style="font-size:.72rem;">{{ t('analytics.heatmap_legend_more') }}</span>
       </div>
     </div>
   </div>
 </div>
 {% else %}
-<p class="muted-label" style="text-align:center;padding:2rem 0;">{{ heatmap.year }} 年尚無列印資料</p>
+<p class="muted-label" style="text-align:center;padding:2rem 0;">{{ t('analytics.heatmap_no_data', year=heatmap.year) }}</p>
 {% endif %}

@@ -1,25 +1,25 @@
 {% extends "base.html" %}
-{% block title %}{{ task.print_name or '任務詳情' }} — BambuPrintManager{% endblock %}
+{% block title %}{{ task.print_name or t('tasks.detail_back') }} — BambuPrintManager{% endblock %}
 
 {% block content %}
 <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem;margin-bottom:0.5rem;">
-  <a href="{{ url_for('tasks.list_view') }}">← 返回列表</a>
+  <a href="{{ url_for('tasks.list_view') }}">{{ t('tasks.detail_back') }}</a>
   {% if task.is_manual %}
   <div style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap;">
-    <span class="manual-badge" style="font-size:0.85rem;">手動任務</span>
+    <span class="manual-badge" style="font-size:0.85rem;">{{ t('tasks.detail_manual_badge') }}</span>
     <a href="{{ url_for('tasks.edit_manual', task_id=task.id) }}" role="button" class="outline secondary"
-       style="padding:0.3rem 0.8rem;font-size:0.85rem;margin:0;">編輯</a>
+       style="padding:0.3rem 0.8rem;font-size:0.85rem;margin:0;">{{ t('common.edit') }}</a>
     <form method="post" action="{{ url_for('tasks.delete_manual', task_id=task.id) }}"
-          onsubmit="return confirm('確定刪除此手動任務？');" style="margin:0;display:flex;">
+          onsubmit="return confirm('{{ t('common.confirm_delete_task') }}');" style="margin:0;display:flex;">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <button type="submit" class="danger outline"
-              style="padding:0.3rem 0.8rem;font-size:0.85rem;margin:0;">刪除</button>
+              style="padding:0.3rem 0.8rem;font-size:0.85rem;margin:0;">{{ t('common.delete') }}</button>
     </form>
   </div>
   {% endif %}
 </div>
 
-<h1>{{ task.print_name or '(未命名)' }}</h1>
+<h1>{{ task.print_name or t('common.unnamed') }}</h1>
 
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;align-items:start;margin:1.25rem 0 1.75rem;">
   {% if task.cover_url %}
@@ -29,29 +29,29 @@
   {% else %}<div></div>{% endif %}
   <div style="display:flex;flex-direction:column;gap:1.25rem;">
     <div>
-      <small style="color:var(--pico-muted-color);">印表機</small><br>
+      <small style="color:var(--pico-muted-color);">{{ t('tasks.detail_printer') }}</small><br>
       <strong>{{ task.printer_name or '-' }}</strong>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
-      <div><small style="color:var(--pico-muted-color);">開始時間</small><br><strong>{{ (task.started_at or '')[:16] | replace('T', ' ') or '-' }}</strong></div>
-      <div><small style="color:var(--pico-muted-color);">結束時間</small><br><strong>{{ (task.ended_at or '')[:16] | replace('T', ' ') or '-' }}</strong></div>
+      <div><small style="color:var(--pico-muted-color);">{{ t('tasks.detail_start_time') }}</small><br><strong>{{ (task.started_at or '')[:16] | replace('T', ' ') or '-' }}</strong></div>
+      <div><small style="color:var(--pico-muted-color);">{{ t('tasks.detail_end_time') }}</small><br><strong>{{ (task.ended_at or '')[:16] | replace('T', ' ') or '-' }}</strong></div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
-      <div><small style="color:var(--pico-muted-color);">列印耗時</small><br><strong>{% if task.duration_seconds %}{{ task.duration_seconds // 3600 }}h {{ (task.duration_seconds % 3600) // 60 }}m{% else %}-{% endif %}</strong></div>
-      <div><small style="color:var(--pico-muted-color);">總用量</small><br><strong>{{ '%.2f' % task.total_weight_g if task.total_weight_g else '-' }}g</strong></div>
+      <div><small style="color:var(--pico-muted-color);">{{ t('tasks.detail_duration') }}</small><br><strong>{% if task.duration_seconds %}{{ task.duration_seconds // 3600 }}h {{ (task.duration_seconds % 3600) // 60 }}m{% else %}-{% endif %}</strong></div>
+      <div><small style="color:var(--pico-muted-color);">{{ t('tasks.detail_total_usage') }}</small><br><strong>{{ '%.2f' % task.total_weight_g if task.total_weight_g else '-' }}g</strong></div>
     </div>
     <div style="border-top:1px solid var(--pico-muted-border-color);padding-top:0.75rem;">
-      <small style="color:var(--pico-muted-color);font-weight:600;text-transform:uppercase;letter-spacing:0.04em;">耗材用量</small>
+      <small style="color:var(--pico-muted-color);font-weight:600;text-transform:uppercase;letter-spacing:0.04em;">{{ t('tasks.detail_filament_section') }}</small>
       {% if task.filaments %}
       <div class="overflow-auto" style="margin-top:0.5rem;">
       <table style="font-size:0.9rem;">
         <thead>
           <tr>
-            <th>Slot</th>
-            <th>材料</th>
-            <th>顏色</th>
-            <th>用量</th>
-            <th>對應 Spool</th>
+            <th>{{ t('tasks.detail_table_slot') }}</th>
+            <th>{{ t('tasks.detail_table_material') }}</th>
+            <th>{{ t('tasks.detail_table_color') }}</th>
+            <th>{{ t('tasks.detail_table_usage') }}</th>
+            <th>{{ t('tasks.detail_table_spool') }}</th>
           </tr>
         </thead>
         <tbody>
@@ -70,7 +70,7 @@
               {% if f.filament_spool_id %}
                 <a href="{{ url_for('spools.edit_view', spool_id=f.filament_spool_id) }}">Spool #{{ f.filament_spool_id }} {{ f.color_name or '' }}</a>
               {% else %}
-                <span style="color:var(--pico-muted-color);">未對照</span>
+                <span style="color:var(--pico-muted-color);">{{ t('tasks.detail_not_mapped') }}</span>
               {% endif %}
             </td>
           </tr>
@@ -79,7 +79,7 @@
       </table>
       </div>
       {% else %}
-      <p style="margin-top:0.5rem;">此任務無耗材記錄。</p>
+      <p style="margin-top:0.5rem;">{{ t('tasks.detail_no_filaments') }}</p>
       {% endif %}
     </div>
   </div>

@@ -1,5 +1,5 @@
 <tr id="ptf-row-{{ ptf_id }}" class="mapped-row">
-  <td colspan="6" style="color:var(--pico-muted-color);">已 mapping</td>
+  <td colspan="6" style="color:var(--pico-muted-color);">{{ t('mapping.mapped_status') }}</td>
   <td>
     {% if spool %}
     <span class="color-swatch" style="--swatch-color:{{ spool.color_hex or '#cccccc' }};"></span>

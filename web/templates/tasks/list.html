@@ -1,70 +1,70 @@
 {% extends "base.html" %}
-{% block title %}列印歷史 — BambuPrintManager{% endblock %}
+{% block title %}{{ t('tasks.title') }} — BambuPrintManager{% endblock %}
 
 {% block content %}
 <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem;margin-bottom:1rem;">
-  <h1 style="margin:0;">列印歷史</h1>
-  <a href="{{ url_for('tasks.new_manual') }}" role="button" style="white-space:nowrap;">＋ 新增手動任務</a>
+  <h1 style="margin:0;">{{ t('tasks.title') }}</h1>
+  <a href="{{ url_for('tasks.new_manual') }}" role="button" style="white-space:nowrap;">{{ t('tasks.new_manual') }}</a>
 </div>
 
 <form method="get" action="{{ url_for('tasks.list_view') }}" style="display:flex;gap:0.5rem;margin-bottom:1rem;">
-  <input type="search" name="q" value="{{ search }}" placeholder="搜尋列印名稱…" style="flex:1;min-width:0;">
-  <button type="submit" style="width:auto;white-space:nowrap;">搜尋</button>
-  {% if search %}<a href="{{ url_for('tasks.list_view') }}" role="button" class="outline">清除</a>{% endif %}
+  <input type="search" name="q" value="{{ search }}" placeholder="{{ t('tasks.search_placeholder') }}" style="flex:1;min-width:0;">
+  <button type="submit" style="width:auto;white-space:nowrap;">{{ t('tasks.search_btn') }}</button>
+  {% if search %}<a href="{{ url_for('tasks.list_view') }}" role="button" class="outline">{{ t('tasks.clear_btn') }}</a>{% endif %}
 </form>
 
-<p style="color:var(--pico-muted-color);">共 {{ total }} 筆記錄</p>
+<p style="color:var(--pico-muted-color);">{{ t('tasks.total_records', n=total) }}</p>
 
 {% if tasks %}
 <div class="overflow-auto">
 <table>
   <thead>
     <tr>
-      <th style="width:120px;">圖片</th>
-      <th>列印名稱</th>
-      <th>印表機</th>
-      <th>開始時間</th>
-      <th>耗時</th>
-      <th>用量</th>
+      <th style="width:120px;">{{ t('tasks.table_image') }}</th>
+      <th>{{ t('tasks.table_name') }}</th>
+      <th>{{ t('tasks.table_printer') }}</th>
+      <th>{{ t('tasks.table_start_time') }}</th>
+      <th>{{ t('tasks.table_duration') }}</th>
+      <th>{{ t('tasks.table_usage') }}</th>
       <th style="width:130px;"></th>
     </tr>
   </thead>
   <tbody>
-    {% for t in tasks %}
+    {% for task in tasks %}
     <tr>
       <td>
-        {% if t.cover_url %}
+        {% if task.cover_url %}
         <div class="cover-thumb cover-thumb--md">
-          <img src="{{ t.cover_url }}" alt="" loading="lazy" decoding="async">
+          <img src="{{ task.cover_url }}" alt="" loading="lazy" decoding="async">
         </div>
         {% else %}<span style="color:var(--pico-muted-color);">—</span>{% endif %}
       </td>
       <td>
-        <a href="{{ url_for('tasks.detail_view', task_id=t.id) }}">{{ t.print_name or '(未命名)' }}</a>
-        {% if t.is_manual %}
-          <span class="manual-badge">手動</span>
+        <a href="{{ url_for('tasks.detail_view', task_id=task.id) }}">{{ task.print_name or t('common.unnamed') }}</a>
+        {% if task.is_manual %}
+          <span class="manual-badge">{{ t('status.manual') }}</span>
         {% endif %}
       </td>
-      <td style="white-space:nowrap;">{{ t.printer_name or '-' }}</td>
-      <td style="white-space:nowrap;">{{ (t.started_at or '')[:16] | replace('T', ' ') }}</td>
+      <td style="white-space:nowrap;">{{ task.printer_name or '-' }}</td>
+      <td style="white-space:nowrap;">{{ (task.started_at or '')[:16] | replace('T', ' ') }}</td>
       <td style="white-space:nowrap;">
-        {% if t.duration_seconds %}
-          {{ t.duration_seconds // 3600 }}h {{ (t.duration_seconds % 3600) // 60 }}m
+        {% if task.duration_seconds %}
+          {{ task.duration_seconds // 3600 }}h {{ (task.duration_seconds % 3600) // 60 }}m
         {% else %}-{% endif %}
       </td>
-      <td style="white-space:nowrap;">{{ '%.2f' % t.total_weight_g if t.total_weight_g else '-' }}g</td>
+      <td style="white-space:nowrap;">{{ '%.2f' % task.total_weight_g if task.total_weight_g else '-' }}g</td>
       <td>
-        {% if t.is_manual %}
+        {% if task.is_manual %}
         <div style="display:flex;gap:0.4rem;align-items:center;">
-          <a href="{{ url_for('tasks.edit_manual', task_id=t.id) }}"
+          <a href="{{ url_for('tasks.edit_manual', task_id=task.id) }}"
              role="button" class="outline"
-             style="padding:0.25rem 0.6rem;font-size:0.8rem;margin:0;white-space:nowrap;">編輯</a>
-          <form method="post" action="{{ url_for('tasks.delete_manual', task_id=t.id) }}"
-                onsubmit="return confirm('確定刪除此手動任務？');"
+             style="padding:0.25rem 0.6rem;font-size:0.8rem;margin:0;white-space:nowrap;">{{ t('common.edit') }}</a>
+          <form method="post" action="{{ url_for('tasks.delete_manual', task_id=task.id) }}"
+                onsubmit="return confirm('{{ t('common.confirm_delete_task') }}');"
                 style="margin:0;display:flex;">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <button type="submit" class="danger outline"
-                    style="padding:0.25rem 0.6rem;font-size:0.8rem;margin:0;white-space:nowrap;">刪除</button>
+                    style="padding:0.25rem 0.6rem;font-size:0.8rem;margin:0;white-space:nowrap;">{{ t('common.delete') }}</button>
           </form>
         </div>
         {% endif %}
@@ -78,16 +78,16 @@
 {% if total_pages > 1 %}
 <nav style="display:flex;gap:0.5rem;justify-content:center;margin-top:1rem;">
   {% if page > 1 %}
-  <a href="{{ url_for('tasks.list_view', page=page-1, q=search) }}" role="button" class="outline">← 上一頁</a>
+  <a href="{{ url_for('tasks.list_view', page=page-1, q=search) }}" role="button" class="outline">{{ t('tasks.prev_page') }}</a>
   {% endif %}
   <span style="line-height:2.5rem;">{{ page }} / {{ total_pages }}</span>
   {% if page < total_pages %}
-  <a href="{{ url_for('tasks.list_view', page=page+1, q=search) }}" role="button" class="outline">下一頁 →</a>
+  <a href="{{ url_for('tasks.list_view', page=page+1, q=search) }}" role="button" class="outline">{{ t('tasks.next_page') }}</a>
   {% endif %}
 </nav>
 {% endif %}
 
 {% else %}
-<p>無符合條件的記錄。</p>
+<p>{{ t('tasks.no_records') }}</p>
 {% endif %}
 {% endblock %}

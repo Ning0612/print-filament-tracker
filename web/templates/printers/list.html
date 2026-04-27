@@ -1,14 +1,14 @@
 {% extends "base.html" %}
-{% block title %}印表機管理 — BambuPrintManager{% endblock %}
+{% block title %}{{ t('printers.title') }} — BambuPrintManager{% endblock %}
 {% block content %}
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
-  <h1 style="margin:0;">印表機管理</h1>
-  <a href="{{ url_for('printers.new_view') }}" role="button">+ 新增印表機</a>
+  <h1 style="margin:0;">{{ t('printers.title') }}</h1>
+  <a href="{{ url_for('printers.new_view') }}" role="button">{{ t('printers.add_btn') }}</a>
 </div>
-<p style="color:var(--pico-muted-color);margin-bottom:1.5rem;">共 {{ printers|length }} 台印表機</p>
+<p style="color:var(--pico-muted-color);margin-bottom:1.5rem;">{{ t('printers.total', n=printers|length) }}</p>
 
 {% if not printers %}
-  <p style="color:var(--pico-muted-color);">尚無印表機記錄。點擊右上角「新增印表機」開始管理。</p>
+  <p style="color:var(--pico-muted-color);">{{ t('printers.no_printers') }}</p>
 {% endif %}
 
 <div class="printer-list">
@@ -20,7 +20,7 @@
           <img src="{{ p.image_url }}" alt="{{ p.name }}" loading="lazy" decoding="async">
         </div>
       {% else %}
-        <div class="printer-image-placeholder">無圖片</div>
+        <div class="printer-image-placeholder">{{ t('printers.no_image') }}</div>
       {% endif %}
     </div>
     <div class="printer-card-info">
@@ -32,7 +32,7 @@
         <div style="margin-top:0.3rem;"><small style="color:var(--pico-muted-color);">Device ID: <code>{{ p.device_id }}</code></small></div>
       {% endif %}
       {% if p.purchased_at %}
-        <div style="margin-top:0.2rem;"><small style="color:var(--pico-muted-color);">購買日期：{{ p.purchased_at[:10] }}</small></div>
+        <div style="margin-top:0.2rem;"><small style="color:var(--pico-muted-color);">{{ t('printers.purchased_at_label') }}{{ p.purchased_at[:10] }}</small></div>
       {% endif %}
       {% if p.note %}
         <div style="margin-top:0.4rem;"><small>{{ p.note }}</small></div>
@@ -41,24 +41,24 @@
     <div class="printer-card-stats">
       <div class="printer-stat">
         <span class="printer-stat-value">{{ p.task_count }}</span>
-        <span class="printer-stat-label">列印次數</span>
+        <span class="printer-stat-label">{{ t('printers.task_count_label') }}</span>
       </div>
       <div class="printer-stat">
         {% set h = p.total_duration_seconds // 3600 %}
         {% set m = (p.total_duration_seconds % 3600) // 60 %}
         <span class="printer-stat-value">{{ h }}h {{ '%02d' % m }}m</span>
-        <span class="printer-stat-label">總列印時長</span>
+        <span class="printer-stat-label">{{ t('printers.total_duration_label') }}</span>
       </div>
       <div class="printer-stat">
         <span class="printer-stat-value">{{ '%.0f' % p.total_weight_g }}g</span>
-        <span class="printer-stat-label">總用料重量</span>
+        <span class="printer-stat-label">{{ t('printers.total_weight_label') }}</span>
       </div>
       <div class="printer-card-actions">
-        <a href="{{ url_for('printers.edit_view', printer_id=p.id) }}" role="button" class="outline">編輯</a>
+        <a href="{{ url_for('printers.edit_view', printer_id=p.id) }}" role="button" class="outline">{{ t('common.edit') }}</a>
         <form method="post" action="{{ url_for('printers.delete_view', printer_id=p.id) }}"
-              onsubmit="return confirm('確定刪除「{{ p.name }}」？\n此印表機共有 {{ p.task_count }} 筆列印記錄，刪除後記錄將不再關聯印表機。');">
+              onsubmit="return confirm('{{ t('printers.confirm_delete', name=p.name, count=p.task_count) }}');">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-          <button type="submit" class="outline" style="color:var(--pico-del-color);border-color:var(--pico-del-color);">刪除</button>
+          <button type="submit" class="outline" style="color:var(--pico-del-color);border-color:var(--pico-del-color);">{{ t('common.delete') }}</button>
         </form>
       </div>
     </div>

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-TW" data-theme="light">
+<html lang="{{ current_lang() }}" data-theme="light">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -21,15 +21,31 @@
         <li><strong>🐼 BambuPrintManager</strong></li>
       </ul>
       <ul>
-        <li><a href="{{ url_for('dashboard.index') }}" {% if request.path == '/' %}aria-current="page"{% endif %}>儀表板</a></li>
-        <li><a href="{{ url_for('spools.list_view') }}" {% if request.path.startswith('/spools') %}aria-current="page"{% endif %}>耗材管理</a></li>
-        <li><a href="{{ url_for('printers.list_view') }}" {% if request.path.startswith('/printers') %}aria-current="page"{% endif %}>印表機</a></li>
-        <li><a href="{{ url_for('tasks.list_view') }}" {% if request.path.startswith('/tasks') %}aria-current="page"{% endif %}>列印歷史</a></li>
-        <li><a href="{{ url_for('mapping.list_view') }}" {% if request.path.startswith('/mapping') %}aria-current="page"{% endif %}>耗材對照</a></li>
-        <li><a href="{{ url_for('analytics.index') }}" {% if request.path.startswith('/analytics') %}aria-current="page"{% endif %}>分析</a></li>
-        <li><a href="{{ url_for('settings.index') }}" {% if request.path.startswith('/settings') %}aria-current="page"{% endif %}>設定</a></li>
+        <li><a href="{{ url_for('dashboard.index') }}" {% if request.path == '/' %}aria-current="page"{% endif %}>{{ t('nav.dashboard') }}</a></li>
+        <li><a href="{{ url_for('spools.list_view') }}" {% if request.path.startswith('/spools') %}aria-current="page"{% endif %}>{{ t('nav.spools') }}</a></li>
+        <li><a href="{{ url_for('printers.list_view') }}" {% if request.path.startswith('/printers') %}aria-current="page"{% endif %}>{{ t('nav.printers') }}</a></li>
+        <li><a href="{{ url_for('tasks.list_view') }}" {% if request.path.startswith('/tasks') %}aria-current="page"{% endif %}>{{ t('nav.tasks') }}</a></li>
+        <li><a href="{{ url_for('mapping.list_view') }}" {% if request.path.startswith('/mapping') %}aria-current="page"{% endif %}>{{ t('nav.mapping') }}</a></li>
+        <li><a href="{{ url_for('analytics.index') }}" {% if request.path.startswith('/analytics') %}aria-current="page"{% endif %}>{{ t('nav.analytics') }}</a></li>
+        <li><a href="{{ url_for('settings.index') }}" {% if request.path.startswith('/settings') %}aria-current="page"{% endif %}>{{ t('nav.settings') }}</a></li>
         <li>
-          <button class="theme-toggle" id="nav-theme-toggle" aria-label="切換深/淺色模式" title="切換主題">
+          {# ── Language switcher — add a new JSON file to support more languages ── #}
+          <form method="post" action="{{ url_for('lang.set_lang') }}" style="margin:0;display:inline;">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="next" value="{{ request.full_path.rstrip('?') }}">
+            <select name="lang" onchange="this.form.submit()"
+                    aria-label="{{ t('lang.label') }}"
+                    style="margin:0;padding:0.2rem 0.4rem;font-size:0.85rem;width:auto;height:auto;cursor:pointer;">
+              {% for code, name in supported_langs() %}
+              <option value="{{ code }}" {% if code == current_lang() %}selected{% endif %}>{{ name }}</option>
+              {% endfor %}
+            </select>
+          </form>
+        </li>
+        <li>
+          <button class="theme-toggle" id="nav-theme-toggle"
+                  aria-label="{{ t('nav.theme_toggle_aria') }}"
+                  title="{{ t('nav.theme_toggle_title') }}">
             <span id="theme-toggle-icon">☾</span>
           </button>
         </li>
@@ -37,8 +53,8 @@
     </nav>
   </header>
 
-  <div id="cover-lightbox" role="dialog" aria-modal="true" aria-label="封面圖預覽">
-    <button id="cover-lightbox-close" aria-label="關閉">×</button>
+  <div id="cover-lightbox" role="dialog" aria-modal="true" aria-label="{{ t('lightbox.title') }}">
+    <button id="cover-lightbox-close" aria-label="{{ t('lightbox.close') }}">×</button>
     <img id="cover-lightbox-img" src="" alt="">
   </div>
 
@@ -53,18 +69,16 @@
   </main>
 
   <footer class="container-fluid">
-    BambuPrintManager — 本機耗材管理工具
+    {{ t('footer.text') }}
   </footer>
 
 <script>
 (function () {
-  /* ── CSRF: inject token into every HTMX request header ── */
   document.addEventListener('htmx:configRequest', function (evt) {
     var meta = document.querySelector('meta[name="csrf-token"]');
     if (meta) evt.detail.headers['X-CSRFToken'] = meta.getAttribute('content');
   });
 
-  /* ── Theme toggle ── */
   var THEME_KEY = 'bambu-theme';
   var html = document.documentElement;
 
@@ -75,14 +89,11 @@
     try { localStorage.setItem(THEME_KEY, t); } catch (e) {}
     var icon = document.getElementById('theme-toggle-icon');
     if (icon) icon.textContent = t === 'dark' ? '☀' : '☾';
-    /* Sync settings-page radio buttons if they exist */
     var radio = document.querySelector('input[name="theme"][value="' + t + '"]');
     if (radio) radio.checked = true;
   }
-  /* Expose globally so settings-page radio buttons can trigger icon sync */
   window.bambuApplyTheme = applyTheme;
 
-  /* ── Lightbox ── */
   var lb    = null;
   var lbImg = null;
 
@@ -99,7 +110,6 @@
     lbImg.src = '';
   }
 
-  /* ── Cover thumb lazy-load + lightbox binding ── */
   function initCoverThumbs(root) {
     (root || document).querySelectorAll('.cover-thumb img').forEach(function (img) {
       function done() {
@@ -124,10 +134,8 @@
   }
 
   document.addEventListener('DOMContentLoaded', function () {
-    /* Init theme icon */
     applyTheme(getTheme());
 
-    /* Theme toggle button */
     var toggleBtn = document.getElementById('nav-theme-toggle');
     if (toggleBtn) {
       toggleBtn.addEventListener('click', function () {
@@ -135,7 +143,6 @@
       });
     }
 
-    /* Lightbox */
     lb    = document.getElementById('cover-lightbox');
     lbImg = document.getElementById('cover-lightbox-img');
 

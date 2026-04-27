@@ -1,58 +1,58 @@
 {% extends "base.html" %}
-{% block title %}{{ '編輯' if printer else '新增' }}印表機 — BambuPrintManager{% endblock %}
+{% block title %}{{ t('printers.form_edit_title') if printer else t('printers.form_new_title') }} — BambuPrintManager{% endblock %}
 {% block content %}
-<p style="margin-bottom:0.5rem;"><a href="{{ url_for('printers.list_view') }}">← 返回印表機管理</a></p>
-<h1>{{ '編輯' if printer else '新增' }}印表機</h1>
+<p style="margin-bottom:0.5rem;"><a href="{{ url_for('printers.list_view') }}">{{ t('printers.form_back') }}</a></p>
+<h1>{{ t('printers.form_edit_title') if printer else t('printers.form_new_title') }}</h1>
 
 <form method="post" action="{{ action }}" enctype="multipart/form-data">
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
   <div class="task-form-grid">
 
     <div class="task-form-cover-col">
-      <p style="font-size:0.9rem;font-weight:600;margin-bottom:0.6rem;">印表機圖片</p>
+      <p style="font-size:0.9rem;font-weight:600;margin-bottom:0.6rem;">{{ t('printers.form_image_label') }}</p>
       {% if printer and printer.image_url %}
         <div class="cover-thumb cover-thumb--form-preview" style="margin-bottom:0.75rem;">
           <img src="{{ printer.image_url }}" alt="{{ printer.name }}" loading="lazy" decoding="async">
         </div>
         <label style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.5rem;font-size:0.875rem;">
           <input type="checkbox" name="clear_image" value="1">
-          清除現有圖片
+          {{ t('printers.form_clear_image') }}
         </label>
-        <small style="color:var(--pico-muted-color);display:block;margin-bottom:0.5rem;">上傳新圖片將自動取代現有圖片</small>
+        <small style="color:var(--pico-muted-color);display:block;margin-bottom:0.5rem;">{{ t('printers.form_image_replace_hint') }}</small>
       {% else %}
         <div class="cover-thumb--form-placeholder" style="margin-bottom:0.75rem;"></div>
       {% endif %}
       <input type="file" name="image" accept="image/png,image/jpeg,image/webp,image/gif" style="margin-top:0.25rem;">
-      <small style="color:var(--pico-muted-color);display:block;margin-top:0.25rem;">支援 PNG、JPEG、WebP、GIF，上限 10 MB</small>
+      <small style="color:var(--pico-muted-color);display:block;margin-top:0.25rem;">{{ t('printers.form_image_hint') }}</small>
     </div>
 
     <div class="task-form-main-col">
       <fieldset>
-        <legend>基本資訊</legend>
+        <legend>{{ t('printers.form_basic_info') }}</legend>
         <label>
-          印表機名稱 <span style="color:var(--pico-del-color);">*</span>
+          {{ t('printers.form_name') }} <span style="color:var(--pico-del-color);">*</span>
           <input type="text" name="name" required
                  value="{{ printer.name if printer else '' }}"
-                 placeholder="例：我的 P1S">
+                 placeholder="P1S">
         </label>
         <div class="grid">
           <label>
-            型號
+            {{ t('printers.form_model') }}
             <input type="text" name="model"
                    value="{{ printer.model if printer and printer.model else '' }}"
                    placeholder="P1S / X1C / A1 / …">
           </label>
           <label>
-            購買日期
-            <input type="date" name="purchased_at"
+            {{ t('printers.form_purchased_at') }}
+            <input type="date" name="purchased_at" lang="en-CA"
                    value="{{ (printer.purchased_at or '')[:10] if printer else '' }}">
           </label>
         </div>
         <label>
-          Device ID <small style="color:var(--pico-muted-color);font-weight:normal;">（可選，對應列印歷史的機台）</small>
+          Device ID <small style="color:var(--pico-muted-color);font-weight:normal;">{{ t('printers.form_device_id_hint') }}</small>
           <input type="text" name="device_id" list="device-ids-list"
                  value="{{ printer.device_id if printer and printer.device_id else '' }}"
-                 placeholder="留空，或從清單選取已知 ID"
+                 placeholder="{{ t('printers.form_device_id_placeholder') }}"
                  autocomplete="off">
           <datalist id="device-ids-list">
             {% for did in device_id_suggestions %}
@@ -61,13 +61,13 @@
           </datalist>
         </label>
         <label>
-          備註
+          {{ t('printers.form_note') }}
           <textarea name="note" rows="3">{{ printer.note if printer and printer.note else '' }}</textarea>
         </label>
       </fieldset>
       <div class="form-actions">
-        <button type="submit">{{ '更新' if printer else '新增' }}</button>
-        <a href="{{ url_for('printers.list_view') }}" role="button" class="outline secondary">取消</a>
+        <button type="submit">{{ t('printers.form_update_btn') if printer else t('printers.form_add_btn') }}</button>
+        <a href="{{ url_for('printers.list_view') }}" role="button" class="outline secondary">{{ t('common.cancel') }}</a>
       </div>
     </div>
 

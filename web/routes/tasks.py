@@ -3,6 +3,8 @@ from pathlib import Path
 
 from flask import Blueprint, abort, current_app, flash, redirect, render_template, request, url_for
 
+from web.i18n import t
+
 from src.db import (
     delete_manual_task,
     get_all_printers,
@@ -235,7 +237,7 @@ def new_manual():
 
     if not task_data["print_name"]:
         printers, spools = _load_form_choices(db_path)
-        flash("列印名稱為必填欄位。", "error")
+        flash(t("flash.tasks.name_required"), "error")
         task_data["started_at_input"] = (task_data.get("started_at") or "")[:16]
         task_data["ended_at_input"]   = (task_data.get("ended_at")   or "")[:16]
         ds = task_data.get("duration_seconds") or 0
@@ -257,7 +259,7 @@ def new_manual():
             f["print_task_id"] = task_id
             insert_print_task_filament(conn, f)
 
-    flash("手動任務已新增。", "success")
+    flash(t("flash.tasks.added"), "success")
     return redirect(url_for("tasks.detail_view", task_id=task_id))
 
 
@@ -290,7 +292,7 @@ def edit_manual(task_id: int):
 
     if not task_data["print_name"]:
         printers, spools = _load_form_choices(db_path)
-        flash("列印名稱為必填欄位。", "error")
+        flash(t("flash.tasks.name_required"), "error")
         task_data["id"] = task_id
         task_data["filaments"] = filaments
         task_data["started_at_input"] = (task_data.get("started_at") or "")[:16]
@@ -310,7 +312,7 @@ def edit_manual(task_id: int):
     if cover_file and cover_file.filename:
         ext = Path(cover_file.filename).suffix.lower()
         if ext not in _ALLOWED_COVER_EXTS:
-            flash(f"不支援的圖片格式（{ext}），封面未變更。支援：PNG、JPEG、WebP、GIF。", "error")
+            flash(t("flash.tasks.invalid_ext", ext=ext), "error")
             cover_file = None
         else:
             new_ext = ext
@@ -338,7 +340,7 @@ def edit_manual(task_id: int):
     elif clear_cover:
         _remove_manual_cover(covers_dir, task_id)
 
-    flash("手動任務已更新。", "success")
+    flash(t("flash.tasks.updated"), "success")
     return redirect(url_for("tasks.detail_view", task_id=task_id))
 
 
@@ -356,5 +358,5 @@ def delete_manual(task_id: int):
         abort(404)
 
     _remove_manual_cover(covers_dir, task_id)
-    flash("手動任務已刪除。", "success")
+    flash(t("flash.tasks.deleted"), "success")
     return redirect(url_for("tasks.list_view"))

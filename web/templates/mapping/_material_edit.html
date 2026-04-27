@@ -6,11 +6,11 @@
          style="margin:0;padding:0.2rem 0.4rem;min-width:70px;max-width:110px;font-size:0.9rem;" autofocus>
   <button type="submit"
           style="padding:0.3rem 0.5rem;font-size:0.875rem;margin:0;line-height:1.4;"
-          aria-label="儲存">✓</button>
+          aria-label="{{ t('mapping.save_material_aria') }}">✓</button>
   <button type="button" class="outline"
           hx-get="{{ url_for('mapping.material_cancel', ptf_id=ptf_id) }}"
           hx-target="#mat-{{ ptf_id }}"
           hx-swap="innerHTML"
           style="padding:0.3rem 0.5rem;font-size:0.875rem;margin:0;line-height:1.4;"
-          aria-label="取消">✕</button>
+          aria-label="{{ t('mapping.cancel_material_aria') }}">✕</button>
 </form>

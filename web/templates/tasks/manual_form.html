@@ -1,17 +1,17 @@
 {% extends "base.html" %}
-{% block title %}{% if task and task.id %}編輯手動任務{% else %}新增手動任務{% endif %} — BambuPrintManager{% endblock %}
+{% block title %}{% if task and task.id %}{{ t('tasks.form_edit_title') }}{% else %}{{ t('tasks.form_new_title') }}{% endif %} — BambuPrintManager{% endblock %}
 
 {% block content %}
-<p><a href="{% if task and task.id %}{{ url_for('tasks.detail_view', task_id=task.id) }}{% else %}{{ url_for('tasks.list_view') }}{% endif %}">← 返回</a></p>
-<h1>{% if task and task.id %}編輯手動列印任務{% else %}新增手動列印任務{% endif %}</h1>
+<p><a href="{% if task and task.id %}{{ url_for('tasks.detail_view', task_id=task.id) }}{% else %}{{ url_for('tasks.list_view') }}{% endif %}">{{ t('common.back') }}</a></p>
+<h1>{% if task and task.id %}{{ t('tasks.form_edit_title') }}{% else %}{{ t('tasks.form_new_title') }}{% endif %}</h1>
 
 <form method="post" enctype="multipart/form-data">
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
   <div class="task-form-grid">
 
-    <!-- ── 左欄：封面圖片 ── -->
+    <!-- Cover image column -->
     <div class="task-form-cover-col">
-      <p style="font-size:0.9rem;font-weight:600;margin-bottom:0.6rem;">封面圖片</p>
+      <p style="font-size:0.9rem;font-weight:600;margin-bottom:0.6rem;">{{ t('tasks.form_cover_label') }}</p>
 
       {% if task and task.cover_url %}
       <div class="cover-thumb cover-thumb--form-preview" style="margin-bottom:0.75rem;">
@@ -19,36 +19,35 @@
       </div>
       <label style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.4rem;font-weight:normal;font-size:0.9rem;">
         <input type="checkbox" name="clear_cover" value="1" role="switch">
-        清除現有封面圖
+        {{ t('tasks.form_clear_cover') }}
       </label>
-      <small style="color:var(--pico-muted-color);display:block;margin-bottom:0.75rem;">上傳新圖片將自動取代現有封面</small>
+      <small style="color:var(--pico-muted-color);display:block;margin-bottom:0.75rem;">{{ t('tasks.form_cover_replace_hint') }}</small>
       {% else %}
       <div class="cover-thumb--form-placeholder" style="margin-bottom:0.75rem;"></div>
       {% endif %}
 
       <input type="file" name="cover" accept="image/png,image/jpeg,image/webp,image/gif"
              style="margin-bottom:0.25rem;">
-      <small class="form-hint" style="margin-top:0;">支援 PNG、JPEG、WebP、GIF，上限 10 MB</small>
+      <small class="form-hint" style="margin-top:0;">{{ t('tasks.form_cover_hint') }}</small>
     </div>
 
-    <!-- ── 右欄：表單內容 ── -->
+    <!-- Main form column -->
     <div class="task-form-main-col">
 
-      <!-- 基本資訊 -->
       <fieldset>
-        <legend>基本資訊</legend>
+        <legend>{{ t('tasks.form_basic_info') }}</legend>
 
         <label>
-          列印名稱 <span style="color:var(--pico-del-color);">*</span>
+          {{ t('tasks.form_print_name') }} <span style="color:var(--pico-del-color);">*</span>
           <input type="text" name="print_name" required
                  value="{{ task.print_name or '' if task else '' }}"
-                 placeholder="例：Benchy 25%">
+                 placeholder="Benchy 25%">
         </label>
 
         <label>
-          印表機
+          {{ t('tasks.form_printer') }}
           <select name="printer_id">
-            <option value="">— 不指定 —</option>
+            <option value="">{{ t('tasks.form_no_printer') }}</option>
             {% for p in printers %}
             <option value="{{ p.id }}"
               {% if task and task.printer_id == p.id %}selected{% endif %}>
@@ -60,14 +59,14 @@
 
         <div class="grid" style="grid-template-columns:1fr 1fr;gap:1rem;">
           <label>
-            開始時間
-            <input type="datetime-local" name="started_at"
+            {{ t('tasks.form_start_time') }}
+            <input type="datetime-local" name="started_at" lang="en-CA"
                    value="{{ task.started_at_input if task else '' }}"
                    id="started_at">
           </label>
           <label>
-            結束時間
-            <input type="datetime-local" name="ended_at"
+            {{ t('tasks.form_end_time') }}
+            <input type="datetime-local" name="ended_at" lang="en-CA"
                    value="{{ task.ended_at_input if task else '' }}"
                    id="ended_at">
           </label>
@@ -75,59 +74,58 @@
 
         <div class="grid" style="grid-template-columns:1fr 1fr 1fr;gap:1rem;align-items:end;">
           <label>
-            耗時（小時）
+            {{ t('tasks.form_duration_h') }}
             <input type="number" name="duration_h" min="0" step="1" id="duration_h"
                    value="{{ task.duration_h_input if task else 0 }}"
                    placeholder="0">
           </label>
           <label>
-            耗時（分鐘）
+            {{ t('tasks.form_duration_m') }}
             <input type="number" name="duration_m" min="0" max="59" step="1" id="duration_m"
                    value="{{ task.duration_m_input if task else 0 }}"
                    placeholder="0">
           </label>
           <label>
-            總用量（g）
+            {{ t('tasks.form_total_weight') }}
             <input type="number" name="total_weight_g" min="0" step="0.01" id="total_weight_g"
                    value="{{ '%.2f' % task.total_weight_g if task and task.total_weight_g is not none else '' }}"
-                   placeholder="自動加總">
+                   placeholder="{{ t('tasks.form_auto_calc_weight') }}">
           </label>
         </div>
-        <p class="form-hint">耗時若開始／結束時間皆填寫，儲存時會自動計算。總用量若留空，將由耗材記錄加總。</p>
+        <p class="form-hint">{{ t('tasks.form_duration_hint') }}</p>
       </fieldset>
 
-      <!-- 耗材記錄 -->
       <fieldset>
-        <legend>耗材記錄</legend>
+        <legend>{{ t('tasks.form_filament_section') }}</legend>
         <div id="filament-rows">
           {% set existing = task.filaments if task and task.filaments else [] %}
           {% for f in existing %}
           <div class="filament-row">
             <div class="filament-row-fields">
               <label>
-                <small>Slot</small>
+                <small>{{ t('tasks.form_slot') }}</small>
                 <input type="number" name="filament_slot" min="0" step="1" value="{{ f.slot_id if f.slot_id is not none else '' }}" placeholder="—">
               </label>
               <label>
-                <small>材料</small>
+                <small>{{ t('tasks.form_material') }}</small>
                 <input type="text" name="filament_material" value="{{ f.material or '' }}" placeholder="PLA, ABS…">
               </label>
               <label>
-                <small>顏色</small>
+                <small>{{ t('tasks.form_color') }}</small>
                 <input type="color" name="filament_color"
                        value="{{ f.color_hex or '#ffffff' }}"
                        class="filament-color-input">
               </label>
               <label>
-                <small>用量 (g)</small>
+                <small>{{ t('tasks.form_weight_g') }}</small>
                 <input type="number" name="filament_weight" min="0" step="0.01"
                        value="{{ '%.2f' % f.used_weight_g if f.used_weight_g is not none else '' }}"
                        placeholder="0.00" class="filament-weight-input">
               </label>
               <label>
-                <small>對應 Spool</small>
+                <small>{{ t('tasks.form_spool') }}</small>
                 <select name="filament_spool">
-                  <option value="">— 不指定 —</option>
+                  <option value="">{{ t('tasks.form_no_spool') }}</option>
                   {% for s in spools %}
                   <option value="{{ s.id }}"
                     {% if f.filament_spool_id == s.id %}selected{% endif %}>
@@ -144,13 +142,13 @@
         </div>
 
         <button type="button" id="add-filament-row" class="outline secondary" style="margin-top:0.5rem;">
-          ＋ 新增耗材
+          {{ t('tasks.form_add_filament') }}
         </button>
       </fieldset>
 
       <div style="display:flex;gap:0.75rem;margin-top:1rem;">
-        <button type="submit">儲存</button>
-        <a href="{{ url_for('tasks.list_view') }}" role="button" class="outline secondary">取消</a>
+        <button type="submit">{{ t('tasks.form_submit_save') }}</button>
+        <a href="{{ url_for('tasks.list_view') }}" role="button" class="outline secondary">{{ t('common.cancel') }}</a>
       </div>
 
     </div><!-- /.task-form-main-col -->
@@ -162,25 +160,25 @@
   <div class="filament-row">
     <div class="filament-row-fields">
       <label>
-        <small>Slot</small>
+        <small>{{ t('tasks.form_slot') }}</small>
         <input type="number" name="filament_slot" min="0" step="1" placeholder="—">
       </label>
       <label>
-        <small>材料</small>
+        <small>{{ t('tasks.form_material') }}</small>
         <input type="text" name="filament_material" placeholder="PLA, ABS…">
       </label>
       <label>
-        <small>顏色</small>
+        <small>{{ t('tasks.form_color') }}</small>
         <input type="color" name="filament_color" value="#ffffff" class="filament-color-input">
       </label>
       <label>
-        <small>用量 (g)</small>
+        <small>{{ t('tasks.form_weight_g') }}</small>
         <input type="number" name="filament_weight" min="0" step="0.01" placeholder="0.00" class="filament-weight-input">
       </label>
       <label>
-        <small>對應 Spool</small>
+        <small>{{ t('tasks.form_spool') }}</small>
         <select name="filament_spool">
-          <option value="">— 不指定 —</option>
+          <option value="">{{ t('tasks.form_no_spool') }}</option>
           {% for s in spools %}
           <option value="{{ s.id }}">
             {{ s.material or '?' }} · {{ s.color_name or s.color_hex or '#' + s.uid[:6] }}

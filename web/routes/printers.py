@@ -2,6 +2,8 @@ from pathlib import Path
 
 from flask import Blueprint, current_app, flash, redirect, render_template, request, url_for
 
+from web.i18n import t
+
 from src.printer import (
     PrinterNotFoundError,
     PrinterValidationError,
@@ -89,8 +91,8 @@ def new_view():
             if image_url:
                 set_printer_image(db_path, printer_id, image_url)
             else:
-                flash("圖片格式不支援，已略過。", "error")
-        flash("印表機已新增。", "success")
+                flash(t("flash.printers.image_skipped"), "error")
+        flash(t("flash.printers.added"), "success")
         return redirect(url_for("printers.list_view"))
     return render_template(
         "printers/form.html",
@@ -107,7 +109,7 @@ def edit_view(printer_id: int):
     try:
         printer = read_printer(db_path, printer_id)
     except PrinterNotFoundError:
-        flash("找不到此印表機。", "error")
+        flash(t("flash.printers.not_found"), "error")
         return redirect(url_for("printers.list_view"))
     if request.method == "POST":
         data = _form_to_printer(request.form)
@@ -116,14 +118,14 @@ def edit_view(printer_id: int):
         if file and file.filename:
             ext = Path(file.filename).suffix.lower()
             if ext not in _ALLOWED_EXTS:
-                flash("圖片格式不支援，圖片未更新。", "error")
+                flash(t("flash.printers.image_not_updated"), "error")
                 new_image_url = printer.get("image_url")
                 file = None
             else:
                 header = file.read(12)
                 file.stream.seek(0)
                 if not _is_valid_image(header):
-                    flash("圖片格式不支援，圖片未更新。", "error")
+                    flash(t("flash.printers.image_not_updated"), "error")
                     new_image_url = printer.get("image_url")
                     file = None
                 else:
@@ -149,7 +151,7 @@ def edit_view(printer_id: int):
             file.save(covers_dir / f"p{printer_id}{Path(file.filename).suffix.lower()}")
         elif clear_image:
             _remove_printer_image(covers_dir, printer_id)
-        flash("印表機已更新。", "success")
+        flash(t("flash.printers.updated"), "success")
         return redirect(url_for("printers.list_view"))
     return render_template(
         "printers/form.html",
@@ -166,7 +168,7 @@ def delete_view(printer_id: int):
     try:
         delete_printer_data(db_path, printer_id)
         _remove_printer_image(covers_dir, printer_id)
-        flash("印表機已刪除。", "success")
+        flash(t("flash.printers.deleted"), "success")
     except PrinterNotFoundError:
-        flash("找不到此印表機。", "error")
+        flash(t("flash.printers.not_found"), "error")
     return redirect(url_for("printers.list_view"))

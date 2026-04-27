@@ -5,6 +5,8 @@ from datetime import datetime, timedelta
 import requests
 from flask import Blueprint, current_app, flash, make_response, render_template, request, session, url_for
 
+from web.i18n import t
+
 bp = Blueprint("settings", __name__, url_prefix="/settings")
 
 _GLOBAL_BASE = "https://api.bambulab.com"
@@ -101,11 +103,12 @@ def _run_sync(app) -> None:
         with _sync_lock:
             _sync_state = {
                 "status": "done",
-                "message": (
-                    f"同步完成！新增 {stats['inserted']} 筆，"
-                    f"略過 {stats['skipped']} 筆，"
-                    f"耗材記錄 {stats['filaments']} 筆。"
-                ),
+                "message_key": "flash.sync.done",
+                "message_params": {
+                    "inserted": stats["inserted"],
+                    "skipped": stats["skipped"],
+                    "filaments": stats["filaments"],
+                },
                 "stats": stats,
             }
     except Exception as exc:
@@ -115,7 +118,7 @@ def _run_sync(app) -> None:
 
 def _auto_sync_scheduler(app) -> None:
     """Background daemon thread: wakes every 60 s, syncs when interval elapsed."""
-    global _auto_sync_state
+    global _auto_sync_state, _sync_state
 
     with app.app_context():
         interval = int(app.config.get("AUTO_SYNC_INTERVAL_MINUTES", 0))
@@ -150,7 +153,7 @@ def _auto_sync_scheduler(app) -> None:
         should_run = False
         with _sync_lock:
             if _sync_state.get("status") != "running":
-                _sync_state = {"status": "running", "message": "自動同步中...", "stats": None}
+                _sync_state = {"status": "running", "message_key": "flash.sync.auto_running", "stats": None}
                 should_run = True
 
         if not should_run:
@@ -213,7 +216,7 @@ def login_step1():
         region = "global"
 
     if not email or not password:
-        return render_template("settings/_login_error.html", error="Email 和密碼不得為空。")
+        return render_template("settings/_login_error.html", error=t("flash.settings.email_password_required"))
 
     base_url = _GLOBAL_BASE if region == "global" else _CHINA_BASE
     data, err = _api_post(base_url, _LOGIN_PATH, {
@@ -227,7 +230,7 @@ def login_step1():
 
     if token and not login_type:
         _apply_token(token, region)
-        flash("Bambu Cloud 登入成功，Token 已儲存。", "success")
+        flash(t("flash.settings.login_success"), "success")
         resp = make_response("")
         resp.headers["HX-Redirect"] = url_for("settings.index")
         return resp
@@ -238,7 +241,7 @@ def login_step1():
         })
         if send_err:
             return render_template("settings/_login_error.html",
-                                   error=f"驗證碼發送失敗：{send_err}")
+                                   error=t("flash.settings.send_code_failed", err=send_err))
         session["bambu_login"] = {
             "email": email, "region": region,
             "base_url": base_url, "type": "verifyCode",
@@ -256,7 +259,7 @@ def login_step1():
                                login_type="tfa", email=email)
 
     return render_template("settings/_login_error.html",
-                           error=f"未預期的登入回應：{data}")
+                           error=t("flash.settings.unexpected_response", data=data))
 
 
 @bp.route("/login/step2", methods=["POST"])
@@ -264,11 +267,11 @@ def login_step2():
     info = session.get("bambu_login")
     if not info:
         return render_template("settings/_login_error.html",
-                               error="登入工作階段已過期，請重新開始。")
+                               error=t("flash.settings.session_expired"))
 
     code = request.form.get("code", "").strip()
     if not code:
-        return render_template("settings/_login_error.html", error="驗證碼不得為空。")
+        return render_template("settings/_login_error.html", error=t("flash.settings.code_empty"))
 
     base_url = info["base_url"]
     region = info["region"]
@@ -288,11 +291,11 @@ def login_step2():
     token = data.get("accessToken") if data else None
     if not token:
         return render_template("settings/_login_error.html",
-                               error=f"登入失敗，伺服器回應：{data}")
+                               error=t("flash.settings.login_failed", data=data))
 
     session.pop("bambu_login", None)
     _apply_token(token, region)
-    flash("Bambu Cloud 登入成功，Token 已儲存。", "success")
+    flash(t("flash.settings.login_success"), "success")
     resp = make_response("")
     resp.headers["HX-Redirect"] = url_for("settings.index")
     return resp
@@ -309,12 +312,12 @@ def start_sync():
         token = current_app.config.get("BAMBU_TOKEN", "")
         if not token:
             _sync_state = {"status": "error",
-                           "message": "尚未設定 Token，請先登入 Bambu 帳號。",
+                           "message_key": "flash.sync.no_token",
                            "stats": None}
             return render_template("settings/_sync_status.html", sync_state=_sync_state)
 
         _sync_state = {"status": "running",
-                       "message": "正在從 Bambu Cloud 下載列印歷史...",
+                       "message_key": "flash.sync.running",
                        "stats": None}
 
     app = current_app._get_current_object()

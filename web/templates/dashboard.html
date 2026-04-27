@@ -1,34 +1,34 @@
 {% extends "base.html" %}
-{% block title %}儀表板 — BambuPrintManager{% endblock %}
+{% block title %}{{ t('dashboard.title') }} — BambuPrintManager{% endblock %}
 
 {% block content %}
-<h1>儀表板</h1>
+<h1>{{ t('dashboard.title') }}</h1>
 
-<p class="dashboard-section-label">耗材狀態</p>
+<p class="dashboard-section-label">{{ t('dashboard.spool_status') }}</p>
 <div class="stats-grid">
   <article>
-    <header>耗材總數</header>
+    <header>{{ t('dashboard.total_spools') }}</header>
     <p class="stat-number">{{ stats.total }}</p>
   </article>
   <article>
-    <header><span class="status-active">● 使用中</span></header>
+    <header><span class="status-active">● {{ t('status.active') }}</span></header>
     <p class="stat-number">{{ stats.active }}</p>
   </article>
   <article>
-    <header><span class="status-low">● 剩餘偏低</span></header>
+    <header><span class="status-low">● {{ t('status.low') }}</span></header>
     <p class="stat-number">{{ stats.low }}</p>
   </article>
   <article>
-    <header><span class="status-sealed">● 未開封</span></header>
+    <header><span class="status-sealed">● {{ t('status.sealed') }}</span></header>
     <p class="stat-number">{{ stats.sealed }}</p>
   </article>
   <article>
-    <header><span class="status-empty">● 已用盡</span></header>
+    <header><span class="status-empty">● {{ t('status.empty') }}</span></header>
     <p class="stat-number">{{ stats.empty }}</p>
   </article>
   {% if unmapped_count > 0 %}
   <article class="unmapped-alert">
-    <header>⚠ 未 Mapping</header>
+    <header>{{ t('dashboard.unmapped_alert') }}</header>
     <p class="stat-number">
       <a href="{{ url_for('mapping.list_view') }}">{{ unmapped_count }}</a>
     </p>
@@ -36,14 +36,14 @@
   {% endif %}
 </div>
 
-<p class="dashboard-section-label" style="margin-top:1.5rem;">列印總計</p>
+<p class="dashboard-section-label" style="margin-top:1.5rem;">{{ t('dashboard.print_stats') }}</p>
 <div class="stats-grid">
   <article>
-    <header>總任務數</header>
+    <header>{{ t('dashboard.total_tasks') }}</header>
     <p class="stat-number">{{ print_stats.total_tasks }}</p>
   </article>
   <article>
-    <header>總用料重量</header>
+    <header>{{ t('dashboard.total_weight') }}</header>
     {% set kg = print_stats.total_weight_g / 1000 %}
     {% if print_stats.total_weight_g >= 1000 %}
       <p class="stat-number">{{ '%.1f' % kg }}<small style="font-size:1rem;font-weight:normal;">kg</small></p>
@@ -52,7 +52,7 @@
     {% endif %}
   </article>
   <article>
-    <header>總列印時長</header>
+    <header>{{ t('dashboard.total_duration') }}</header>
     {% set h = print_stats.total_duration_seconds // 3600 %}
     {% set m = (print_stats.total_duration_seconds % 3600) // 60 %}
     <p class="stat-number">{{ h }}<small style="font-size:1rem;font-weight:normal;">h</small> {{ '%02d' % m }}<small style="font-size:1rem;font-weight:normal;">m</small></p>
@@ -60,43 +60,43 @@
 </div>
 
 <h2 style="margin-top:2rem;">
-  最近列印
-  <a href="{{ url_for('tasks.list_view') }}" style="font-size:0.85rem;font-weight:normal;margin-left:1rem;">查看全部 →</a>
+  {{ t('dashboard.recent_prints') }}
+  <a href="{{ url_for('tasks.list_view') }}" style="font-size:0.85rem;font-weight:normal;margin-left:1rem;">{{ t('common.view_all') }}</a>
 </h2>
 {% if recent_tasks %}
 <div class="overflow-auto">
 <table>
   <thead>
     <tr>
-      <th style="width:88px;">圖片</th>
-      <th>列印名稱</th>
-      <th>印表機</th>
-      <th>開始時間</th>
-      <th>耗時</th>
-      <th>用量</th>
+      <th style="width:88px;">{{ t('dashboard.table_image') }}</th>
+      <th>{{ t('dashboard.table_name') }}</th>
+      <th>{{ t('dashboard.table_printer') }}</th>
+      <th>{{ t('dashboard.table_start_time') }}</th>
+      <th>{{ t('dashboard.table_duration') }}</th>
+      <th>{{ t('dashboard.table_usage') }}</th>
     </tr>
   </thead>
   <tbody>
-    {% for t in recent_tasks %}
+    {% for task in recent_tasks %}
     <tr>
       <td>
-        {% if t.cover_url %}
+        {% if task.cover_url %}
         <div class="cover-thumb cover-thumb--sm">
-          <img src="{{ t.cover_url }}" alt="" loading="lazy" decoding="async">
+          <img src="{{ task.cover_url }}" alt="" loading="lazy" decoding="async">
         </div>
         {% else %}<span style="color:var(--pico-muted-color);">—</span>{% endif %}
       </td>
-      <td><a href="{{ url_for('tasks.detail_view', task_id=t.id) }}">{{ t.print_name or '(未命名)' }}</a></td>
-      <td style="white-space:nowrap;">{{ t.printer_name or '-' }}</td>
-      <td style="white-space:nowrap;">{{ (t.started_at or '')[:16] | replace('T', ' ') }}</td>
-      <td style="white-space:nowrap;">{{ (t.duration_seconds // 3600) if t.duration_seconds else 0 }}h {{ ((t.duration_seconds % 3600) // 60) if t.duration_seconds else 0 }}m</td>
-      <td style="white-space:nowrap;">{{ '%.1f' % t.total_weight_g if t.total_weight_g else '-' }}g</td>
+      <td><a href="{{ url_for('tasks.detail_view', task_id=task.id) }}">{{ task.print_name or t('common.unnamed') }}</a></td>
+      <td style="white-space:nowrap;">{{ task.printer_name or '-' }}</td>
+      <td style="white-space:nowrap;">{{ (task.started_at or '')[:16] | replace('T', ' ') }}</td>
+      <td style="white-space:nowrap;">{{ (task.duration_seconds // 3600) if task.duration_seconds else 0 }}h {{ ((task.duration_seconds % 3600) // 60) if task.duration_seconds else 0 }}m</td>
+      <td style="white-space:nowrap;">{{ '%.1f' % task.total_weight_g if task.total_weight_g else '-' }}g</td>
     </tr>
     {% endfor %}
   </tbody>
 </table>
 </div>
 {% else %}
-<p>尚無列印記錄。請執行 <code>python -m src.main import --from-file</code> 匯入資料。</p>
+<p>{{ t('dashboard.no_tasks') }}</p>
 {% endif %}
 {% endblock %}
