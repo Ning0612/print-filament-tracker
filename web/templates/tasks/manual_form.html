@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}{% if task and task.id %}{{ t('tasks.form_edit_title') }}{% else %}{{ t('tasks.form_new_title') }}{% endif %} — PrintNest{% endblock %}
+{% block title %}{% if task and task.id %}{{ t('tasks.form_edit_title') }}{% else %}{{ t('tasks.form_new_title') }}{% endif %} — PrintFilamentTracker{% endblock %}
 
 {% block content %}
 <p><a href="{% if task and task.id %}{{ url_for('tasks.detail_view', task_id=task.id) }}{% else %}{{ url_for('tasks.list_view') }}{% endif %}">{{ t('common.back') }}</a></p>

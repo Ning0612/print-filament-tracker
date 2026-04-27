@@ -16,7 +16,7 @@
     "theme_toggle_title": "Toggle theme"
   },
   "footer": {
-    "text": "PrintNest — Local filament management tool"
+    "text": "PrintFilamentTracker — Local filament management tool"
   },
   "lightbox": {
     "title": "Cover image preview",

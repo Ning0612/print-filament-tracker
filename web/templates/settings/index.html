@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}{{ t('settings.title') }} — PrintNest{% endblock %}
+{% block title %}{{ t('settings.title') }} — PrintFilamentTracker{% endblock %}
 
 {% block content %}
 <div class="settings-layout">
@@ -50,7 +50,7 @@
 
     <script>
     (function () {
-      var KEY = 'printnest-theme';
+      var KEY = 'print-filament-tracker-theme';
       var cur = document.documentElement.getAttribute('data-theme') || 'light';
       var active = document.querySelector('input[name="theme"][value="' + cur + '"]');
       if (active) active.checked = true;

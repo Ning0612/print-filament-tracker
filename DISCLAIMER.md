@@ -2,7 +2,7 @@
 
 ## Unofficial Community Project
 
-**PrintNest is an independent, community-developed project and is NOT affiliated with, endorsed by, or sponsored by Bambu Lab Co., Ltd.**
+**PrintFilamentTracker is an independent, community-developed project and is NOT affiliated with, endorsed by, or sponsored by Bambu Lab Co., Ltd.**
 
 This software was created for personal, non-commercial use. It is distributed under the [PolyForm Noncommercial License 1.0.0](LICENSE).
 
@@ -16,7 +16,7 @@ This software was created for personal, non-commercial use. It is distributed un
 
 ## Unofficial API Usage & Terms of Service Risk
 
-PrintNest accesses Bambu Lab cloud services through endpoints that are **not part of any official, publicly documented API**. These endpoints were discovered through community research and may change or be discontinued at any time without notice.
+PrintFilamentTracker accesses Bambu Lab cloud services through endpoints that are **not part of any official, publicly documented API**. These endpoints were discovered through community research and may change or be discontinued at any time without notice.
 
 ### Authorization Control System (January 2025)
 
@@ -24,7 +24,7 @@ In January 2025, Bambu Lab introduced an **Authorization Control System** via fi
 
 Affected critical operations include: initiating print jobs, controlling the motion system, temperature, fans, AMS settings, and calibrations. Known affected third-party tools include OrcaSlicer (network plugin), Home Assistant integrations, and various third-party accessories.
 
-**PrintNest accesses Bambu Cloud via unofficial API endpoints and may be affected by future enforcement of this system.** Bambu Lab may extend these controls to additional operations without notice.
+**PrintFilamentTracker accesses Bambu Cloud via unofficial API endpoints and may be affected by future enforcement of this system.** Bambu Lab may extend these controls to additional operations without notice.
 
 ---
 
@@ -55,7 +55,7 @@ The following clauses from [Bambu Lab's Terms of Use](https://bambulab.com/en-us
 | **Reverse Engineering (§3.4)** | The unofficial API endpoints were discovered through community reverse research |
 | **Account Suspension (§11.1)** | Bambu Lab may deactivate your Bambu account if a violation is determined |
 | **API Instability** | These endpoints may be changed, restricted, or discontinued at any time |
-| **Authorization Control (2025)** | Bambu Lab's Authorization Control System (firmware Jan 2025) enforces authorization for critical print operations in both LAN and Cloud modes; PrintNest may be affected if Bambu Lab extends controls to the Cloud API endpoints it uses |
+| **Authorization Control (2025)** | Bambu Lab's Authorization Control System (firmware Jan 2025) enforces authorization for critical print operations in both LAN and Cloud modes; PrintFilamentTracker may be affected if Bambu Lab extends controls to the Cloud API endpoints it uses |
 | **Legal Action** | While no known legal action against individual users has occurred to date, Bambu Lab reserves the right to pursue remedies under their ToS |
 
 **By using this software, you acknowledge that you have read, understood, and accepted all of the above risks. You are solely responsible for any legal, account-related, or service consequences arising from use of this software.**

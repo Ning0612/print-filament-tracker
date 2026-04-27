@@ -1,4 +1,6 @@
-# PrintNest
+# PrintFilamentTracker
+
+![Banner](web/static/img/print-filament-tracker-banner.png)
 
 ![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=flat-square&logo=python&logoColor=white)
 ![Flask](https://img.shields.io/badge/Flask-3.x-000000?style=flat-square&logo=flask&logoColor=white)
@@ -8,10 +10,10 @@
 
 **個人本機工具**，專為單一用戶在自己的電腦上管理 Bambu Lab 3D 列印機的列印歷史與耗材（Filament Spool）。
 
-> **定位說明**：PrintNest 設計為個人本機使用（personal, local, single-user）工具——所有列印歷史與耗材資料僅儲存於您自己的裝置（本機 SQLite），不進行資料蒐集、分析或第三方共享。本軟體仍會透過您的帳號憑證與 Bambu Cloud 通訊以取得列印記錄，詳見 [DISCLAIMER.md](DISCLAIMER.md)。此使用情境與 GDPR Article 2(2)(c) 個人家庭活動豁免條件相符，但能否適用取決於實際使用情境，使用者應自行評估。
+> **定位說明**：PrintFilamentTracker 設計為個人本機使用（personal, local, single-user）工具——所有列印歷史與耗材資料僅儲存於您自己的裝置（本機 SQLite），不進行資料蒐集、分析或第三方共享。本軟體仍會透過您的帳號憑證與 Bambu Cloud 通訊以取得列印記錄，詳見 [DISCLAIMER.md](DISCLAIMER.md)。此使用情境與 GDPR Article 2(2)(c) 個人家庭活動豁免條件相符，但能否適用取決於實際使用情境，使用者應自行評估。
 
 > **⚠ 免責聲明**
-> PrintNest 是獨立的社群專案，**與 Bambu Lab Co., Ltd. 無任何關聯、背書或贊助關係**。
+> PrintFilamentTracker 是獨立的社群專案，**與 Bambu Lab Co., Ltd. 無任何關聯、背書或贊助關係**。
 > "Bambu"、"Bambu Lab" 為 Bambu Lab Co., Ltd. 的商標，僅用於描述本軟體所整合的第三方服務。
 >
 > 本軟體透過**非官方 API 端點**存取 Bambu Cloud。根據 [Bambu Lab 服務條款](https://bambulab.com/en-us/policies/terms)（2024 年 4 月 24 日版）：
@@ -45,7 +47,7 @@
 
 ```bash
 git clone <repo-url>
-cd PrintNest
+cd PrintFilamentTracker
 
 # 1. 建立虛擬環境並安裝依賴
 python -m venv .venv
@@ -68,7 +70,7 @@ copy .env.example .env
 
 ```powershell
 # 4. 立即啟動
-Start-ScheduledTask -TaskName "PrintNest-Web"
+Start-ScheduledTask -TaskName "PrintFilamentTracker-Web"
 ```
 
 瀏覽器開啟 `http://127.0.0.1:5000`，在設定頁登入 Bambu 帳號即可開始使用。
@@ -94,9 +96,10 @@ Start-ScheduledTask -TaskName "PrintNest-Web"
 ## 目錄結構
 
 ```
-PrintNest/
+PrintFilamentTracker/
 ├── src/            # 業務邏輯（無 Flask 依賴）
 ├── web/            # Flask 應用（routes, templates, i18n, static）
+│   └── static/img/ # 品牌圖片（icon、banner）
 ├── scripts/        # 工具腳本（取得 Token）
 ├── data/           # 資料目錄（gitignored）
 │   ├── bambu.db    # SQLite 資料庫

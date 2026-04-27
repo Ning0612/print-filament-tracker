@@ -21,3 +21,4 @@ build/
 
 # CLAUDE
 .claude/
+CLAUDE.md
