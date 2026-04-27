@@ -64,6 +64,11 @@ CREATE INDEX IF NOT EXISTS idx_ptf_spool
 
 CREATE INDEX IF NOT EXISTS idx_ptf_task
   ON print_task_filament(print_task_id);
+
+CREATE TABLE IF NOT EXISTS app_config (
+  key   TEXT PRIMARY KEY NOT NULL,
+  value TEXT NOT NULL
+);
 """
 
 
@@ -98,6 +103,19 @@ def init_db(db_path: Path) -> None:
             CREATE INDEX IF NOT EXISTS idx_print_task_started_at ON print_task(started_at);
             CREATE INDEX IF NOT EXISTS idx_print_task_printer ON print_task(printer_id);
         """)
+
+
+def get_app_config(conn: sqlite3.Connection, key: str) -> str | None:
+    row = conn.execute("SELECT value FROM app_config WHERE key=?", (key,)).fetchone()
+    return row["value"] if row else None
+
+
+def set_app_config(conn: sqlite3.Connection, key: str, value: str) -> None:
+    conn.execute(
+        "INSERT INTO app_config (key, value) VALUES (?, ?)"
+        " ON CONFLICT(key) DO UPDATE SET value=excluded.value",
+        (key, value),
+    )
 
 
 @contextmanager

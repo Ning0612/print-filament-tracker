@@ -1,7 +1,6 @@
 import os
 import threading
 from datetime import datetime, timedelta
-from pathlib import Path
 
 import requests
 from flask import Blueprint, current_app, flash, make_response, render_template, request, session, url_for
@@ -21,8 +20,6 @@ _TIMEOUT = 20
 
 _sync_lock = threading.Lock()
 _sync_state: dict = {"status": "idle", "message": "", "stats": None}
-
-_env_lock = threading.Lock()  # serialises all .env reads + writes
 
 _auto_sync_lock = threading.Lock()
 _auto_sync_state: dict = {
@@ -51,59 +48,20 @@ def _api_post(base_url: str, path: str, payload: dict) -> tuple[dict | None, str
         return None, "伺服器回傳非 JSON 格式"
 
 
-def _write_env(token: str, region: str, env_path: Path) -> None:
-    with _env_lock:
-        lines = []
-        has_token = has_region = False
-        if env_path.exists():
-            for line in env_path.read_text(encoding="utf-8").splitlines():
-                stripped = line.lstrip()
-                if stripped.startswith("BAMBU_ACCESS_TOKEN="):
-                    lines.append(f"BAMBU_ACCESS_TOKEN={token}")
-                    has_token = True
-                elif stripped.startswith("BAMBU_REGION="):
-                    lines.append(f"BAMBU_REGION={region}")
-                    has_region = True
-                else:
-                    lines.append(line)
-        if not has_token:
-            lines.append(f"BAMBU_ACCESS_TOKEN={token}")
-        if not has_region:
-            lines.append(f"BAMBU_REGION={region}")
-
-        # Atomic write: write to temp then rename
-        tmp_path = env_path.with_suffix(".env.tmp")
-        tmp_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
-        tmp_path.replace(env_path)
-
-
-def _write_env_key(key: str, value: str, env_path: Path) -> None:
-    """Update or append a single key-value pair in the .env file atomically."""
-    with _env_lock:
-        lines = []
-        found = False
-        if env_path.exists():
-            for line in env_path.read_text(encoding="utf-8").splitlines():
-                if line.lstrip().startswith(f"{key}="):
-                    lines.append(f"{key}={value}")
-                    found = True
-                else:
-                    lines.append(line)
-        if not found:
-            lines.append(f"{key}={value}")
-        tmp_path = env_path.with_suffix(".env.tmp")
-        tmp_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
-        tmp_path.replace(env_path)
+def _save_app_config(key: str, value: str) -> None:
+    from src.db import get_connection, set_app_config
+    with get_connection(current_app.config["DB_PATH"]) as conn:
+        set_app_config(conn, key, value)
 
 
 def _apply_token(token: str, region: str) -> None:
-    env_path = current_app.config.get("ENV_PATH")
-    if env_path:
-        try:
-            _write_env(token, region, Path(env_path))
-        except OSError as exc:
-            current_app.logger.warning("無法寫入 .env：%s", exc)
-    # Only update token/region; preserve any custom BAMBU_API_BASE
+    from src.db import get_connection, set_app_config
+    try:
+        with get_connection(current_app.config["DB_PATH"]) as conn:
+            set_app_config(conn, "bambu_access_token", token)
+            set_app_config(conn, "bambu_region", region)
+    except Exception as exc:
+        current_app.logger.warning("無法儲存 token 到 DB：%s", exc)
     current_app.config["BAMBU_TOKEN"] = token
     current_app.config["BAMBU_REGION"] = region
 
@@ -269,7 +227,7 @@ def login_step1():
 
     if token and not login_type:
         _apply_token(token, region)
-        flash("Bambu Cloud 登入成功，Token 已儲存至 .env。", "success")
+        flash("Bambu Cloud 登入成功，Token 已儲存。", "success")
         resp = make_response("")
         resp.headers["HX-Redirect"] = url_for("settings.index")
         return resp
@@ -334,7 +292,7 @@ def login_step2():
 
     session.pop("bambu_login", None)
     _apply_token(token, region)
-    flash("Bambu Cloud 登入成功，Token 已儲存至 .env。", "success")
+    flash("Bambu Cloud 登入成功，Token 已儲存。", "success")
     resp = make_response("")
     resp.headers["HX-Redirect"] = url_for("settings.index")
     return resp
@@ -389,12 +347,10 @@ def set_auto_sync():
 
     current_app.config["AUTO_SYNC_INTERVAL_MINUTES"] = interval
 
-    env_path = current_app.config.get("ENV_PATH")
-    if env_path:
-        try:
-            _write_env_key("AUTO_SYNC_INTERVAL", str(interval), Path(env_path))
-        except OSError as exc:
-            current_app.logger.warning("無法寫入 .env AUTO_SYNC_INTERVAL：%s", exc)
+    try:
+        _save_app_config("auto_sync_interval", str(interval))
+    except Exception as exc:
+        current_app.logger.warning("無法儲存 auto_sync_interval 到 DB：%s", exc)
 
     now = datetime.now()
     with _auto_sync_lock:
