@@ -1,5 +1,7 @@
+import logging
 import os
 import secrets
+from logging.handlers import RotatingFileHandler
 from pathlib import Path
 
 from dotenv import load_dotenv, set_key as _dotenv_set_key
@@ -86,6 +88,28 @@ def create_app(db_path: Path | None = None) -> Flask:
 
     CSRFProtect(app)
     app.config["MAX_CONTENT_LENGTH"] = 10 * 1024 * 1024  # 10 MB
+
+    # Session cookie hardening (works for both HTTP and HTTPS local deployments)
+    app.config["SESSION_COOKIE_HTTPONLY"] = True
+    app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
+    # SESSION_COOKIE_SECURE intentionally left False for local HTTP deployment
+
+    # File logging: co-locate with DB/covers under db_path.parent (consistent
+    # with COVERS_DIR = db_path.parent / "covers").
+    log_dir = db_path.parent / "logs"
+    log_dir.mkdir(parents=True, exist_ok=True)
+    _file_handler = RotatingFileHandler(
+        log_dir / "app.log",
+        maxBytes=10_000_000,
+        backupCount=5,
+        encoding="utf-8",
+    )
+    _file_handler.setLevel(logging.INFO)
+    _file_handler.setFormatter(
+        logging.Formatter("%(asctime)s %(levelname)s %(name)s: %(message)s")
+    )
+    app.logger.addHandler(_file_handler)
+    app.logger.setLevel(logging.INFO)
 
     from web.i18n import register_i18n
     from web.routes.analytics import bp as analytics_bp

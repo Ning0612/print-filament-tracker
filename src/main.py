@@ -51,6 +51,12 @@ def build_parser() -> argparse.ArgumentParser:
     filament_sub = filament_parser.add_subparsers(dest="filament_command", required=True)
     filament_sub.add_parser("status", help="查詢所有 spool 狀態")
 
+    # --- sync-once ---
+    subparsers.add_parser(
+        "sync-once",
+        help="從 Bambu Cloud 執行一次同步（供 Task Scheduler 呼叫，完成後結束）",
+    )
+
     # --- web ---
     web_parser = subparsers.add_parser("web", help="啟動 Web UI")
     web_parser.add_argument("--host", default="127.0.0.1", help="監聽位址（預設：127.0.0.1）")
@@ -279,6 +285,79 @@ def cmd_filament_status(args: argparse.Namespace) -> int:
     return 0
 
 
+# --- sync-once ---
+
+def cmd_sync_once(args: argparse.Namespace) -> int:
+    """Execute a single cloud sync and exit. Designed for OS-level schedulers
+    (e.g. Windows Task Scheduler, cron) so the auto-sync does NOT need to
+    run inside the Flask process.
+
+    Token/region priority: DB (set via Web UI login) > .env fallback.
+    This ensures Task Scheduler and the Web UI always use the same credentials.
+    """
+    import os as _os
+    from dotenv import load_dotenv as _load_dotenv
+    from .config import AppConfig
+    from .db import get_app_config, get_connection, get_db_path, init_db
+    from .ingestion import IngestionError, run_ingestion_from_cloud
+
+    _GLOBAL_BASE = "https://api.bambulab.com"
+    _CHINA_BASE = "https://api.bambulab.cn"
+
+    print("[INFO] sync-once 開始執行...")
+
+    # Load .env for output_dir / api_base overrides; token/region come from DB.
+    _load_dotenv(dotenv_path=Path(__file__).parent.parent / ".env", override=False)
+    output_dir = Path(_os.getenv("BAMBU_OUTPUT_DIR", "data"))
+    output_dir.mkdir(parents=True, exist_ok=True)
+    db_path = get_db_path(output_dir)
+    init_db(db_path)
+
+    # Read token & region from DB (Web UI sets these); fall back to .env values.
+    with get_connection(db_path) as conn:
+        db_token = get_app_config(conn, "bambu_access_token") or ""
+        db_region = get_app_config(conn, "bambu_region") or ""
+
+    token = db_token or _os.getenv("BAMBU_ACCESS_TOKEN", "").strip()
+    region = db_region or _os.getenv("BAMBU_REGION", "global").strip().lower()
+    if region not in ("global", "china"):
+        region = "global"
+
+    if not token:
+        print("[ERROR] 找不到 BAMBU_ACCESS_TOKEN。")
+        print("[HINT] 請先透過 Web UI 設定頁登入，或在 .env 設定 BAMBU_ACCESS_TOKEN。")
+        return 1
+
+    api_base = (
+        _os.getenv("BAMBU_API_BASE", "").strip().rstrip("/")
+        or (_GLOBAL_BASE if region == "global" else _CHINA_BASE)
+    )
+
+    config = AppConfig(
+        access_token=token,
+        region=region,
+        api_base=api_base,
+        output_dir=output_dir,
+        request_timeout=30,
+    )
+
+    try:
+        stats = run_ingestion_from_cloud(config, db_path)
+    except IngestionError as exc:
+        print(f"[ERROR] 同步失敗：{exc}")
+        return 1
+    except (AuthError, NetworkError, RateLimitError, EmptyResultError) as exc:
+        print(f"[ERROR] {exc}")
+        return 1
+
+    print(
+        f"[OK] sync-once 完成：新增 {stats['inserted']} 筆，"
+        f"略過 {stats['skipped']} 筆重複，"
+        f"filament 記錄 {stats['filaments']} 筆"
+    )
+    return 0
+
+
 # --- web ---
 
 def cmd_web(args: argparse.Namespace) -> int:
@@ -316,6 +395,8 @@ def main() -> None:
             else:
                 parser.print_help()
                 exit_code = 1
+        elif args.command == "sync-once":
+            exit_code = cmd_sync_once(args)
         elif args.command == "web":
             exit_code = cmd_web(args)
         else:

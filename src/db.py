@@ -93,6 +93,11 @@ def _migrate_add_column(conn: sqlite3.Connection, table: str, column_def: str) -
 def init_db(db_path: Path) -> None:
     db_path.parent.mkdir(parents=True, exist_ok=True)
     with sqlite3.connect(db_path) as conn:
+        # Production pragmas: WAL for concurrent read/write, busy timeout to
+        # prevent "database is locked" when sync and web requests overlap.
+        conn.execute("PRAGMA journal_mode=WAL")
+        conn.execute("PRAGMA synchronous=NORMAL")
+        conn.execute("PRAGMA busy_timeout=5000")
         conn.executescript(_SCHEMA_SQL)
         _migrate_add_column(conn, "print_task", "cover_url TEXT")
         _migrate_add_column(conn, "print_task", "is_manual INTEGER NOT NULL DEFAULT 0")
@@ -122,6 +127,7 @@ def set_app_config(conn: sqlite3.Connection, key: str, value: str) -> None:
 def get_connection(db_path: Path) -> Iterator[sqlite3.Connection]:
     conn = sqlite3.connect(db_path)
     conn.row_factory = sqlite3.Row
+    conn.execute("PRAGMA busy_timeout=5000")
     try:
         yield conn
         conn.commit()
