@@ -463,7 +463,8 @@ input[type="color"].filament-color-input {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
-  max-width: 680px;
+  max-width: 960px;
+  margin-inline: auto;
 }
 .token-status-row {
   display: flex;

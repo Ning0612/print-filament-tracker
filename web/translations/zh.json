@@ -285,6 +285,9 @@
     "backup_table_name": "檔案名稱",
     "backup_table_size": "大小",
     "backup_table_time": "備份時間",
+    "backup_table_action": "操作",
+    "backup_restore_btn": "還原",
+    "backup_restore_confirm": "確定要從「{file}」還原資料庫？\n此操作將覆蓋現有所有資料，無法復原。",
     "backup_no_backups": "尚無備份檔案。",
     "next_backup": "下次備份：",
     "last_backup_label": "上次備份："
@@ -343,7 +346,10 @@
     "backup": {
       "running": "備份進行中...",
       "done": "備份完成：{file}",
-      "error": "備份失敗：{msg}"
+      "error": "備份失敗：{msg}",
+      "restore_done": "已從備份 {file} 還原成功，頁面已更新。",
+      "restore_error": "還原失敗：{msg}",
+      "restore_invalid": "無效的備份檔案名稱。"
     },
     "tasks": {
       "added": "手動任務已新增。",

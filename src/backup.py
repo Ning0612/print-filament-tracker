@@ -136,6 +136,43 @@ def list_backups(backup_dir: Path) -> list[dict]:
     return result
 
 
+def restore_from_backup(db_path: Path, backup_path: Path) -> None:
+    """Overwrite db_path with the content of backup_path using sqlite3 backup API.
+
+    Shares _backup_lock with run_backup() so a backup and a restore can never
+    run concurrently.  Callers must reload app.config from the DB afterwards.
+    """
+    if not backup_path.exists():
+        raise FileNotFoundError(f"備份檔案不存在：{backup_path.name}")
+
+    if not _backup_lock.acquire(blocking=False):
+        raise RuntimeError("備份操作正在進行中，請稍後再試。")
+
+    try:
+        # Verify integrity of the source backup before touching the live DB.
+        verify_conn = sqlite3.connect(str(backup_path))
+        try:
+            row = verify_conn.execute("PRAGMA quick_check").fetchone()
+            if row is None or row[0] != "ok":
+                raise RuntimeError(f"備份檔案損壞，無法還原：PRAGMA quick_check 返回 {row}")
+        finally:
+            verify_conn.close()
+
+        # Copy backup → current DB (opposite direction of run_backup).
+        src_conn = sqlite3.connect(str(backup_path))
+        dst_conn = sqlite3.connect(str(db_path))
+        try:
+            src_conn.backup(dst_conn)
+        finally:
+            dst_conn.close()
+            src_conn.close()
+
+        logger.info("還原完成：從 %s 還原至 %s", backup_path.name, db_path.name)
+
+    finally:
+        _backup_lock.release()
+
+
 def get_backup_state() -> dict:
     """Return a shallow copy of the current backup state (CPython-GIL-safe)."""
     return dict(_backup_state)

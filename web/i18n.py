@@ -4,7 +4,7 @@ import json
 from functools import lru_cache
 from pathlib import Path
 
-from flask import session
+from flask import current_app, session
 
 _TRANSLATIONS_DIR = Path(__file__).parent / "translations"
 _DEFAULT_LANG = "zh"
@@ -69,6 +69,13 @@ def t(key: str, **kwargs) -> str:
 
 
 def register_i18n(app) -> None:
+    @app.before_request
+    def _maybe_clear_i18n_cache():
+        # In debug mode the reloader only watches .py files; clear the
+        # translation cache each request so JSON edits take effect immediately.
+        if current_app.debug:
+            _load.cache_clear()
+
     @app.context_processor
     def _inject():
         return {

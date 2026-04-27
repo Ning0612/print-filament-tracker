@@ -1,4 +1,5 @@
 import os
+import re
 import threading
 from datetime import datetime, timedelta
 
@@ -43,6 +44,7 @@ _backup_event = threading.Event()
 _backup_scheduler_thread: threading.Thread | None = None
 
 _VALID_BACKUP_INTERVALS = frozenset({0, 60, 360, 720, 1440})
+_BACKUP_FILENAME_RE = re.compile(r"^bambu_\d{8}_\d{6}\.db$")
 
 
 def _api_post(base_url: str, path: str, payload: dict) -> tuple[dict | None, str | None]:
@@ -267,6 +269,57 @@ def start_backup_scheduler(app) -> None:
         name="backup-scheduler",
     )
     _backup_scheduler_thread.start()
+
+
+def _reload_app_config(app) -> None:
+    """Re-read app_config from DB and refresh app.config + scheduler states after a restore."""
+    from src.db import get_app_config, get_connection
+    db_path = app.config["DB_PATH"]
+    try:
+        with get_connection(db_path) as conn:
+            token = get_app_config(conn, "bambu_access_token") or ""
+            region = get_app_config(conn, "bambu_region") or "global"
+            sync_interval = get_app_config(conn, "auto_sync_interval") or "0"
+            backup_interval = get_app_config(conn, "backup_interval_minutes") or "0"
+            backup_keep = get_app_config(conn, "backup_keep_count") or "7"
+
+        app.config["BAMBU_TOKEN"] = token
+        app.config["BAMBU_REGION"] = region
+        try:
+            new_sync = int(sync_interval)
+        except (ValueError, TypeError):
+            new_sync = 0
+        app.config["AUTO_SYNC_INTERVAL_MINUTES"] = new_sync
+
+        try:
+            new_backup = int(backup_interval)
+        except (ValueError, TypeError):
+            new_backup = 0
+        app.config["BACKUP_INTERVAL_MINUTES"] = new_backup
+
+        try:
+            app.config["BACKUP_KEEP_COUNT"] = max(1, min(30, int(backup_keep)))
+        except (ValueError, TypeError):
+            app.config["BACKUP_KEEP_COUNT"] = 7
+
+        # Sync in-memory scheduler states so the new intervals take effect immediately.
+        now = datetime.now()
+        with _auto_sync_lock:
+            _auto_sync_state["interval_minutes"] = new_sync
+            _auto_sync_state["next_sync_at"] = (
+                now + timedelta(minutes=new_sync) if new_sync > 0 else None
+            )
+        _scheduler_event.set()
+
+        with _backup_auto_lock:
+            _backup_auto_state["interval_minutes"] = new_backup
+            _backup_auto_state["next_backup_at"] = (
+                now + timedelta(minutes=new_backup) if new_backup > 0 else None
+            )
+        _backup_event.set()
+
+    except Exception as exc:
+        app.logger.warning("還原後重新載入設定失敗：%s", exc)
 
 
 def _backup_status_context() -> dict:
@@ -549,3 +602,34 @@ def set_backup_config():
     _backup_event.set()
 
     return render_template("settings/_backup_status.html", **_backup_status_context())
+
+
+@bp.route("/restore", methods=["POST"])
+def restore_backup():
+    from src import backup as backup_mod
+    from flask import redirect
+
+    filename = request.form.get("filename", "").strip()
+
+    # Allowlist: only accept filenames produced by run_backup() (bambu_YYYYMMDD_HHMMSS.db).
+    # This is stricter than a blacklist and avoids Windows device / ADS edge cases.
+    if not filename or not _BACKUP_FILENAME_RE.match(filename):
+        flash(t("flash.backup.restore_invalid"), "error")
+        return redirect(url_for("settings.index"))
+
+    db_path = current_app.config["DB_PATH"]
+    backup_dir = db_path.parent / "backups"
+    backup_path = backup_dir / filename
+
+    try:
+        backup_mod.restore_from_backup(db_path, backup_path)
+    except Exception as exc:
+        current_app.logger.error("還原失敗：%s", exc)
+        flash(t("flash.backup.restore_error", msg=str(exc)), "error")
+        return redirect(url_for("settings.index"))
+
+    # Refresh in-memory app.config so token / intervals reflect the restored DB.
+    _reload_app_config(current_app._get_current_object())
+
+    flash(t("flash.backup.restore_done", file=filename), "success")
+    return redirect(url_for("settings.index"))

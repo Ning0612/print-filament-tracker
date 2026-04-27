@@ -285,6 +285,9 @@
     "backup_table_name": "Filename",
     "backup_table_size": "Size",
     "backup_table_time": "Backup time",
+    "backup_table_action": "Action",
+    "backup_restore_btn": "Restore",
+    "backup_restore_confirm": "Restore database from \"{file}\"?\nThis will overwrite all current data and cannot be undone.",
     "backup_no_backups": "No backup files yet.",
     "next_backup": "Next backup:",
     "last_backup_label": "Last backup:"
@@ -343,7 +346,10 @@
     "backup": {
       "running": "Backup in progress...",
       "done": "Backup complete: {file}",
-      "error": "Backup failed: {msg}"
+      "error": "Backup failed: {msg}",
+      "restore_done": "Database restored from {file} successfully.",
+      "restore_error": "Restore failed: {msg}",
+      "restore_invalid": "Invalid backup filename."
     },
     "tasks": {
       "added": "Manual task added.",
