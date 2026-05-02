@@ -43,7 +43,7 @@
 │  db.py (SQLite CRUD)    filament.py   analytics.py          │
 │       │                 printer.py    backup.py              │
 │       ▼                                         ▼            │
-│  data/bambu.db          data/covers/  data/backups/         │
+│  data/tracker.db        data/covers/  data/backups/         │
 └─────────────────────────────────────────────────────────────┘
 ```
 

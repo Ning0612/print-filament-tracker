@@ -102,7 +102,7 @@ PrintFilamentTracker/
 │   └── get_token.py
 │
 ├── data/                   # gitignored（自動建立）
-│   ├── bambu.db
+│   ├── tracker.db
 │   ├── covers/
 │   ├── backups/
 │   └── logs/
@@ -399,7 +399,7 @@ def main():
     
     if args.command == "xxx":
         config = load_config()
-        conn = get_connection(config.output_dir / "bambu.db")
+        conn = get_connection(config.output_dir / "tracker.db")
         do_xxx(conn, option=args.option)
 ```
 
@@ -589,7 +589,7 @@ Get-Content data\logs\app.log -Wait -Tail 100
 # 直接連線資料庫查詢
 .venv/Scripts/python.exe -c "
 import sqlite3
-conn = sqlite3.connect('data/bambu.db')
+conn = sqlite3.connect('data/tracker.db')
 conn.row_factory = sqlite3.Row
 for row in conn.execute('SELECT * FROM print_task LIMIT 5'):
     print(dict(row))
@@ -642,11 +642,11 @@ app.config["MAX_CONTENT_LENGTH"] = 20 * 1024 * 1024  # 20 MB
 
 ```bash
 # 備份現有資料庫
-cp data/bambu.db data/bambu.db.bak
+cp data/tracker.db data/tracker.db.bak
 
 # 刪除並重新初始化
-rm data/bambu.db
-.venv/Scripts/python.exe -c "from src.db import get_connection; get_connection('data/bambu.db').close()"
+rm data/tracker.db
+.venv/Scripts/python.exe -c "from src.db import get_connection; get_connection('data/tracker.db').close()"
 ```
 
 ### Q: 多語言 key 遺漏（顯示 key 路徑而非翻譯文字）

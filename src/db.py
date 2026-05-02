@@ -5,7 +5,7 @@ from contextlib import contextmanager
 from pathlib import Path
 from typing import Iterator
 
-DB_FILENAME = "bambu.db"
+DB_FILENAME = "tracker.db"
 
 _SCHEMA_SQL = """
 CREATE TABLE IF NOT EXISTS printer (
@@ -91,6 +91,12 @@ def _migrate_add_column(conn: sqlite3.Connection, table: str, column_def: str) -
 
 
 def init_db(db_path: Path) -> None:
+    old_db = db_path.parent / "bambu.db"
+    if old_db.exists() and not db_path.exists():
+        try:
+            old_db.rename(db_path)
+        except OSError as exc:
+            print(f"[WARN] 無法自動遷移 bambu.db → tracker.db：{exc}，請手動重新命名後重啟。")
     db_path.parent.mkdir(parents=True, exist_ok=True)
     with sqlite3.connect(db_path) as conn:
         # Production pragmas: WAL for concurrent read/write, busy timeout to

@@ -272,7 +272,7 @@ WEB_PORT=8080 bash scripts/start_server.sh
 
 ```
 data/
-├── bambu.db          # SQLite 資料庫（自動初始化 Schema）
+├── tracker.db        # SQLite 資料庫（自動初始化 Schema）
 ├── covers/           # 封面圖片
 ├── backups/          # 資料庫備份
 └── logs/

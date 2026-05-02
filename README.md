@@ -91,6 +91,8 @@ bash scripts/setup_deployment.sh
 
 腳本完成後，瀏覽器開啟 `http://127.0.0.1:5000`，在設定頁登入 Bambu 帳號即可開始使用。
 
+> **⚠ 憑證安全**：登入後，Bambu 存取 Token 以**明文**儲存於 `data/tracker.db`。請勿將 `data/` 目錄同步至雲端硬碟、NAS 或提交至版本控制系統。
+
 ## 文件
 
 | 文件 | 說明 |
@@ -106,7 +108,7 @@ bash scripts/setup_deployment.sh
 |------|------|
 | 後端 | Python 3.10+, Flask 3.x |
 | 前端 | Pico CSS v2, HTMX 1.9, 原生 JavaScript |
-| 資料庫 | SQLite（`data/bambu.db`） |
+| 資料庫 | SQLite（`data/tracker.db`） |
 | 安全 | Flask-WTF CSRF, Session cookie 防護, 圖片 magic bytes 驗證 |
 
 ## 目錄結構
@@ -118,7 +120,7 @@ PrintFilamentTracker/
 │   └── static/img/ # 品牌圖片（icon、banner）
 ├── scripts/        # 工具腳本（取得 Token）
 ├── data/           # 資料目錄（gitignored）
-│   ├── bambu.db    # SQLite 資料庫
+│   ├── tracker.db    # SQLite 資料庫
 │   ├── covers/     # 封面圖片
 │   ├── backups/    # 資料庫備份
 │   └── logs/       # 應用日誌

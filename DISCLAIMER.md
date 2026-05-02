@@ -78,7 +78,7 @@ By contributing to this project, you agree that:
 Your Bambu Lab account credentials (username, password, access token) are processed **locally on your machine only**:
 
 - Passwords are **never stored** — only the time-limited authentication token is saved to the local SQLite database.
-- The token is stored in plain text in `data/bambu.db`. Protect this file accordingly.
+- The token is stored in plain text in `data/tracker.db`. Protect this file accordingly.
 - You are responsible for securing access to the machine and database file.
 
 ---
