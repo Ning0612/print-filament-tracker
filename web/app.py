@@ -1,6 +1,7 @@
 import logging
 import os
 import secrets
+import sys as _sys
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
 
@@ -16,21 +17,45 @@ _CHINA_BASE = "https://api.bambulab.cn"
 _VALID_REGIONS = {"global", "china"}
 
 
+def _get_base_dir() -> Path:
+    """使用者資料根目錄（.env / data/ 存放位置）。
+    凍結時（PyInstaller）：.exe 所在目錄（Windows）或 .app bundle 父目錄（macOS）。
+    開發時：專案根目錄。
+    """
+    if getattr(_sys, "frozen", False):
+        exe = Path(_sys.executable)
+        if _sys.platform == "darwin" and exe.parent.name == "MacOS" and exe.parent.parent.name == "Contents":
+            return exe.parent.parent.parent.parent
+        return exe.parent
+    return Path(__file__).parent.parent
+
+
+def _get_resource_dir() -> Path:
+    """捆綁資源根目錄（templates / static / translations 的父目錄 web/）。
+    凍結時：sys._MEIPASS/web/。開發時：web/ 目錄。
+    """
+    if getattr(_sys, "frozen", False):
+        return Path(_sys._MEIPASS) / "web"  # type: ignore[attr-defined]
+    return Path(__file__).parent
+
+
 def create_app(db_path: Path | None = None) -> Flask:
+    _res = _get_resource_dir()
     app = Flask(
         __name__,
-        template_folder="templates",
-        static_folder="static",
+        template_folder=str(_res / "templates"),
+        static_folder=str(_res / "static"),
     )
 
-    env_path = Path(__file__).parent.parent / ".env"
+    env_path = _get_base_dir() / ".env"
 
     # Load .env for deployment-time config only (SECRET_KEY, BAMBU_API_BASE, BAMBU_OUTPUT_DIR).
     # Runtime-writable settings (token, region, interval) live in the DB.
     load_dotenv(dotenv_path=env_path, override=False)
 
     # Deployment-time config from env vars
-    output_dir = Path(os.getenv("BAMBU_OUTPUT_DIR", "data"))
+    _default_data = _get_base_dir() / "data"
+    output_dir = Path(os.getenv("BAMBU_OUTPUT_DIR", str(_default_data)))
     api_base = (os.getenv("BAMBU_API_BASE", "").strip().rstrip("/") or _GLOBAL_BASE)
 
     if db_path is None:

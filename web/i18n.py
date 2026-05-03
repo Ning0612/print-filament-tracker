@@ -1,12 +1,20 @@
 from __future__ import annotations
 
 import json
+import sys as _sys
 from functools import lru_cache
 from pathlib import Path
 
 from flask import current_app, session
 
-_TRANSLATIONS_DIR = Path(__file__).parent / "translations"
+
+def _get_translations_dir() -> Path:
+    if getattr(_sys, "frozen", False):
+        return Path(_sys._MEIPASS) / "web" / "translations"  # type: ignore[attr-defined]
+    return Path(__file__).parent / "translations"
+
+
+_TRANSLATIONS_DIR = _get_translations_dir()
 _DEFAULT_LANG = "zh"
 
 
