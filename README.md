@@ -89,7 +89,10 @@ bash scripts/setup_deployment.sh
 - 建立開機自動啟動任務（Windows：工作排程器；macOS：Launch Agent）
 - 立即啟動 Web 伺服器（背景執行，不顯示 terminal 視窗）
 
-腳本完成後，瀏覽器開啟 `http://127.0.0.1:5000`，在設定頁登入 Bambu 帳號即可開始使用。
+腳本完成後，瀏覽器開啟 `http://127.0.0.1:7580`，在設定頁登入 Bambu 帳號即可開始使用。
+
+> **ℹ Port 說明**：預設使用 port **7580**（避開 macOS Monterey+ AirPlay Receiver 佔用的 port 5000）。
+> 若有衝突，可在使用者資料目錄的 `.env` 中加入 `PORT=<port>` 覆寫，重啟後生效。
 
 > **⚠ 憑證安全**：登入後，Bambu 存取 Token 以**明文**儲存於 `data/tracker.db`。請勿將 `data/` 目錄同步至雲端硬碟、NAS 或提交至版本控制系統。
 

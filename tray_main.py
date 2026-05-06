@@ -10,10 +10,15 @@ tray_main.py — PrintFilamentTracker System Tray 入口點
   點「開啟」→ 啟動伺服器 → 等待就緒 → 開啟瀏覽器
   再點「開啟」→ 直接開啟瀏覽器
   點「結束」→ server.close() → thread.join(5s) → icon.stop()
+
+Port 選擇：
+  預設 7580，避開 macOS Monterey+ AirPlay Receiver（port 5000）。
+  可在使用者資料目錄的 .env 中設定 PORT=<port> 覆寫（需重啟）。
 """
 
 from __future__ import annotations
 
+import os
 import sys
 import threading
 import webbrowser
@@ -30,10 +35,34 @@ def _get_resource_dir() -> Path:
     return Path(__file__).parent
 
 
+# ── .env 預先載入（僅為讀取 PORT；app.py 內的 load_dotenv 以 override=False 重複載入無副作用） ──
+
+def _load_env_for_port() -> None:
+    """在確定使用者資料目錄後載入 .env，使 PORT 設定生效。"""
+    try:
+        from dotenv import load_dotenv
+        from src.paths import get_base_dir
+        env_path = get_base_dir() / ".env"
+        if env_path.exists():
+            load_dotenv(dotenv_path=env_path, override=False)
+    except Exception:
+        pass  # dotenv / paths 尚未可用時跳過，使用預設值
+
+_load_env_for_port()
+
+
 # ── 常數 ─────────────────────────────────────────────────────────────────────
 
 HOST = "127.0.0.1"
-PORT = 5000
+# 預設 7580：避開 macOS Monterey+ AirPlay Receiver（port 5000）與其他常見開發工具。
+# 可在使用者資料目錄的 .env 中設定 PORT=<port> 覆寫（需重啟生效）。
+_DEFAULT_PORT = 7580
+try:
+    PORT = int(os.environ.get("PORT", "") or _DEFAULT_PORT)
+    if not (1024 <= PORT <= 65535):
+        PORT = _DEFAULT_PORT
+except (ValueError, TypeError):
+    PORT = _DEFAULT_PORT
 URL  = f"http://{HOST}:{PORT}"
 
 
