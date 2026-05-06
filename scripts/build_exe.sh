@@ -92,9 +92,9 @@ ok "PyInstaller 完成"
 
 # ── STEP 4：驗證輸出 ──────────────────────────────────────────────────────────
 step "驗證輸出"
-[[ -d "$OUTPUT_APP" ]] || fail "找不到輸出：$OUTPUT_APP"
+[[ -d "$OUTPUT_APP" ]] || fail "找不到輸出: $OUTPUT_APP"
 SIZE_MB=$(du -sm "$OUTPUT_APP" | cut -f1)
-ok "輸出：$OUTPUT_APP（約 ${SIZE_MB} MB）"
+ok "輸出: $OUTPUT_APP (約 ${SIZE_MB} MB)"
 
 echo ""
 echo "================================================================"

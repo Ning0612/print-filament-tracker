@@ -19,14 +19,17 @@ _VALID_REGIONS = {"global", "china"}
 
 def _get_base_dir() -> Path:
     """使用者資料根目錄（.env / data/ 存放位置）。
-    凍結時（PyInstaller）：.exe 所在目錄（Windows）或 .app bundle 父目錄（macOS）。
+    凍結時（PyInstaller）：
+      - macOS .app bundle → ~/Library/Application Support/PrintFilamentTracker/
+      - Windows .exe      → .exe 所在目錄
     開發時：專案根目錄。
     """
     if getattr(_sys, "frozen", False):
-        exe = Path(_sys.executable)
-        if _sys.platform == "darwin" and exe.parent.name == "MacOS" and exe.parent.parent.name == "Contents":
-            return exe.parent.parent.parent.parent
-        return exe.parent
+        if _sys.platform == "darwin":
+            app_support = Path.home() / "Library" / "Application Support" / "PrintFilamentTracker"
+            app_support.mkdir(parents=True, exist_ok=True)
+            return app_support
+        return Path(_sys.executable).parent
     return Path(__file__).parent.parent
 
 
