@@ -71,7 +71,8 @@ class _ServerThread(threading.Thread):
     def stop(self) -> None:
         # 等待 _server 確實被賦值後再呼叫 close()，
         # 避免在啟動空窗期呼叫 stop() 時 _server 為 None 而被略過
-        self._ready.wait(timeout=10.0)
+        # timeout 縮短為 3s：若啟動失敗 _ready 已被 set，不會真的等 3 秒
+        self._ready.wait(timeout=3.0)
         if self._server is not None:
             try:
                 self._server.close()
@@ -108,12 +109,17 @@ class _TrayApp:
 
     def _on_open(self, icon, item) -> None:  # noqa: ARG002
         if not self._start_server():
+            # 優先顯示真實錯誤訊息；若無，回退到 port 衝突提示
+            with self._lock:
+                thread = self._server_thread
+            error_msg = str(getattr(thread, "_error", None) or "")
+            if error_msg:
+                notice = f"啟動失敗：{error_msg[:200]}"
+            else:
+                notice = "無法啟動伺服器，請確認 port 5000 未被其他程式佔用。"
             if getattr(icon, "HAS_NOTIFICATION", False):
                 try:
-                    icon.notify(
-                        "無法啟動伺服器，請確認 port 5000 未被其他程式佔用。",
-                        "PrintFilamentTracker",
-                    )
+                    icon.notify(notice, "PrintFilamentTracker")
                 except Exception:
                     pass
             return
@@ -186,7 +192,7 @@ def _check_single_instance() -> object:
             return None
 
 
-# ── Entry Point ───────────────────────────────────────────────────────────────
+# ── Entry Point ────────────────────────────────────────────────────────────────────────────────
 
 def main() -> None:
     lock = _check_single_instance()
@@ -195,6 +201,13 @@ def main() -> None:
         webbrowser.open(URL)
         return
     _TrayApp().run()
+    # icon.run() 已返回（icon.stop() 被呼叫）
+    # 使用 os._exit(0) 強制終止：確保 Waitress wasyncore 等
+    # daemon 執行緒不殘留在後台。托盤應用程式標準做法。
+    # ⚠️ 注意：os._exit() 會跳過 atexit、finally、GC，
+    #    若未來需要在程式結束前執行清理，請放在 _on_quit() 而非此處。
+    import os as _os
+    _os._exit(0)
 
 
 if __name__ == "__main__":

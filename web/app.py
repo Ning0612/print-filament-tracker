@@ -10,27 +10,12 @@ from flask import Flask, make_response, send_from_directory
 from flask_wtf.csrf import CSRFProtect
 
 from src.db import get_app_config, get_connection, get_db_path, init_db, set_app_config
+from src.paths import ensure_base_dir, get_base_dir, resolve_output_dir
 
 _GLOBAL_BASE = "https://api.bambulab.com"
 _CHINA_BASE = "https://api.bambulab.cn"
 
 _VALID_REGIONS = {"global", "china"}
-
-
-def _get_base_dir() -> Path:
-    """使用者資料根目錄（.env / data/ 存放位置）。
-    凍結時（PyInstaller）：
-      - macOS .app bundle → ~/Library/Application Support/PrintFilamentTracker/
-      - Windows .exe      → .exe 所在目錄
-    開發時：專案根目錄。
-    """
-    if getattr(_sys, "frozen", False):
-        if _sys.platform == "darwin":
-            app_support = Path.home() / "Library" / "Application Support" / "PrintFilamentTracker"
-            app_support.mkdir(parents=True, exist_ok=True)
-            return app_support
-        return Path(_sys.executable).parent
-    return Path(__file__).parent.parent
 
 
 def _get_resource_dir() -> Path:
@@ -50,15 +35,17 @@ def create_app(db_path: Path | None = None) -> Flask:
         static_folder=str(_res / "static"),
     )
 
-    env_path = _get_base_dir() / ".env"
+    # 確保使用者資料根目錄存在（首次啟動自動建立）
+    base_dir = ensure_base_dir()
+    env_path = base_dir / ".env"
 
     # Load .env for deployment-time config only (SECRET_KEY, BAMBU_API_BASE, BAMBU_OUTPUT_DIR).
     # Runtime-writable settings (token, region, interval) live in the DB.
     load_dotenv(dotenv_path=env_path, override=False)
 
     # Deployment-time config from env vars
-    _default_data = _get_base_dir() / "data"
-    output_dir = Path(os.getenv("BAMBU_OUTPUT_DIR", str(_default_data)))
+    # resolve_output_dir 確保相對路徑相對於資料根，而非 process CWD
+    output_dir = resolve_output_dir(os.getenv("BAMBU_OUTPUT_DIR", "").strip() or None)
     api_base = (os.getenv("BAMBU_API_BASE", "").strip().rstrip("/") or _GLOBAL_BASE)
 
     if db_path is None:

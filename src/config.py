@@ -4,6 +4,8 @@ from pathlib import Path
 from dotenv import load_dotenv
 import os
 
+from src.paths import get_base_dir, resolve_output_dir
+
 
 _REGION_BASE_URLS = {
     "global": "https://api.bambulab.com",
@@ -25,7 +27,7 @@ class AppConfig:
 
 
 def load_config(env_path: Path | None = None) -> AppConfig:
-    target = env_path or (Path(__file__).parent.parent / ".env")
+    target = env_path or (get_base_dir() / ".env")
     load_dotenv(dotenv_path=target, override=False)
 
     token = os.getenv("BAMBU_ACCESS_TOKEN", "").strip()
@@ -48,7 +50,8 @@ def load_config(env_path: Path | None = None) -> AppConfig:
         or _REGION_BASE_URLS[region]
     ).rstrip("/")
 
-    output_dir = Path(os.getenv("BAMBU_OUTPUT_DIR", "data"))
+    # resolve_output_dir 確保相對路徑解析至使用者資料根，而非 process CWD
+    output_dir = resolve_output_dir(os.getenv("BAMBU_OUTPUT_DIR", "").strip() or None)
 
     return AppConfig(
         access_token=token,

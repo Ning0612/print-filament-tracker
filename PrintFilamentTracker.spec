@@ -49,7 +49,8 @@ hiddenimports = [
     "web.routes.spools",    "web.routes.tasks",
     "src.analytics", "src.auth",         "src.backup",      "src.cloud_client",
     "src.config",    "src.db",           "src.export_csv",  "src.export_json",
-    "src.filament",  "src.ingestion",    "src.normalize",   "src.printer",
+    "src.filament",  "src.ingestion",    "src.normalize",   "src.paths",
+    "src.printer",
     # 標準函式庫
     "logging.handlers", "sqlite3",
 ]

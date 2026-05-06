@@ -34,8 +34,9 @@ $ErrorActionPreference = "Stop"
 
 # 修正 PowerShell 5.1 中文亂碼（UTF-8 code page）
 chcp 65001 | Out-Null
-$OutputEncoding          = [System.Text.Encoding]::UTF8
+[Console]::InputEncoding  = [System.Text.Encoding]::UTF8
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+$OutputEncoding           = [System.Text.Encoding]::UTF8
 
 $RepoRoot   = Split-Path -Parent $PSScriptRoot
 $VenvPython = Join-Path $RepoRoot ".venv\Scripts\python.exe"
@@ -89,6 +90,15 @@ Write-Step "執行 PyInstaller（onefile + windowed）"
 $distPath  = Join-Path $RepoRoot "dist"
 $buildPath = Join-Path $RepoRoot "build"
 
+# 若舊版 .exe 仍在執行（系統托盤常駐），先強制結束以釋放檔案鎖
+$running = Get-Process -Name "PrintFilamentTracker" -ErrorAction SilentlyContinue
+if ($running) {
+    Write-Host "  [INFO] 偵測到程式執行中，正在終止舊版本..." -ForegroundColor Yellow
+    $running | Stop-Process -Force
+    Start-Sleep -Milliseconds 500   # 等待 OS 釋放檔案鎖
+    Write-Host "  [INFO] 已終止舊版本" -ForegroundColor Yellow
+}
+
 Push-Location $RepoRoot
 try {
     if ($NoUpx) {
@@ -119,8 +129,9 @@ Write-Host "  建置完成！" -ForegroundColor Cyan
 Write-Host ("=" * 60) -ForegroundColor Cyan
 Write-Host ""
 Write-Host "  使用方式：" -ForegroundColor White
-Write-Host "    1. 將 dist\PrintFilamentTracker.exe 複製至目標目錄"
-Write-Host "    2. 執行 .exe，點擊托盤圖示「開啟 PrintFilamentTracker」"
-Write-Host "    3. 資料庫與設定儲存於 .exe 同一目錄的 data\"
+Write-Host "    1. 將 dist\PrintFilamentTracker.exe 複製至任意目錄後執行"
+Write-Host "    2. 點擊系統托盤圖示「開啟 PrintFilamentTracker」"
+Write-Host "    3. 資料庫與設定自動儲存於："
+Write-Host '       %LOCALAPPDATA%\PrintFilamentTracker\' -ForegroundColor Yellow
 Write-Host ""
 Write-Host "  遇到防毒誤判時，嘗試：.\scripts\build_exe.ps1 -NoUpx" -ForegroundColor Yellow

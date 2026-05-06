@@ -300,18 +300,27 @@ def cmd_sync_once(args: argparse.Namespace) -> int:
     from .config import AppConfig
     from .db import get_app_config, get_connection, get_db_path, init_db
     from .ingestion import IngestionError, run_ingestion_from_cloud
+    from .paths import get_base_dir as _get_base_dir, resolve_output_dir as _resolve_output_dir
 
     _GLOBAL_BASE = "https://api.bambulab.com"
     _CHINA_BASE = "https://api.bambulab.cn"
 
     print("[INFO] sync-once 開始執行...")
 
-    # Load .env for output_dir / api_base overrides; token/region come from DB.
-    _load_dotenv(dotenv_path=Path(__file__).parent.parent / ".env", override=False)
-    output_dir = Path(_os.getenv("BAMBU_OUTPUT_DIR", "data"))
-    output_dir.mkdir(parents=True, exist_ok=True)
+    # Load .env from 使用者資料根目錄（跟 Web UI 一致）
+    _load_dotenv(dotenv_path=_get_base_dir() / ".env", override=False)
+    output_dir = _resolve_output_dir(_os.getenv("BAMBU_OUTPUT_DIR", "").strip() or None)
+    try:
+        output_dir.mkdir(parents=True, exist_ok=True)
+    except OSError as exc:
+        print(f"[ERROR] 無法建立資料目錄 {output_dir}：{exc}")
+        return 1
     db_path = get_db_path(output_dir)
-    init_db(db_path)
+    try:
+        init_db(db_path)
+    except OSError as exc:
+        print(f"[ERROR] 資料庫初始化失敗 {db_path}：{exc}")
+        return 1
 
     # Read token & region from DB (Web UI sets these); fall back to .env values.
     with get_connection(db_path) as conn:
@@ -368,7 +377,11 @@ def cmd_web(args: argparse.Namespace) -> int:
         print("[HINT] 請確認已安裝 flask：.venv/Scripts/python.exe -m pip install flask>=3.0.0")
         return 1
 
-    app = create_app()
+    try:
+        app = create_app()
+    except OSError as exc:
+        print(f"[ERROR] 無法建立應用目錄（請確認使用者資料目錄可寫入）：{exc}")
+        return 1
     print(f"[INFO] 啟動 Web UI：http://{args.host}:{args.port}")
     app.run(host=args.host, port=args.port, debug=args.debug)
     return 0
