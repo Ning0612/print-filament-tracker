@@ -76,7 +76,7 @@ def _convert_color(raw_color: str | None) -> str | None:
 
 
 def _extract_print_name(raw: dict) -> str | None:
-    for key in ("title", "design_title", "name"):
+    for key in ("designTitle", "title", "name"):
         val = raw.get(key)
         if val:
             return str(val)

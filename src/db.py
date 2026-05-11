@@ -121,9 +121,21 @@ def init_db(db_path: Path) -> None:
                 WHERE raw_json IS NOT NULL AND is_manual = 0
                 """
             )
+            conn.execute(
+                """
+                UPDATE print_task
+                SET print_name = COALESCE(
+                    NULLIF(TRIM(json_extract(raw_json, '$.designTitle')), ''),
+                    NULLIF(TRIM(json_extract(raw_json, '$.title')),       ''),
+                    NULLIF(TRIM(json_extract(raw_json, '$.name')),        ''),
+                    print_name
+                )
+                WHERE raw_json IS NOT NULL AND is_manual = 0
+                """
+            )
             conn.commit()
         except Exception as exc:
-            print(f"[WARN] plate 欄位回填失敗，已略過：{exc}")
+            print(f"[WARN] 欄位回填失敗，已略過：{exc}")
         conn.executescript("""
             CREATE INDEX IF NOT EXISTS idx_print_task_started_at ON print_task(started_at);
             CREATE INDEX IF NOT EXISTS idx_print_task_printer ON print_task(printer_id);
