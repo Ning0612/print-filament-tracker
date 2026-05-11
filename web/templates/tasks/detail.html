@@ -28,9 +28,17 @@
   </div>
   {% else %}<div></div>{% endif %}
   <div style="display:flex;flex-direction:column;gap:1.25rem;">
-    <div>
-      <small style="color:var(--pico-muted-color);">{{ t('tasks.detail_printer') }}</small><br>
-      <strong>{{ task.printer_name or '-' }}</strong>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+      <div>
+        <small style="color:var(--pico-muted-color);">{{ t('tasks.detail_printer') }}</small><br>
+        <strong>{{ task.printer_name or '-' }}</strong>
+      </div>
+      {% if task.plate_name or task.plate_index is not none %}
+      <div>
+        <small style="color:var(--pico-muted-color);">{{ t('tasks.detail_plate') }}</small><br>
+        <strong>{{ task.plate_name or task.plate_index }}</strong>
+      </div>
+      {% endif %}
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
       <div><small style="color:var(--pico-muted-color);">{{ t('tasks.detail_start_time') }}</small><br><strong>{{ (task.started_at or '')[:16] | replace('T', ' ') or '-' }}</strong></div>

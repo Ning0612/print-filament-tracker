@@ -107,9 +107,23 @@ def init_db(db_path: Path) -> None:
         conn.executescript(_SCHEMA_SQL)
         _migrate_add_column(conn, "print_task", "cover_url TEXT")
         _migrate_add_column(conn, "print_task", "is_manual INTEGER NOT NULL DEFAULT 0")
+        _migrate_add_column(conn, "print_task", "plate_index INTEGER")
+        _migrate_add_column(conn, "print_task", "plate_name TEXT")
         _migrate_add_column(conn, "print_task_filament", "is_ignored INTEGER NOT NULL DEFAULT 0")
         _migrate_add_column(conn, "print_task_filament", "mapped_at DATETIME")
         _migrate_add_column(conn, "printer", "image_url TEXT")
+        try:
+            conn.execute(
+                """
+                UPDATE print_task
+                SET plate_index = json_extract(raw_json, '$.plateIndex'),
+                    plate_name  = NULLIF(TRIM(json_extract(raw_json, '$.plateName')), '')
+                WHERE raw_json IS NOT NULL AND is_manual = 0
+                """
+            )
+            conn.commit()
+        except Exception as exc:
+            print(f"[WARN] plate 欄位回填失敗，已略過：{exc}")
         conn.executescript("""
             CREATE INDEX IF NOT EXISTS idx_print_task_started_at ON print_task(started_at);
             CREATE INDEX IF NOT EXISTS idx_print_task_printer ON print_task(printer_id);
@@ -185,8 +199,9 @@ def insert_print_task_ignore(conn: sqlite3.Connection, task: dict) -> int | None
         """
         INSERT OR IGNORE INTO print_task
           (external_id, print_name, printer_id, started_at, ended_at,
-           duration_seconds, total_weight_g, cover_url, raw_json)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+           duration_seconds, total_weight_g, cover_url, raw_json,
+           plate_index, plate_name)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             task["external_id"],
@@ -198,6 +213,8 @@ def insert_print_task_ignore(conn: sqlite3.Connection, task: dict) -> int | None
             task.get("total_weight_g"),
             task.get("cover_url"),
             task.get("raw_json"),
+            task.get("plate_index"),
+            task.get("plate_name"),
         ),
     )
     return cursor.lastrowid if cursor.rowcount > 0 else None

@@ -93,6 +93,15 @@
           {% endif %}
         </div>
 
+        <div class="spool-col-code">
+          {% if s.color_hex %}
+          <span class="spool-color-hex">{{ s.color_hex }}</span>
+          {% endif %}
+          {% if s.color_rgb %}
+          <span class="spool-color-rgb">{{ s.color_rgb }}</span>
+          {% endif %}
+        </div>
+
         <div class="spool-col-material">
           <small>{{ s.material or '-' }}</small>
         </div>

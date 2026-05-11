@@ -94,6 +94,15 @@ def enrich_spool(spool_row, used_weight: float) -> dict:
     d["remaining_weight_g"] = remaining
     d["usage_ratio"] = (used_weight / initial) if initial > 0 else 0.0
     d["status"] = _compute_status(initial, remaining, used_weight)
+    hex_val = d.get("color_hex") or ""
+    if len(hex_val) == 7 and hex_val.startswith("#"):
+        try:
+            r = int(hex_val[1:3], 16)
+            g = int(hex_val[3:5], 16)
+            b = int(hex_val[5:7], 16)
+            d["color_rgb"] = f"RGB({r}, {g}, {b})"
+        except ValueError:
+            pass
     return d
 
 

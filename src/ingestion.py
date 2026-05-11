@@ -140,6 +140,7 @@ def ingest_raw_tasks(
                         model=raw.get("deviceModel"),
                     )
 
+                plate_name_raw = str(raw.get("plateName") or "").strip()
                 task_row = {
                     "external_id": raw["id"],
                     "print_name": _extract_print_name(raw),
@@ -150,6 +151,8 @@ def ingest_raw_tasks(
                     "total_weight_g": raw.get("weight"),
                     "cover_url": local_cover,
                     "raw_json": json.dumps(raw, ensure_ascii=False),
+                    "plate_index": raw.get("plateIndex"),
+                    "plate_name": plate_name_raw or None,
                 }
 
                 task_db_id = insert_print_task_ignore(conn, task_row)
