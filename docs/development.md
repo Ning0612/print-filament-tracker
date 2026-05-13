@@ -478,6 +478,17 @@ conn.commit()
 file.save(cover_path)
 ```
 
+### 雲端封面圖補圖機制
+
+雲端任務封面圖（`{external_id}.png`）在匯入時可能因網路失敗或 URL 過期而未下載成功。`/covers/` 路由在檔案缺失時會嘗試自動補圖：
+
+1. 確認檔名為純數字 stem + `.png`（雲端封面格式）
+2. 查 10 分鐘負快取，近期失敗直接跳過
+3. 呼叫 `try_redownload_cover()`：從 `raw_json.cover` 取得原始 URL 重新下載
+4. 下載成功後原子寫入（`.tmp` → `.png`），失敗則記入負快取
+
+下載內容與匯入時一致，套用相同的 URL 白名單、10 MB 大小限制與 magic bytes 驗證（`_is_valid_image_bytes()`）。
+
 ---
 
 ## HTMX Fragment 開發

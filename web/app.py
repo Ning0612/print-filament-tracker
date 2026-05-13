@@ -2,6 +2,8 @@ import logging
 import os
 import secrets
 import sys as _sys
+import threading
+import time
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
 
@@ -176,13 +178,46 @@ def create_app(db_path: Path | None = None) -> Flask:
         return redirect(req.referrer or url_for("dashboard.index")), 413
 
     _COVER_EXTS = {".png", ".jpg", ".jpeg", ".webp", ".gif"}
+    _cover_retry_cache: dict[int, float] = {}   # external_id -> failed_at (monotonic)
+    _cover_retry_lock = threading.Lock()
+    _COVER_RETRY_TTL = 600.0   # 10 分鐘內不重試同一 id
+    _COVER_RETRY_MAX = 500     # 防止 dict 無限增長
 
     @app.route("/covers/<path:filename>")
     def covers(filename: str):
         from flask import abort
-        if Path(filename).suffix.lower() not in _COVER_EXTS:
+        # 拒絕含子路徑的請求（如 ../secret 或 subdir/x.png）
+        if Path(filename).name != filename:
             abort(404)
-        resp = make_response(send_from_directory(app.config["COVERS_DIR"], filename))
+        suffix = Path(filename).suffix.lower()
+        if suffix not in _COVER_EXTS:
+            abort(404)
+        covers_dir = app.config["COVERS_DIR"]
+        file_path = covers_dir / filename
+        # 雲端任務封面格式：純數字 stem + .png
+        if not file_path.exists():
+            stem = Path(filename).stem
+            if stem.isdigit() and suffix == ".png":
+                ext_id = int(stem)
+                now = time.monotonic()
+                should_retry = False
+                with _cover_retry_lock:
+                    last_fail = _cover_retry_cache.get(ext_id)
+                    if last_fail is None or (now - last_fail) > _COVER_RETRY_TTL:
+                        should_retry = True
+                        _cover_retry_cache.pop(ext_id, None)
+                if should_retry:
+                    from src.ingestion import try_redownload_cover
+                    result = try_redownload_cover(ext_id, covers_dir, app.config["DB_PATH"])
+                    if result is None:
+                        with _cover_retry_lock:
+                            if len(_cover_retry_cache) >= _COVER_RETRY_MAX:
+                                # 清除最舊的一批避免無限增長
+                                oldest = sorted(_cover_retry_cache, key=_cover_retry_cache.get)
+                                for k in oldest[: _COVER_RETRY_MAX // 2]:
+                                    del _cover_retry_cache[k]
+                            _cover_retry_cache[ext_id] = now
+        resp = make_response(send_from_directory(covers_dir, filename))
         resp.headers["Cache-Control"] = "public, max-age=2592000"
         return resp
 

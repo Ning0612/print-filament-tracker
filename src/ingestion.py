@@ -23,6 +23,9 @@ _ALLOWED_COVER_HOSTS = (
 )
 
 
+_MAX_COVER_BYTES = 10 * 1024 * 1024  # 10 MB
+
+
 def _is_allowed_cover_url(url: str) -> bool:
     try:
         from urllib.parse import urlparse
@@ -33,6 +36,20 @@ def _is_allowed_cover_url(url: str) -> bool:
         return any(host == h.lstrip(".") or host.endswith(h) for h in _ALLOWED_COVER_HOSTS)
     except Exception:
         return False
+
+
+def _is_valid_image_bytes(data: bytes) -> bool:
+    if len(data) < 12:
+        return False
+    if data[:8] == b'\x89PNG\r\n\x1a\n':
+        return True
+    if data[:3] == b'\xff\xd8\xff':
+        return True
+    if data[:4] == b'GIF8' and data[4:5] in (b'7', b'9'):
+        return True
+    if data[:4] == b'RIFF' and data[8:12] == b'WEBP':
+        return True
+    return False
 
 
 def _cache_cover(external_id: int, url: str, covers_dir: Path) -> str | None:
@@ -46,7 +63,20 @@ def _cache_cover(external_id: int, url: str, covers_dir: Path) -> str | None:
     try:
         resp = requests.get(url, timeout=15)
         resp.raise_for_status()
-        out_path.write_bytes(resp.content)
+        data = resp.content
+        if len(data) > _MAX_COVER_BYTES:
+            print(f"[WARN] 封面圖超過大小限制，已跳過（id={external_id}）")
+            return None
+        if not _is_valid_image_bytes(data):
+            print(f"[WARN] 封面圖格式無效，已跳過（id={external_id}）")
+            return None
+        tmp = out_path.with_suffix(".tmp")
+        try:
+            tmp.write_bytes(data)
+            tmp.replace(out_path)
+        except Exception:
+            tmp.unlink(missing_ok=True)
+            raise
         return f"/covers/{external_id}.png"
     except Exception as exc:
         print(f"[WARN] 封面圖下載失敗（id={external_id}），可能為過期 URL：{exc}")
@@ -203,6 +233,26 @@ def _parse_raw_file(raw_file: Path) -> list[dict]:
     raise IngestionError(
         "raw_tasks.json 格式無法識別。預期格式：{\"pages\": [...]} 或 {\"hits\": [...]} 或 [...]"
     )
+
+
+def try_redownload_cover(external_id: int, covers_dir: Path, db_path: Path) -> str | None:
+    """若本地封面圖不存在，從 raw_json 取回原始 URL 並重新下載。"""
+    try:
+        with get_connection(db_path) as conn:
+            row = conn.execute(
+                "SELECT raw_json FROM print_task WHERE external_id=? AND is_manual=0",
+                (external_id,),
+            ).fetchone()
+        if not row or not row["raw_json"]:
+            return None
+        raw = json.loads(row["raw_json"])
+        url = raw.get("cover")
+        if not url:
+            return None
+        return _cache_cover(external_id, url, covers_dir)
+    except Exception as exc:
+        print(f"[WARN] 封面圖重新下載失敗（external_id={external_id}）：{exc}")
+        return None
 
 
 def run_ingestion_from_file(raw_file: Path, db_path: Path) -> dict[str, int]:

@@ -67,7 +67,7 @@
 | `cloud_client.py` | 分頁拉取 Bambu Cloud API，儲存原始回應至 `raw_tasks.json`；處理 401/429/逾時 | `BambuCloudClient.fetch_all_tasks()` |
 | `normalize.py` | 歷史遺留，目前轉換邏輯已移入 `ingestion.py` | — |
 | `db.py` | SQLite 連線工廠、Schema 初始化與遷移、全部表的 CRUD | `get_connection(db_path)`, `_migrate_add_column()` |
-| `ingestion.py` | Cloud hits → DB pipeline：printer upsert、task insert、filament 建立、封面圖下載 | `ingest_raw_tasks(hits, db_path, covers_dir)`, `run_ingestion_from_file(raw_file, db_path)`, `run_ingestion_from_cloud(config, db_path)` |
+| `ingestion.py` | Cloud hits → DB pipeline：printer upsert、task insert、filament 建立、封面圖下載與補圖 | `ingest_raw_tasks(hits, db_path, covers_dir)`, `run_ingestion_from_file(raw_file, db_path)`, `run_ingestion_from_cloud(config, db_path)`, `try_redownload_cover(external_id, covers_dir, db_path)` |
 | `filament.py` | Spool CRUD、計算欄位（remaining、status）、Mapping 流程、JSON/CSV 匯入匯出 | `read_spool(db_path, id)`, `list_spools(db_path)`, `do_map(db_path, ptf_id, spool_id)` |
 | `printer.py` | Printer CRUD、統計資訊（任務數、總重量、總時長） | `read_printer(db_path, printer_id)`, `list_printers_with_stats(db_path)` |
 | `analytics.py` | 熱力圖、材料分布、月度趨勢、Printer 使用率、成本分析 | `get_heatmap_data()`, `get_material_breakdown()` |
@@ -81,7 +81,7 @@
 
 | 檔案 | 職責 |
 |------|------|
-| `app.py` | `create_app(db_path)` 工廠：Blueprint 註冊、後台排程啟動、CSRF 初始化、Session 設定、413 handler |
+| `app.py` | `create_app(db_path)` 工廠：Blueprint 註冊、後台排程啟動、CSRF 初始化、Session 設定、413 handler、封面圖缺失自動補圖（含負快取） |
 | `i18n.py` | 翻譯系統：`t(key, **kwargs)`、語言自動落回、`_discover_langs()`、Jinja2 context 注入 |
 | `routes/dashboard.py` | `GET /` |
 | `routes/tasks.py` | `GET/POST /tasks/`，手動任務 CRUD，圖片上傳驗證 |
@@ -312,7 +312,7 @@ Browser/CLI
     │                      ├─ printer upsert (INSERT OR IGNORE on device_id)
     │                      ├─ print_task INSERT OR IGNORE (on external_id)
     │                      ├─ print_task_filament INSERT
-    │                      └─ cover image download → data/covers/{external_id}.png
+    │                      └─ cover image download → data/covers/{external_id}.png（原子寫入 .tmp → .png）
     │
     └─ HTMX polling every 2s → /settings/sync/status fragment
 ```
@@ -413,7 +413,7 @@ app.register_blueprint(settings.bp)                       # prefix 定義於 blu
 | `/settings/backup/config` | POST | 設定備份間隔與保留份數 |
 | `/settings/restore` | POST | 還原備份 |
 | `/set-lang` | POST | 切換語言 |
-| `/covers/<filename>` | GET | 取得封面圖靜態檔案 |
+| `/covers/<filename>` | GET | 取得封面圖靜態檔案；雲端封面缺失時自動從 raw_json 重新下載（含 10 分鐘負快取） |
 
 ---
 
@@ -566,6 +566,34 @@ def mask_token(token: str) -> str:
 ```python
 ALLOWED_COVER_DOMAINS = {".bambulab.com", ".amazonaws.com"}
 ```
+
+### 雲端封面圖自動補圖（on-demand re-download）
+
+`/covers/<filename>` 路由在檔案不存在時，對純數字 stem 的 `.png` 請求觸發補圖流程：
+
+```
+GET /covers/12345678.png  →  file_path.exists() == False
+    │
+    ├─ 查負快取（in-memory dict，TTL 10 分鐘）
+    │      ├─ 近期失敗 → 直接 send_from_directory（返回 404）
+    │      └─ 未失敗或已過期 → 進入補圖
+    │
+    ├─ try_redownload_cover(external_id=12345678, ...)
+    │      ├─ 查 DB raw_json WHERE external_id=? AND is_manual=0
+    │      ├─ 解析 raw_json.cover 取得原始 URL
+    │      ├─ _is_allowed_cover_url() 白名單驗證
+    │      ├─ requests.get(url, timeout=15)
+    │      ├─ 大小驗證（≤ 10 MB）
+    │      ├─ _is_valid_image_bytes() magic bytes 驗證
+    │      └─ 原子寫入：.tmp → .png（replace）
+    │
+    └─ 成功 → send_from_directory 正常返回
+       失敗 → 記入負快取，send_from_directory 返回 404
+```
+
+**負快取**：以 `dict[external_id → failed_at]` 記錄失敗，上限 500 筆（超出清除最舊一半），TTL 10 分鐘。防止 URL 過期時每次請求都觸發 DB + 網路阻塞。
+
+**安全防護**：路由入口驗證 `Path(filename).name == filename`，拒絕含子路徑或 `..` 的請求。
 
 ---
 
