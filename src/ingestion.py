@@ -20,6 +20,7 @@ class IngestionError(Exception):
 _ALLOWED_COVER_HOSTS = (
     ".bambulab.com",
     ".amazonaws.com",
+    ".bblmw.com",
 )
 
 

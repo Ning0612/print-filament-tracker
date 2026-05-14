@@ -312,7 +312,8 @@
     "cost_title": "耗材費用分析",
     "trend_title": "每月列印趨勢（近 12 個月）",
     "printers_title": "印表機使用率",
-    "colors_title": "顏色使用分布（Top 15）",
+    "printer_duration_pie_title": "印表機時長佔比",
+    "colors_title": "顏色使用排行（Top 15）",
     "no_data": "尚無資料",
     "cost_used_label": "已消耗費用",
     "cost_remaining_label": "剩餘庫存價值",
@@ -327,7 +328,15 @@
     "chart_weight": "重量 (g)",
     "chart_duration_h": "時長 (h)",
     "chart_count_axis": "次數",
-    "chart_weight_axis": "重量 (g)"
+    "chart_weight_axis": "重量 (g)",
+    "chart_duration_axis": "時長 (h)",
+    "duration_hist_title": "列印耗時分佈",
+    "duration_trend_title": "每月列印時長趨勢（近 12 個月）",
+    "spool_cost_title": "耗材成本排行（Top 15）",
+    "weekday_title": "週內活躍分佈",
+    "no_duration_data": "尚無含時長的列印記錄",
+    "no_spool_cost_data": "請先為耗材設定購買金額並完成耗材對照",
+    "spool_cost_label": "已消耗費用"
   },
   "flash": {
     "app": {

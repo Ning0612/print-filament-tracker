@@ -6,19 +6,22 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js" defer></script>
 <script>
 window._analyticsData = {
-  material: {{ material | tojson }},
-  trend:    {{ trend    | tojson }},
-  cost:     {{ cost     | tojson }},
-  printers: {{ printers | tojson }},
+  material:      {{ material      | tojson }},
+  trend:         {{ trend         | tojson }},
+  cost:          {{ cost          | tojson }},
+  printers:      {{ printers      | tojson }},
+  duration_hist: {{ duration_hist | tojson }},
+  weekday:       {{ weekday       | tojson }},
 };
 window._chartLabels = {
-  consumed:    {{ t('analytics.chart_consumed')   | tojson }},
-  remaining:   {{ t('analytics.chart_remaining')  | tojson }},
-  task_count:  {{ t('analytics.chart_task_count') | tojson }},
-  weight:      {{ t('analytics.chart_weight')     | tojson }},
-  duration_h:  {{ t('analytics.chart_duration_h') | tojson }},
-  count_axis:  {{ t('analytics.chart_count_axis') | tojson }},
-  weight_axis: {{ t('analytics.chart_weight_axis')| tojson }},
+  consumed:      {{ t('analytics.chart_consumed')      | tojson }},
+  remaining:     {{ t('analytics.chart_remaining')     | tojson }},
+  task_count:    {{ t('analytics.chart_task_count')    | tojson }},
+  weight:        {{ t('analytics.chart_weight')        | tojson }},
+  duration_h:    {{ t('analytics.chart_duration_h')   | tojson }},
+  count_axis:    {{ t('analytics.chart_count_axis')   | tojson }},
+  weight_axis:   {{ t('analytics.chart_weight_axis')  | tojson }},
+  duration_axis: {{ t('analytics.chart_duration_axis')| tojson }},
 };
 </script>
 {% endblock %}
@@ -106,7 +109,7 @@ window._chartLabels = {
     </article>
   </div>
 
-  {# ── 3. Monthly trend ── #}
+  {# ── 3. Monthly trend（任務數 + 重量 + 耗時）── #}
   <article style="margin-bottom:1.5rem;">
     <header><strong>{{ t('analytics.trend_title') }}</strong></header>
     {% if trend.has_data %}
@@ -116,7 +119,30 @@ window._chartLabels = {
     {% endif %}
   </article>
 
-  {# ── 4. Printers + Colors ── #}
+  {# ── 4. Duration histogram + Weekday ── #}
+  <div class="analytics-two-col" style="margin-bottom:1.5rem;">
+
+    <article>
+      <header><strong>{{ t('analytics.duration_hist_title') }}</strong></header>
+      {% if duration_hist.has_data %}
+      <canvas id="chart-duration-hist" height="220"></canvas>
+      {% else %}
+      <p class="muted-label" style="text-align:center;padding:2rem 0;">{{ t('analytics.no_duration_data') }}</p>
+      {% endif %}
+    </article>
+
+    <article>
+      <header><strong>{{ t('analytics.weekday_title') }}</strong></header>
+      {% if weekday.has_data %}
+      <canvas id="chart-weekday" height="220"></canvas>
+      {% else %}
+      <p class="muted-label" style="text-align:center;padding:2rem 0;">{{ t('analytics.no_data') }}</p>
+      {% endif %}
+    </article>
+
+  </div>
+
+  {# ── 5. Printers 使用率 + 時長佔比 ── #}
   <div class="analytics-two-col" style="margin-bottom:1.5rem;">
 
     <article>
@@ -125,6 +151,52 @@ window._chartLabels = {
       <canvas id="chart-printers" height="220"></canvas>
       {% else %}
       <p class="muted-label" style="text-align:center;padding:2rem 0;">{{ t('analytics.no_data') }}</p>
+      {% endif %}
+    </article>
+
+    <article>
+      <header><strong>{{ t('analytics.printer_duration_pie_title') }}</strong></header>
+      {% if printers.has_duration_data %}
+      <div style="max-width:240px;margin:0 auto;">
+        <canvas id="chart-printer-duration-pie" height="240"></canvas>
+      </div>
+      <div class="material-legend">
+        {% for i in range(printers.labels | length) %}
+        <div class="legend-item">
+          <span class="legend-dot" style="background:{{ printers.colors[i] }}"></span>
+          <span>{{ printers.labels[i] }}</span>
+          <span class="muted-label">{{ printers.durations_h[i] }}h</span>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <p class="muted-label" style="text-align:center;padding:2rem 0;">{{ t('analytics.no_duration_data') }}</p>
+      {% endif %}
+    </article>
+
+  </div>
+
+  {# ── 6. Spool Cost（swatch）+ Colors（swatch）── #}
+  <div class="analytics-two-col" style="margin-bottom:1.5rem;">
+
+    <article>
+      <header><strong>{{ t('analytics.spool_cost_title') }}</strong></header>
+      {% if spool_cost.has_data %}
+      <div class="swatch-list">
+        {% set max_cost = spool_cost.max_cost if spool_cost.max_cost > 0 else 1 %}
+        {% for s in spool_cost.spools %}
+        <div class="swatch-row">
+          <div class="swatch-color" style="background:{{ s.color_hex }}" title="{{ s.label }}"></div>
+          <div class="swatch-bar-wrap">
+            <div class="swatch-bar-fill" style="width:{{ [[((s.cost / max_cost) * 100)|round|int, 0]|max, 100]|min }}%"></div>
+          </div>
+          <span class="swatch-label">{{ s.label }}</span>
+          <span class="muted-label swatch-weight">${{ "%.2f"|format(s.cost) }}</span>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <p class="muted-label" style="text-align:center;padding:2rem 0;">{{ t('analytics.no_spool_cost_data') }}</p>
       {% endif %}
     </article>
 
@@ -217,8 +289,10 @@ window._chartLabels = {
         data: {
           labels: d.trend.labels,
           datasets: [
-            { type: 'line', label: L.weight,     data: d.trend.weights, borderColor: '#3B82F6',
+            { type: 'line', label: L.weight,     data: d.trend.weights,    borderColor: '#3B82F6',
               backgroundColor: 'rgba(59,130,246,0.12)', yAxisID: 'yW', tension: 0.3, fill: true, pointRadius: 3 },
+            { type: 'line', label: L.duration_h, data: d.trend.durations_h, borderColor: '#F59E0B',
+              backgroundColor: 'transparent', yAxisID: 'yD', tension: 0.3, fill: false, pointRadius: 3 },
             { label: L.task_count, data: d.trend.counts, backgroundColor: 'rgba(16,185,129,0.7)', yAxisID: 'yC', borderRadius: 4 }
           ]
         },
@@ -226,7 +300,52 @@ window._chartLabels = {
           plugins: { legend: { position: 'bottom' } },
           scales: {
             yC: { type: 'linear', position: 'left',  title: { display: true, text: L.count_axis } },
-            yW: { type: 'linear', position: 'right', title: { display: true, text: L.weight_axis }, grid: { drawOnChartArea: false } }
+            yW: { type: 'linear', position: 'right', title: { display: true, text: L.weight_axis }, grid: { drawOnChartArea: false } },
+            yD: { type: 'linear', position: 'right', display: false, beginAtZero: true }
+          }
+        }
+      });
+    }
+
+    var ctxDurHist = document.getElementById('chart-duration-hist');
+    if (ctxDurHist && d.duration_hist.has_data) {
+      new Chart(ctxDurHist, {
+        type: 'bar',
+        data: {
+          labels: d.duration_hist.labels,
+          datasets: [{
+            label: L.task_count,
+            data: d.duration_hist.counts,
+            backgroundColor: 'rgba(139,92,246,0.75)',
+            borderRadius: 4,
+          }]
+        },
+        options: {
+          plugins: { legend: { display: false } },
+          scales: {
+            y: { beginAtZero: true, ticks: { stepSize: 1 } }
+          }
+        }
+      });
+    }
+
+    var ctxWeekday = document.getElementById('chart-weekday');
+    if (ctxWeekday && d.weekday.has_data) {
+      new Chart(ctxWeekday, {
+        type: 'bar',
+        data: {
+          labels: d.weekday.labels,
+          datasets: [{
+            label: L.task_count,
+            data: d.weekday.counts,
+            backgroundColor: 'rgba(6,182,212,0.75)',
+            borderRadius: 4,
+          }]
+        },
+        options: {
+          plugins: { legend: { display: false } },
+          scales: {
+            y: { beginAtZero: true, ticks: { stepSize: 1 } }
           }
         }
       });
@@ -247,6 +366,33 @@ window._chartLabels = {
           indexAxis: 'y',
           plugins: { legend: { position: 'bottom' } },
           scales: { x: { beginAtZero: true } }
+        }
+      });
+    }
+
+    var ctxPrtPie = document.getElementById('chart-printer-duration-pie');
+    if (ctxPrtPie && d.printers.has_duration_data) {
+      new Chart(ctxPrtPie, {
+        type: 'doughnut',
+        data: {
+          labels: d.printers.labels,
+          datasets: [{
+            data: d.printers.durations_h,
+            backgroundColor: d.printers.colors,
+            borderWidth: 2,
+            borderColor: colorCard,
+          }]
+        },
+        options: {
+          cutout: '62%',
+          plugins: {
+            legend: { display: false },
+            tooltip: { callbacks: { label: function(ctx) {
+              var total = ctx.dataset.data.reduce(function(a,b){return a+b;},0);
+              var pct = total > 0 ? ((ctx.parsed/total)*100).toFixed(1) : 0;
+              return ' '+ctx.parsed+'h ('+pct+'%)';
+            }}}
+          }
         }
       });
     }

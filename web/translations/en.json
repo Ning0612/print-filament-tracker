@@ -312,7 +312,8 @@
     "cost_title": "Filament Cost Analysis",
     "trend_title": "Monthly Print Trend (last 12 months)",
     "printers_title": "Printer Utilization",
-    "colors_title": "Color Distribution (Top 15)",
+    "printer_duration_pie_title": "Printer Duration Share",
+    "colors_title": "Color Usage Ranking (Top 15)",
     "no_data": "No data yet",
     "cost_used_label": "Consumed Cost",
     "cost_remaining_label": "Remaining Stock Value",
@@ -327,7 +328,15 @@
     "chart_weight": "Weight (g)",
     "chart_duration_h": "Duration (h)",
     "chart_count_axis": "Count",
-    "chart_weight_axis": "Weight (g)"
+    "chart_weight_axis": "Weight (g)",
+    "chart_duration_axis": "Duration (h)",
+    "duration_hist_title": "Print Duration Distribution",
+    "duration_trend_title": "Monthly Print Duration Trend (last 12 months)",
+    "spool_cost_title": "Spool Cost Ranking (Top 15)",
+    "weekday_title": "Weekly Activity Distribution",
+    "no_duration_data": "No print records with duration data yet",
+    "no_spool_cost_data": "Set purchase prices in Filament Management and map spools",
+    "spool_cost_label": "Consumed Cost"
   },
   "flash": {
     "app": {

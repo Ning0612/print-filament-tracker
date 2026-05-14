@@ -3,11 +3,14 @@ from flask import Blueprint, abort, current_app, render_template, request
 from src.analytics import (
     get_color_swatch_payload,
     get_cost_chart_payload,
+    get_duration_histogram_payload,
     get_heatmap_payload,
     get_heatmap_year_payload,
     get_material_chart_payload,
     get_monthly_trend_payload,
     get_printer_chart_payload,
+    get_spool_cost_ranking_payload,
+    get_weekday_stats_payload,
 )
 from src.db import get_connection
 
@@ -24,6 +27,9 @@ def index():
         colors = get_color_swatch_payload(conn)
         trend = get_monthly_trend_payload(conn)
         printers = get_printer_chart_payload(conn)
+        duration_hist = get_duration_histogram_payload(conn)
+        spool_cost = get_spool_cost_ranking_payload(conn)
+        weekday = get_weekday_stats_payload(conn)
 
     return render_template(
         "analytics/index.html",
@@ -33,6 +39,9 @@ def index():
         colors=colors,
         trend=trend,
         printers=printers,
+        duration_hist=duration_hist,
+        spool_cost=spool_cost,
+        weekday=weekday,
     )
 
 

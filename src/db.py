@@ -923,6 +923,61 @@ def get_printer_usage_stats(conn: sqlite3.Connection) -> list:
     ).fetchall()
 
 
+def get_duration_histogram(conn: sqlite3.Connection) -> list:
+    return conn.execute(
+        """
+        SELECT
+          CASE
+            WHEN duration_seconds < 1800  THEN 0
+            WHEN duration_seconds < 3600  THEN 1
+            WHEN duration_seconds < 7200  THEN 2
+            WHEN duration_seconds < 14400 THEN 3
+            WHEN duration_seconds < 28800 THEN 4
+            ELSE 5
+          END AS bucket,
+          COUNT(*) AS count
+        FROM print_task
+        WHERE duration_seconds IS NOT NULL AND duration_seconds > 0
+        GROUP BY bucket
+        ORDER BY bucket
+        """
+    ).fetchall()
+
+
+def get_spool_cost_ranking(conn: sqlite3.Connection) -> list:
+    return conn.execute(
+        """
+        SELECT fs.id,
+               fs.material,
+               fs.color_name,
+               fs.color_hex,
+               fs.initial_weight_g,
+               fs.price,
+               COALESCE(SUM(ptf.used_weight_g), 0.0) AS used_g
+        FROM filament_spool fs
+        LEFT JOIN print_task_filament ptf
+               ON ptf.filament_spool_id = fs.id AND ptf.is_ignored = 0
+        WHERE fs.price IS NOT NULL AND fs.initial_weight_g > 0
+        GROUP BY fs.id
+        HAVING used_g > 0
+        """
+    ).fetchall()
+
+
+def get_weekday_stats(conn: sqlite3.Connection) -> list:
+    return conn.execute(
+        """
+        SELECT CAST(STRFTIME('%w', started_at) AS INTEGER) AS weekday,
+               COUNT(*) AS task_count,
+               COALESCE(SUM(total_weight_g), 0.0) AS weight_g
+        FROM print_task
+        WHERE started_at IS NOT NULL
+        GROUP BY weekday
+        ORDER BY weekday
+        """
+    ).fetchall()
+
+
 def replace_task_filaments(conn: sqlite3.Connection, task_id: int, filaments: list[dict]) -> None:
     conn.execute("SAVEPOINT replace_filaments")
     try:

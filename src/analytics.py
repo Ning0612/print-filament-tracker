@@ -1,14 +1,20 @@
+import re
 import sqlite3
 from datetime import date, timedelta
 
+_HEX_RE = re.compile(r"^[0-9A-Fa-f]{6}$")
+
 from src.db import (
     get_cost_breakdown,
+    get_duration_histogram,
     get_heatmap_available_years,
     get_heatmap_data_for_year,
     get_material_usage_stats,
     get_monthly_trend,
     get_printer_usage_stats,
     get_spool_color_usage_stats,
+    get_spool_cost_ranking,
+    get_weekday_stats,
 )
 
 _MATERIAL_PALETTE = [
@@ -18,12 +24,16 @@ _MATERIAL_PALETTE = [
 
 _MONTH_NAMES = ["1月","2月","3月","4月","5月","6月","7月","8月","9月","10月","11月","12月"]
 
+_DURATION_BUCKET_LABELS = ["<30分", "30分–1時", "1–2時", "2–4時", "4–8時", ">8時"]
+
+_WEEKDAY_NAMES = ["一", "二", "三", "四", "五", "六", "日"]
+
 
 def _hex6(color_hex: str) -> str:
     h = (color_hex or "").strip().lstrip("#")
     if len(h) == 8:
         h = h[:6]
-    if len(h) == 6:
+    if len(h) == 6 and _HEX_RE.match(h):
         return f"#{h.upper()}"
     return "#888888"
 
@@ -148,7 +158,7 @@ def get_monthly_trend_payload(conn: sqlite3.Connection) -> dict:
     by_month = {r["month"]: r for r in rows}
 
     today = date.today()
-    labels, counts, weights = [], [], []
+    labels, counts, weights, durations_h = [], [], [], []
     for i in range(11, -1, -1):
         y = today.year
         m = today.month - i
@@ -160,8 +170,13 @@ def get_monthly_trend_payload(conn: sqlite3.Connection) -> dict:
         r = by_month.get(key)
         counts.append(r["task_count"] if r else 0)
         weights.append(round(r["weight_g"], 1) if r else 0.0)
+        durations_h.append(round(r["duration_s"] / 3600, 1) if r else 0.0)
 
-    return {"labels": labels, "counts": counts, "weights": weights, "has_data": bool(rows)}
+    return {
+        "labels": labels, "counts": counts, "weights": weights,
+        "durations_h": durations_h, "has_data": bool(rows),
+        "has_duration_data": any(v > 0 for v in durations_h),
+    }
 
 
 def get_printer_chart_payload(conn: sqlite3.Connection) -> dict:
@@ -171,8 +186,68 @@ def get_printer_chart_payload(conn: sqlite3.Connection) -> dict:
     tasks = [r["task_count"] for r in active]
     weights = [round(r["total_weight_g"], 1) for r in active]
     durations_h = [round(r["total_duration_s"] / 3600, 1) for r in active]
+    colors = [_MATERIAL_PALETTE[i % len(_MATERIAL_PALETTE)] for i in range(len(active))]
     return {
         "labels": labels, "tasks": tasks,
         "weights": weights, "durations_h": durations_h,
+        "colors": colors,
         "has_data": bool(active),
+        "has_duration_data": any(v > 0 for v in durations_h),
+    }
+
+
+def get_duration_histogram_payload(conn: sqlite3.Connection) -> dict:
+    rows = get_duration_histogram(conn)
+    by_bucket = {r["bucket"]: r["count"] for r in rows}
+    counts = [by_bucket.get(i, 0) for i in range(6)]
+    return {
+        "labels": _DURATION_BUCKET_LABELS,
+        "counts": counts,
+        "has_data": sum(counts) > 0,
+    }
+
+
+def get_spool_cost_ranking_payload(conn: sqlite3.Connection, top_n: int = 15) -> dict:
+    rows = get_spool_cost_ranking(conn)
+    spools = []
+    for r in rows:
+        ratio = min(r["used_g"] / r["initial_weight_g"], 1.0)
+        used_cost = r["price"] * ratio
+        color_name = r["color_name"] or ""
+        material = r["material"] or ""
+        if color_name and material:
+            label = f"{color_name}({material})"
+        elif color_name:
+            label = color_name
+        elif material:
+            label = material
+        else:
+            label = f"#{r['id']}"
+        spools.append({
+            "label": label,
+            "cost": round(used_cost, 2),
+            "color_hex": _hex6(r["color_hex"]) if r["color_hex"] else "#888888",
+        })
+    spools.sort(key=lambda x: x["cost"], reverse=True)
+    spools = spools[:top_n]
+    max_cost = spools[0]["cost"] if spools else 1.0
+    return {
+        "spools": spools,
+        "max_cost": max_cost,
+        "has_data": bool(spools),
+    }
+
+
+def get_weekday_stats_payload(conn: sqlite3.Connection) -> dict:
+    rows = get_weekday_stats(conn)
+    by_weekday = {r["weekday"]: dict(r) for r in rows}
+    # SQLite %w: 0=Sun, 1=Mon..6=Sat → reorder to Mon–Sun (1,2,3,4,5,6,0)
+    order = [1, 2, 3, 4, 5, 6, 0]
+    counts = [by_weekday.get(w, {}).get("task_count", 0) for w in order]
+    weights = [round(by_weekday.get(w, {}).get("weight_g", 0.0), 1) for w in order]
+    return {
+        "labels": _WEEKDAY_NAMES,
+        "counts": counts,
+        "weights": weights,
+        "has_data": sum(counts) > 0,
     }
