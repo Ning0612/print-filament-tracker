@@ -348,7 +348,18 @@
     "weekday_title": "週內活躍分佈",
     "no_duration_data": "尚無含時長的列印記錄",
     "no_spool_cost_data": "請先為耗材設定購買金額並完成耗材對照",
-    "spool_cost_label": "已消耗費用"
+    "spool_cost_label": "已消耗費用",
+    "day_title": "{date} 列印日報",
+    "day_back": "← 返回分析",
+    "day_task_count": "任務數量",
+    "day_total_duration": "總列印時長",
+    "day_total_weight": "總用料重量",
+    "day_filament_section": "耗材使用",
+    "day_tasks_section": "列印任務",
+    "day_duration_label": "耗時",
+    "day_total_cost": "當日消耗成本",
+    "day_material_section": "材料類型分布",
+    "day_timeline_section": "列印時間軸"
   },
   "flash": {
     "app": {

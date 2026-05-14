@@ -23,9 +23,16 @@
             {% elif day.count <= 5 %}{% set lvl = 2 %}
             {% elif day.count <= 9 %}{% set lvl = 3 %}
             {% else %}{% set lvl = 4 %}{% endif %}
-          <div class="heatmap-cell level-{{ lvl }}"
+          {% if day.count > 0 %}
+          <a href="{{ url_for('analytics.day_view', date_str=day.date) }}"
+             class="heatmap-cell level-{{ lvl }}"
+             data-tooltip="{{ t('analytics.heatmap_tooltip', date=day.date, count=day.count, weight=day.weight_g) }}"
+             aria-label="{{ t('analytics.heatmap_aria', date=day.date, count=day.count) }}"></a>
+          {% else %}
+          <div class="heatmap-cell level-0"
                data-tooltip="{{ t('analytics.heatmap_tooltip', date=day.date, count=day.count, weight=day.weight_g) }}"
                aria-label="{{ t('analytics.heatmap_aria', date=day.date, count=day.count) }}"></div>
+          {% endif %}
           {% endif %}
         {% endfor %}
       </div>

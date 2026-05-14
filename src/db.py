@@ -995,6 +995,59 @@ def get_weekday_stats(conn: sqlite3.Connection) -> list:
     ).fetchall()
 
 
+def get_tasks_for_date(conn: sqlite3.Connection, date_str: str) -> list:
+    rows = conn.execute(
+        """
+        SELECT pt.*, p.name AS printer_name
+        FROM print_task pt LEFT JOIN printer p ON p.id = pt.printer_id
+        WHERE DATE(pt.started_at) = ?
+        ORDER BY pt.started_at
+        """,
+        (date_str,),
+    ).fetchall()
+    tasks = []
+    for row in rows:
+        d = dict(row)
+        filaments = conn.execute(
+            """
+            SELECT ptf.*, fs.color_name, fs.color_hex AS spool_color_hex,
+                   fs.material AS spool_material, fs.uid AS spool_uid
+            FROM print_task_filament ptf
+            LEFT JOIN filament_spool fs ON fs.id = ptf.filament_spool_id
+            WHERE ptf.print_task_id = ? AND ptf.is_ignored = 0
+            ORDER BY ptf.slot_id
+            """,
+            (d["id"],),
+        ).fetchall()
+        d["filaments"] = [dict(f) for f in filaments]
+        tasks.append(d)
+    return tasks
+
+
+def get_daily_filament_summary(conn: sqlite3.Connection, date_str: str) -> list:
+    rows = conn.execute(
+        """
+        SELECT
+            ptf.filament_spool_id,
+            fs.id AS spool_id,
+            COALESCE(fs.color_name, ptf.color_hex) AS label,
+            COALESCE(fs.color_hex, ptf.color_hex) AS color_hex,
+            COALESCE(fs.material, ptf.material) AS material,
+            SUM(ptf.used_weight_g) AS total_g,
+            fs.price,
+            fs.initial_weight_g AS spool_initial_weight_g
+        FROM print_task_filament ptf
+        JOIN print_task pt ON pt.id = ptf.print_task_id
+        LEFT JOIN filament_spool fs ON fs.id = ptf.filament_spool_id
+        WHERE DATE(pt.started_at) = ? AND ptf.is_ignored = 0
+        GROUP BY ptf.filament_spool_id, ptf.color_hex, ptf.material
+        ORDER BY total_g DESC
+        """,
+        (date_str,),
+    ).fetchall()
+    return [dict(r) for r in rows]
+
+
 def replace_task_filaments(conn: sqlite3.Connection, task_id: int, filaments: list[dict]) -> None:
     conn.execute("SAVEPOINT replace_filaments")
     try:

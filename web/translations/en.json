@@ -348,7 +348,18 @@
     "weekday_title": "Weekly Activity Distribution",
     "no_duration_data": "No print records with duration data yet",
     "no_spool_cost_data": "Set purchase prices in Filament Management and map spools",
-    "spool_cost_label": "Consumed Cost"
+    "spool_cost_label": "Consumed Cost",
+    "day_title": "Daily Report: {date}",
+    "day_back": "← Back to Analytics",
+    "day_task_count": "Tasks",
+    "day_total_duration": "Total Print Time",
+    "day_total_weight": "Total Material Used",
+    "day_filament_section": "Filament Usage",
+    "day_tasks_section": "Print Tasks",
+    "day_duration_label": "Duration",
+    "day_total_cost": "Daily Cost",
+    "day_material_section": "Material Distribution",
+    "day_timeline_section": "Print Timeline"
   },
   "flash": {
     "app": {

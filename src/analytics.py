@@ -1,11 +1,12 @@
 import re
 import sqlite3
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 
 _HEX_RE = re.compile(r"^[0-9A-Fa-f]{6}$")
 
 from src.db import (
     get_cost_breakdown,
+    get_daily_filament_summary,
     get_duration_histogram,
     get_heatmap_available_years,
     get_heatmap_data_for_year,
@@ -14,6 +15,7 @@ from src.db import (
     get_printer_usage_stats,
     get_spool_color_usage_stats,
     get_spool_cost_ranking,
+    get_tasks_for_date,
     get_weekday_stats,
 )
 
@@ -235,6 +237,168 @@ def get_spool_cost_ranking_payload(conn: sqlite3.Connection, top_n: int = 15) ->
         "spools": spools,
         "max_cost": max_cost,
         "has_data": bool(spools),
+    }
+
+
+def _build_timeline(tasks: list) -> tuple:
+    """Build per-printer timeline segments. Returns (printers, tl_start_label, tl_end_label)."""
+    printer_tasks: dict = {}
+    all_times: list = []
+
+    for task in tasks:
+        start_str = task.get("started_at")
+        if not start_str:
+            continue
+        try:
+            start_dt = datetime.fromisoformat(start_str[:19])
+        except ValueError:
+            continue
+
+        end_str = task.get("ended_at")
+        duration_s = task.get("duration_seconds") or 0
+        end_dt = None
+        if end_str:
+            try:
+                end_dt = datetime.fromisoformat(end_str[:19])
+            except ValueError:
+                pass
+        if end_dt is None or end_dt <= start_dt:
+            end_dt = start_dt + timedelta(seconds=duration_s) if duration_s else start_dt + timedelta(minutes=1)
+
+        printer_name = task.get("printer_name") or "未知"
+        printer_id = task.get("printer_id") or 0
+        key = (printer_id, printer_name)
+        if key not in printer_tasks:
+            printer_tasks[key] = []
+        printer_tasks[key].append({
+            "task_id": task["id"],
+            "task_name": task.get("print_name") or "",
+            "start_dt": start_dt,
+            "end_dt": end_dt,
+        })
+        all_times += [start_dt, end_dt]
+
+    if not printer_tasks:
+        return [], "", ""
+
+    # Always span the full day 00:00–23:59:59
+    sample_dt = all_times[0]
+    tl_start = sample_dt.replace(hour=0, minute=0, second=0, microsecond=0)
+    tl_end = sample_dt.replace(hour=23, minute=59, second=59, microsecond=0)
+    total_s = (tl_end - tl_start).total_seconds()
+
+    def pct(dt: datetime) -> float:
+        return round((dt - tl_start).total_seconds() / total_s * 100, 2)
+
+    result = []
+    for (_, printer_name), ptasks in sorted(printer_tasks.items(), key=lambda x: x[0][1]):
+        ptasks.sort(key=lambda t: t["start_dt"])
+        segments = []
+        cursor = tl_start
+
+        for pt in ptasks:
+            if pt["start_dt"] > cursor:
+                segments.append({
+                    "type": "idle",
+                    "left_pct": pct(cursor),
+                    "width_pct": pct(pt["start_dt"]) - pct(cursor),
+                    "tooltip": f"{cursor.strftime('%H:%M')}–{pt['start_dt'].strftime('%H:%M')}",
+                })
+            w = max(pct(pt["end_dt"]) - pct(pt["start_dt"]), 0.5)
+            segments.append({
+                "type": "printing",
+                "left_pct": pct(pt["start_dt"]),
+                "width_pct": w,
+                "task_id": pt["task_id"],
+                "task_name": pt["task_name"],
+                "tooltip": f"{pt['task_name']}  {pt['start_dt'].strftime('%H:%M')}–{pt['end_dt'].strftime('%H:%M')}",
+            })
+            cursor = max(cursor, pt["end_dt"])
+
+        if cursor < tl_end:
+            segments.append({
+                "type": "idle",
+                "left_pct": pct(cursor),
+                "width_pct": 100.0 - pct(cursor),
+                "tooltip": f"{cursor.strftime('%H:%M')}–24:00",
+            })
+
+        printing_s = sum(
+            (pt["end_dt"] - pt["start_dt"]).total_seconds() for pt in ptasks
+        )
+        utilization_pct = round(printing_s / total_s * 100, 1)
+
+        result.append({
+            "printer_name": printer_name,
+            "segments": segments,
+            "utilization_pct": utilization_pct,
+        })
+
+    return result, "00:00", "24:00"
+
+
+def get_daily_detail_payload(conn: sqlite3.Connection, date_str: str) -> dict:
+    tasks = get_tasks_for_date(conn, date_str)
+    filament_summary = get_daily_filament_summary(conn, date_str)
+
+    total_duration_s = sum(t.get("duration_seconds") or 0 for t in tasks)
+    total_weight_g = sum(t.get("total_weight_g") or 0 for t in tasks)
+
+    filaments = []
+    for f in filament_summary:
+        filaments.append({
+            "label": f["label"] or f["color_hex"] or "—",
+            "color_hex": _hex6(f["color_hex"]) if f["color_hex"] else "#888888",
+            "material": f["material"] or "",
+            "total_g": round(f["total_g"] or 0, 1),
+            "spool_id": f["spool_id"],
+        })
+
+    # Daily cost (only priced, mapped spools)
+    total_cost_day: float | None = None
+    for f in filament_summary:
+        price = f.get("price")
+        init_g = f.get("spool_initial_weight_g")
+        used_g = f.get("total_g") or 0
+        if price and init_g and init_g > 0 and used_g > 0:
+            ratio = min(used_g / init_g, 1.0)
+            total_cost_day = (total_cost_day or 0.0) + price * ratio
+    if total_cost_day is not None:
+        total_cost_day = round(total_cost_day, 2)
+
+    # Material type distribution
+    mat_totals: dict = {}
+    for f in filament_summary:
+        mat = f["material"] or "未知"
+        mat_totals[mat] = mat_totals.get(mat, 0.0) + (f.get("total_g") or 0)
+    total_mat_g = sum(mat_totals.values()) or 1.0
+    material_dist = [
+        {
+            "material": mat,
+            "total_g": round(g, 1),
+            "pct": round(g / total_mat_g * 100, 1),
+            "color": _MATERIAL_PALETTE[i % len(_MATERIAL_PALETTE)],
+        }
+        for i, (mat, g) in enumerate(
+            sorted(mat_totals.items(), key=lambda x: x[1], reverse=True)
+        )
+    ]
+
+    timeline, tl_start, tl_end = _build_timeline(tasks)
+
+    return {
+        "date": date_str,
+        "tasks": tasks,
+        "filaments": filaments,
+        "total_duration_s": total_duration_s,
+        "total_duration_h": round(total_duration_s / 3600, 1),
+        "total_weight_g": round(total_weight_g, 1),
+        "task_count": len(tasks),
+        "total_cost_day": total_cost_day,
+        "material_dist": material_dist,
+        "timeline": timeline,
+        "tl_start": tl_start,
+        "tl_end": tl_end,
     }
 
 

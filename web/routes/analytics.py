@@ -1,8 +1,12 @@
+import re
+from datetime import date as _date
+
 from flask import Blueprint, abort, current_app, render_template, request
 
 from src.analytics import (
     get_color_swatch_payload,
     get_cost_chart_payload,
+    get_daily_detail_payload,
     get_duration_histogram_payload,
     get_heatmap_payload,
     get_heatmap_year_payload,
@@ -43,6 +47,27 @@ def index():
         spool_cost=spool_cost,
         weekday=weekday,
     )
+
+
+@bp.route("/day/<date_str>")
+def day_view(date_str: str):
+    if not re.match(r"^\d{4}-\d{2}-\d{2}$", date_str):
+        abort(400)
+    try:
+        day = _date.fromisoformat(date_str)
+    except ValueError:
+        abort(400)
+    if day > _date.today():
+        abort(404)
+
+    db_path = current_app.config["DB_PATH"]
+    with get_connection(db_path) as conn:
+        daily = get_daily_detail_payload(conn, date_str)
+
+    if not daily["tasks"]:
+        abort(404)
+
+    return render_template("analytics/day.html", daily=daily)
 
 
 @bp.route("/heatmap")

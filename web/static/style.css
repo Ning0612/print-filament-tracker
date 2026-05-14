@@ -1012,6 +1012,8 @@ body > footer.container-fluid {
   gap: 3px;
 }
 .heatmap-legend .heatmap-cell { cursor: default; }
+a.heatmap-cell { display: block; cursor: pointer; text-decoration: none; }
+a.heatmap-cell:hover { opacity: 0.75; outline: 2px solid var(--pico-primary); outline-offset: 1px; }
 
 /* Material legend */
 .material-legend {

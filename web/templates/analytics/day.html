@@ -1,0 +1,213 @@
+{% extends "base.html" %}
+{% block title %}{{ t('analytics.day_title', date=daily.date) }} — PrintFilamentTracker{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js" defer></script>
+{% if daily.material_dist %}
+<script>window._dayMatData = {{ daily.material_dist | tojson }};</script>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem;margin-bottom:1.5rem;">
+  <a href="{{ url_for('analytics.index') }}">{{ t('analytics.day_back') }}</a>
+</div>
+
+<!-- Header -->
+<div style="margin-bottom:1.75rem;">
+  <h1 style="margin:0;">{{ daily.date }}</h1>
+</div>
+
+<!-- Stats (2/4) | Filament (1/4) | Material pie (1/4) -->
+<div style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:1.5rem;margin-bottom:2rem;align-items:stretch;">
+
+  <!-- Stats: one big card, 2-col grid inside -->
+  <div style="background:var(--pico-card-background-color);border:1px solid var(--pico-muted-border-color);border-radius:var(--radius-md);padding:1.25rem;">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem 1.5rem;">
+      <div>
+        <small style="color:var(--pico-muted-color);display:block;margin-bottom:0.25rem;">{{ t('analytics.day_total_duration') }}</small>
+        {% set h = daily.total_duration_s // 3600 %}
+        {% set m = (daily.total_duration_s % 3600) // 60 %}
+        <strong style="font-size:1.4rem;">
+          {%- if h > 0 %}{{ h }}h {{ '%02d'|format(m) }}m{% else %}{{ m }}m{% endif -%}
+        </strong>
+      </div>
+      <div>
+        <small style="color:var(--pico-muted-color);display:block;margin-bottom:0.25rem;">{{ t('analytics.day_task_count') }}</small>
+        <strong style="font-size:1.4rem;">{{ daily.task_count }}</strong>
+      </div>
+      <div>
+        <small style="color:var(--pico-muted-color);display:block;margin-bottom:0.25rem;">{{ t('analytics.day_total_weight') }}</small>
+        <strong style="font-size:1.4rem;">{{ '%.1f'|format(daily.total_weight_g) }}g</strong>
+      </div>
+      {% if daily.total_cost_day is not none %}
+      <div>
+        <small style="color:var(--pico-muted-color);display:block;margin-bottom:0.25rem;">{{ t('analytics.day_total_cost') }}</small>
+        <strong style="font-size:1.4rem;">{{ '%.2f'|format(daily.total_cost_day) }}</strong>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Filament usage -->
+  {% if daily.filaments %}
+  <div style="background:var(--pico-card-background-color);border:1px solid var(--pico-muted-border-color);border-radius:var(--radius-md);padding:1rem 1.25rem;">
+    <small style="color:var(--pico-muted-color);font-weight:600;text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:0.875rem;">{{ t('analytics.day_filament_section') }}</small>
+    <div style="display:flex;flex-direction:column;gap:0.6rem;">
+      {% for f in daily.filaments %}
+      {% if f.spool_id %}
+      <a href="{{ url_for('spools.detail_view', spool_id=f.spool_id) }}"
+         style="display:flex;align-items:center;gap:0.75rem;text-decoration:none;color:inherit;">
+      {% else %}
+      <div style="display:flex;align-items:center;gap:0.75rem;">
+      {% endif %}
+        <span class="color-swatch" style="--swatch-color:{{ f.color_hex }};width:1.1rem;height:1.1rem;border-radius:50%;flex-shrink:0;"></span>
+        <span style="font-size:0.9rem;">{{ f.label }}</span>
+        {% if f.material %}<span style="color:var(--pico-muted-color);font-size:0.82rem;">({{ f.material }})</span>{% endif %}
+        <span style="margin-left:auto;font-weight:600;font-size:0.9rem;font-family:var(--pico-font-family-monospace);">{{ '%.1f'|format(f.total_g) }}g</span>
+      {% if f.spool_id %}</a>{% else %}</div>{% endif %}
+      {% endfor %}
+    </div>
+  </div>
+  {% else %}
+  <div></div>
+  {% endif %}
+
+  <!-- Material distribution (doughnut) -->
+  {% if daily.material_dist %}
+  <div style="background:var(--pico-card-background-color);border:1px solid var(--pico-muted-border-color);border-radius:var(--radius-md);padding:1rem 1.25rem;">
+    <small style="color:var(--pico-muted-color);font-weight:600;text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:0.75rem;">{{ t('analytics.day_material_section') }}</small>
+    <div style="position:relative;width:100%;height:160px;margin:0 auto;">
+      <canvas id="chart-day-material" height="160"></canvas>
+    </div>
+    <div style="margin-top:0.75rem;display:flex;flex-direction:column;gap:0.35rem;">
+      {% for m in daily.material_dist %}
+      <div style="display:flex;align-items:center;gap:0.5rem;font-size:0.8rem;">
+        <span style="width:0.7rem;height:0.7rem;border-radius:50%;background:{{ m.color }};flex-shrink:0;display:inline-block;"></span>
+        <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ m.material }}</span>
+        <span style="font-family:var(--pico-font-family-monospace);color:var(--pico-muted-color);">{{ m.pct }}%</span>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% else %}
+  <div></div>
+  {% endif %}
+
+</div>
+
+<!-- Timeline -->
+{% if daily.timeline %}
+<div style="border-top:1px solid var(--pico-muted-border-color);padding-top:1.5rem;margin-bottom:2rem;">
+  <small style="color:var(--pico-muted-color);font-weight:600;text-transform:uppercase;letter-spacing:0.04em;">{{ t('analytics.day_timeline_section') }}</small>
+  <div style="margin-top:1rem;display:flex;flex-direction:column;gap:1rem;">
+    {% for printer in daily.timeline %}
+    <div style="display:grid;grid-template-columns:8rem 1fr;gap:1rem;align-items:center;">
+      <div style="font-size:0.82rem;font-weight:500;color:var(--pico-muted-color);text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"
+           title="{{ printer.printer_name }}">{{ printer.printer_name }}</div>
+      <div style="display:grid;grid-template-columns:1fr auto;gap:0.75rem;align-items:center;">
+      <div>
+        <div style="position:relative;height:2rem;">
+          <div style="position:absolute;inset:0;border-radius:0.375rem;overflow:hidden;background:var(--pico-muted-border-color);">
+            {% for seg in printer.segments %}
+            <div style="position:absolute;left:{{ seg.left_pct }}%;width:{{ seg.width_pct }}%;min-width:{% if seg.type == 'printing' %}4{% else %}2{% endif %}px;height:100%;background:{% if seg.type == 'printing' %}#ef4444{% else %}#4ade80{% endif %};"></div>
+            {% endfor %}
+          </div>
+          {% for seg in printer.segments %}
+          {% if seg.type == 'printing' %}
+          <a href="{{ url_for('tasks.detail_view', task_id=seg.task_id) }}"
+             data-tooltip="{{ seg.tooltip }}"
+             style="position:absolute;top:0;left:{{ seg.left_pct }}%;width:{{ seg.width_pct }}%;min-width:4px;height:100%;display:block;cursor:pointer;"></a>
+          {% else %}
+          <div data-tooltip="{{ seg.tooltip }}"
+               style="position:absolute;top:0;left:{{ seg.left_pct }}%;width:{{ seg.width_pct }}%;min-width:2px;height:100%;cursor:default;"></div>
+          {% endif %}
+          {% endfor %}
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-top:0.2rem;">
+          <span style="font-size:0.72rem;color:var(--pico-muted-color);font-family:var(--pico-font-family-monospace);">{{ daily.tl_start }}</span>
+          <span style="font-size:0.72rem;color:var(--pico-muted-color);font-family:var(--pico-font-family-monospace);">{{ daily.tl_end }}</span>
+        </div>
+      </div>
+      <span style="font-size:0.82rem;font-weight:600;font-family:var(--pico-font-family-monospace);white-space:nowrap;color:var(--pico-muted-color);">{{ printer.utilization_pct }}%</span>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+<!-- Tasks gallery -->
+<div style="border-top:1px solid var(--pico-muted-border-color);padding-top:1.5rem;">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;">
+    <small style="color:var(--pico-muted-color);font-weight:600;text-transform:uppercase;letter-spacing:0.04em;">{{ t('analytics.day_tasks_section') }}</small>
+    <small style="color:var(--pico-muted-color);">{{ t('spools.task_count', n=daily.task_count) }}</small>
+  </div>
+  <div class="task-gallery-grid">
+    {% for task in daily.tasks %}
+    <a href="{{ url_for('tasks.detail_view', task_id=task.id) }}"
+       class="task-gallery-card" title="{{ task.print_name or '' }}">
+      <div class="task-gallery-thumb">
+        {% if task.cover_url %}
+        <img src="{{ task.cover_url }}" alt="{{ task.print_name or '' }}" decoding="async">
+        {% endif %}
+      </div>
+      <div class="task-gallery-info">
+        <div class="task-gallery-date">{{ (task.started_at or '')[:16].replace('T', ' ') or '-' }}</div>
+        <div style="font-size:0.83rem;margin-bottom:0.3rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:500;">{{ task.print_name or t('common.unnamed') }}</div>
+        <div class="task-gallery-weight">{{ '%.1f'|format(task.total_weight_g or 0) }}g</div>
+        {% if task.duration_seconds %}
+        {% set th = task.duration_seconds // 3600 %}
+        {% set tm = (task.duration_seconds % 3600) // 60 %}
+        <div style="color:var(--pico-muted-color);font-size:0.75rem;font-family:var(--pico-font-family-monospace);">
+          {{ t('analytics.day_duration_label') }}
+          {%- if th > 0 %} {{ th }}h{{ '%02d'|format(tm) }}m{%- else %} {{ tm }}m{%- endif %}
+        </div>
+        {% endif %}
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+</div>
+
+{% if daily.material_dist %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  try {
+    var matData = window._dayMatData || [];
+    var ctx = document.getElementById('chart-day-material');
+    if (!ctx || !matData.length) return;
+    var style = getComputedStyle(document.documentElement);
+    var colorCard = style.getPropertyValue('--pico-card-background-color').trim() || '#fff';
+    new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: matData.map(function(m){ return m.material; }),
+        datasets: [{
+          data: matData.map(function(m){ return m.total_g; }),
+          backgroundColor: matData.map(function(m){ return m.color; }),
+          borderWidth: 2,
+          borderColor: colorCard
+        }]
+      },
+      options: {
+        cutout: '60%',
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: function(c) {
+                var total = c.dataset.data.reduce(function(a,b){ return a+b; }, 0);
+                var pct = total > 0 ? ((c.parsed / total) * 100).toFixed(1) : 0;
+                return ' ' + c.parsed + 'g (' + pct + '%)';
+              }
+            }
+          }
+        }
+      }
+    });
+  } catch(e) { console.warn('Chart init failed:', e); }
+});
+</script>
+{% endif %}
+{% endblock %}
