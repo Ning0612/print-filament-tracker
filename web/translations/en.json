@@ -157,7 +157,17 @@
     "form_product_url": "Product URL",
     "form_note": "Notes",
     "form_update_btn": "Update",
-    "form_add_btn": "Add"
+    "form_add_btn": "Add",
+    "detail_back": "← Back to Filament Management",
+    "detail_edit_btn": "Edit Spool",
+    "detail_basic_info": "Basic Info",
+    "detail_stats_title": "Usage Stats",
+    "detail_use_count": "Times Used",
+    "detail_use_times": "times",
+    "detail_used_weight": "Weight Consumed",
+    "detail_remaining_weight": "Remaining Weight",
+    "detail_cost_consumed": "Cost Consumed",
+    "detail_tasks_title": "Print Records"
   },
   "printers": {
     "title": "Printer Management",

@@ -81,16 +81,20 @@
     <div class="spool-item" id="spool-{{ s.id }}">
       <div class="spool-row">
 
-        <div class="spool-col-color" onclick="toggleSpoolGallery({{ s.id }})"
-             title="{{ t('spools.expand_title') }}">
-          <span class="gallery-toggle-icon">▶</span>
-          {% if s.color_hex %}
-          <span class="color-swatch" style="--swatch-color:{{ s.color_hex }};"></span>
-          {% endif %}
-          <span class="spool-color-name">{{ s.color_name or t('common.unnamed') }}</span>
-          {% if stasks %}
-          <small class="spool-task-count">{{ t('spools.task_count', n=stasks|length) }}</small>
-          {% endif %}
+        <div class="spool-col-color">
+          <span class="gallery-toggle-icon" onclick="toggleSpoolGallery({{ s.id }})"
+                title="{{ t('spools.expand_title') }}">▶</span>
+          <a href="{{ url_for('spools.detail_view', spool_id=s.id) }}"
+             class="spool-detail-link">
+            {% if s.color_hex %}
+            <span class="color-swatch" style="--swatch-color:{{ s.color_hex }};"></span>
+            {% endif %}
+            <span class="spool-color-name">{{ s.color_name or t('common.unnamed') }}</span>
+          </a>
+        </div>
+
+        <div class="spool-col-count">
+          {% if stasks %}{{ t('spools.task_count', n=stasks|length) }}{% endif %}
         </div>
 
         <div class="spool-col-code">

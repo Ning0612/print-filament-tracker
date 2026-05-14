@@ -76,7 +76,7 @@
             <td>{{ '%.2f' % f.used_weight_g if f.used_weight_g else '-' }}g</td>
             <td>
               {% if f.filament_spool_id %}
-                <a href="{{ url_for('spools.edit_view', spool_id=f.filament_spool_id) }}">Spool #{{ f.filament_spool_id }} {{ f.color_name or '' }}</a>
+                <a href="{{ url_for('spools.detail_view', spool_id=f.filament_spool_id) }}">Spool #{{ f.filament_spool_id }} {{ f.color_name or '' }}</a>
               {% else %}
                 <span style="color:var(--pico-muted-color);">{{ t('tasks.detail_not_mapped') }}</span>
               {% endif %}

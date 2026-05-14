@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+{% block title %}{{ spool.color_name or t('common.unnamed') }} — PrintFilamentTracker{% endblock %}
+
+{% block content %}
+<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem;margin-bottom:1.5rem;">
+  <a href="{{ url_for('spools.list_view') }}">{{ t('spools.detail_back') }}</a>
+  <a href="{{ url_for('spools.edit_view', spool_id=spool.id) }}" role="button" class="outline"
+     style="padding:0.3rem 0.8rem;font-size:0.85rem;margin:0;">{{ t('spools.detail_edit_btn') }}</a>
+</div>
+
+<!-- Header -->
+<div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.75rem;flex-wrap:wrap;">
+  {% if spool.color_hex %}
+  <span class="color-swatch" style="--swatch-color:{{ spool.color_hex }};width:3rem;height:3rem;border-radius:50%;flex-shrink:0;"></span>
+  {% endif %}
+  <div>
+    <h1 style="margin:0 0 0.25rem;">{{ spool.color_name or t('common.unnamed') }}</h1>
+    <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;">
+      <span class="status-badge status-{{ spool.status }}">{{ t('spools.status_' + spool.status) }}</span>
+      {% if spool.material %}
+      <span style="color:var(--pico-muted-color);font-size:0.9rem;">{{ spool.material }}</span>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- Basic Info + Stats -->
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;align-items:start;margin-bottom:2rem;">
+
+  <!-- Basic Info -->
+  <div>
+    <small style="color:var(--pico-muted-color);font-weight:600;text-transform:uppercase;letter-spacing:0.04em;">{{ t('spools.detail_basic_info') }}</small>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem 1rem;margin-top:0.75rem;">
+      <div>
+        <small style="color:var(--pico-muted-color);">{{ t('spools.form_material') }}</small><br>
+        <strong>{{ spool.material or '-' }}</strong>
+      </div>
+      <div>
+        <small style="color:var(--pico-muted-color);">{{ t('spools.form_color_name') }}</small><br>
+        <strong>{{ spool.color_name or '-' }}</strong>
+      </div>
+      <div>
+        <small style="color:var(--pico-muted-color);">{{ t('spools.form_color_hex') }}</small><br>
+        {% if spool.color_hex %}
+        <strong>{{ spool.color_hex }}</strong>
+        {% if spool.color_rgb %}<br><small style="color:var(--pico-muted-color);">{{ spool.color_rgb }}</small>{% endif %}
+        {% else %}<strong>-</strong>{% endif %}
+      </div>
+      <div>
+        <small style="color:var(--pico-muted-color);">{{ t('spools.form_initial_weight') }}</small><br>
+        <strong>{{ '%.0f'|format(spool.initial_weight_g) }}g</strong>
+      </div>
+      <div>
+        <small style="color:var(--pico-muted-color);">{{ t('spools.form_price') }}</small><br>
+        <strong>{% if spool.price %}{{ '%.2f'|format(spool.price) }}{% else %}-{% endif %}</strong>
+      </div>
+      <div>
+        <small style="color:var(--pico-muted-color);">{{ t('spools.form_purchased_at') }}</small><br>
+        <strong>{{ (spool.purchased_at or '')[:10] or '-' }}</strong>
+      </div>
+    </div>
+    {% if spool.product_url %}
+    <div style="margin-top:0.75rem;">
+      <small style="color:var(--pico-muted-color);">{{ t('spools.form_product_url') }}</small><br>
+      <a href="{{ spool.product_url }}" target="_blank" rel="noopener noreferrer"
+         style="word-break:break-all;font-size:0.9rem;">{{ spool.product_url }}</a>
+    </div>
+    {% endif %}
+    {% if spool.note %}
+    <div style="margin-top:0.75rem;">
+      <small style="color:var(--pico-muted-color);">{{ t('spools.form_note') }}</small><br>
+      <span style="font-size:0.9rem;">{{ spool.note }}</span>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Usage Stats -->
+  <div>
+    <small style="color:var(--pico-muted-color);font-weight:600;text-transform:uppercase;letter-spacing:0.04em;">{{ t('spools.detail_stats_title') }}</small>
+    <div style="margin-top:0.75rem;">
+      {% set pct = 0 if spool.initial_weight_g == 0 else ([[(spool.remaining_weight_g / spool.initial_weight_g * 100)|round|int, 0]|max, 100]|min) %}
+      {% if pct >= 50 %}{% set bar_cls = '' %}
+      {% elif pct >= 25 %}{% set bar_cls = 'bar-yellow' %}
+      {% elif pct >= 10 %}{% set bar_cls = 'bar-orange' %}
+      {% else %}{% set bar_cls = 'bar-red' %}{% endif %}
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem 1.5rem;align-items:start;">
+        <!-- Row 1 左：剩餘重量 label + 進度條 + 重量數字 -->
+        <div>
+          <small style="color:var(--pico-muted-color);">{{ t('spools.detail_remaining_weight') }}</small>
+          <div class="progress-bar-container" style="margin:0.35rem 0 0.4rem;">
+            <div class="progress-bar {{ bar_cls }}" style="width:{{ pct }}%"></div>
+          </div>
+          <div>
+            <strong>{{ '%.1f'|format(spool.remaining_weight_g) }}g</strong>
+            <span style="color:var(--pico-muted-color);font-size:0.88rem;margin-left:0.25rem;">({{ '%.0f'|format(pct) }}%)</span>
+          </div>
+        </div>
+        <!-- Row 1 右（3/4 處）：已使用次數 label 對齊剩餘重量 label，次數對齊進度條 -->
+        <div>
+          <small style="color:var(--pico-muted-color);">{{ t('spools.detail_use_count') }}</small><br>
+          <strong>{{ tasks|length }} {{ t('spools.detail_use_times') }}</strong>
+        </div>
+        <!-- Row 2 左：已消耗重量 -->
+        <div>
+          <small style="color:var(--pico-muted-color);">{{ t('spools.detail_used_weight') }}</small><br>
+          <strong>{{ '%.1f'|format(spool.used_weight_g) }}g</strong>
+        </div>
+        <!-- Row 2 右（3/4 處）：已消耗成本 -->
+        <div>
+          {% if cost_consumed is not none %}
+          <small style="color:var(--pico-muted-color);">{{ t('spools.detail_cost_consumed') }}</small><br>
+          <strong>{{ '%.2f'|format(cost_consumed) }}</strong>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Tasks Gallery -->
+<div style="border-top:1px solid var(--pico-muted-border-color);padding-top:1.5rem;">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;">
+    <small style="color:var(--pico-muted-color);font-weight:600;text-transform:uppercase;letter-spacing:0.04em;">{{ t('spools.detail_tasks_title') }}</small>
+    {% if tasks %}
+    <small style="color:var(--pico-muted-color);">{{ t('spools.task_count', n=tasks|length) }}</small>
+    {% endif %}
+  </div>
+  {% if tasks %}
+  <div class="task-gallery-grid">
+    {% for task in tasks %}
+    <a href="{{ url_for('tasks.detail_view', task_id=task.id) }}"
+       class="task-gallery-card" title="{{ task.print_name or '' }}">
+      <div class="task-gallery-thumb">
+        {% if task.cover_url %}
+        <img src="{{ task.cover_url }}" alt="{{ task.print_name or '' }}" decoding="async">
+        {% endif %}
+      </div>
+      <div class="task-gallery-info">
+        <div class="task-gallery-date">{{ (task.started_at or '')[:10] or '-' }}</div>
+        <div class="task-gallery-weight">{{ '%.1f'|format(task.used_weight_g or 0) }}g</div>
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p style="color:var(--pico-muted-color);font-size:0.88rem;">{{ t('spools.no_tasks') }}</p>
+  {% endif %}
+</div>
+{% endblock %}

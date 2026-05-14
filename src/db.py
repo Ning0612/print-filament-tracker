@@ -755,6 +755,23 @@ def get_tasks_grouped_by_spool(conn: sqlite3.Connection) -> dict:
     return result
 
 
+def get_tasks_for_spool(conn: sqlite3.Connection, spool_id: int) -> list:
+    rows = conn.execute(
+        """
+        SELECT
+          pt.id, pt.print_name, pt.started_at, pt.cover_url,
+          SUM(ptf.used_weight_g) AS used_weight_g
+        FROM print_task pt
+        JOIN print_task_filament ptf ON ptf.print_task_id = pt.id
+        WHERE ptf.filament_spool_id = ?
+        GROUP BY pt.id
+        ORDER BY pt.started_at DESC
+        """,
+        (spool_id,),
+    ).fetchall()
+    return [dict(r) for r in rows]
+
+
 # --- Analytics queries ---
 
 def get_heatmap_available_years(conn: sqlite3.Connection) -> list:

@@ -14,6 +14,7 @@ from src.filament import (
     import_spools_json,
     list_spools_with_tasks,
     read_spool,
+    read_spool_with_tasks,
     update_spool_data,
 )
 
@@ -75,6 +76,32 @@ def list_view():
         section_sorts=section_sorts,
         tasks_by_spool=tasks_by_spool,
         total_count=len(all_spools),
+    )
+
+
+@bp.route("/<int:spool_id>")
+def detail_view(spool_id: int):
+    db_path = current_app.config["DB_PATH"]
+    try:
+        spool, tasks = read_spool_with_tasks(db_path, spool_id)
+    except SpoolNotFoundError:
+        flash(t("flash.spools.not_found"), "error")
+        return redirect(url_for("spools.list_view"))
+
+    cost_consumed = None
+    if spool.get("price") and spool.get("initial_weight_g") and spool["initial_weight_g"] > 0:
+        try:
+            price_val = float(spool["price"])
+            ratio = min(spool["used_weight_g"] / spool["initial_weight_g"], 1.0)
+            cost_consumed = price_val * ratio
+        except (TypeError, ValueError):
+            pass
+
+    return render_template(
+        "spools/detail.html",
+        spool=spool,
+        tasks=tasks,
+        cost_consumed=cost_consumed,
     )
 
 

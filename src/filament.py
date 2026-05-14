@@ -23,6 +23,7 @@ from .db import (
     get_spool_last_used_map,
     get_spool_used_weight,
     get_task_id_by_external_id,
+    get_tasks_for_spool,
     get_tasks_grouped_by_spool,
     get_unmapped_filaments,
     ignore_filament,
@@ -172,6 +173,17 @@ def list_spools(db_path: Path) -> list[dict]:
         rows = get_all_spools(conn)
         used_map = _get_all_used_weights(conn)
         return [enrich_spool(row, used_map.get(row["id"], 0.0)) for row in rows]
+
+
+def read_spool_with_tasks(db_path: Path, spool_id: int) -> tuple[dict, list]:
+    with get_connection(db_path) as conn:
+        row = get_spool_by_id(conn, spool_id)
+        if row is None:
+            raise SpoolNotFoundError(f"Spool id={spool_id} 不存在。")
+        used = get_spool_used_weight(conn, spool_id)
+        spool = enrich_spool(row, used)
+        tasks = get_tasks_for_spool(conn, spool_id)
+    return spool, tasks
 
 
 def list_spools_with_tasks(db_path: Path) -> tuple[list[dict], dict]:

@@ -157,7 +157,17 @@
     "form_product_url": "商品連結",
     "form_note": "備註",
     "form_update_btn": "更新",
-    "form_add_btn": "新增"
+    "form_add_btn": "新增",
+    "detail_back": "← 返回耗材管理",
+    "detail_edit_btn": "編輯耗材",
+    "detail_basic_info": "基本資訊",
+    "detail_stats_title": "使用統計",
+    "detail_use_count": "已使用次數",
+    "detail_use_times": "次",
+    "detail_used_weight": "已消耗重量",
+    "detail_remaining_weight": "剩餘重量",
+    "detail_cost_consumed": "已消耗成本",
+    "detail_tasks_title": "相關列印記錄"
   },
   "printers": {
     "title": "印表機管理",
