@@ -10,7 +10,7 @@
 
 {% block content %}
 <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem;margin-bottom:1.5rem;">
-  <a href="{{ url_for('analytics.index') }}">{{ t('analytics.day_back') }}</a>
+  <a href="{{ url_for('analytics.index') }}" onclick="history.back(); return false;">{{ t('analytics.day_back') }}</a>
 </div>
 
 <!-- Header -->

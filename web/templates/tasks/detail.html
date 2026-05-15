@@ -3,7 +3,7 @@
 
 {% block content %}
 <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem;margin-bottom:0.5rem;">
-  <a href="{{ url_for('tasks.list_view') }}">{{ t('tasks.detail_back') }}</a>
+  <a href="{{ url_for('tasks.list_view') }}" onclick="history.back(); return false;">{{ t('tasks.detail_back') }}</a>
   {% if task.is_manual %}
   <div style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap;">
     <span class="manual-badge" style="font-size:0.85rem;">{{ t('tasks.detail_manual_badge') }}</span>

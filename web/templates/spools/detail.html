@@ -3,7 +3,7 @@
 
 {% block content %}
 <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem;margin-bottom:1.5rem;">
-  <a href="{{ url_for('spools.list_view') }}">{{ t('spools.detail_back') }}</a>
+  <a href="{{ url_for('spools.list_view') }}" onclick="history.back(); return false;">{{ t('spools.detail_back') }}</a>
   <a href="{{ url_for('spools.edit_view', spool_id=spool.id) }}" role="button" class="outline"
      style="padding:0.3rem 0.8rem;font-size:0.85rem;margin:0;">{{ t('spools.detail_edit_btn') }}</a>
 </div>
