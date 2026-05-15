@@ -1,3 +1,4 @@
+{% from "_macros.html" import print_status_badge %}
 {% extends "base.html" %}
 {% block title %}{{ t('tasks.title') }} — PrintFilamentTracker{% endblock %}
 
@@ -27,6 +28,7 @@
       <th>{{ t('tasks.table_start_time') }}</th>
       <th>{{ t('tasks.table_duration') }}</th>
       <th>{{ t('tasks.table_usage') }}</th>
+      <th>{{ t('tasks.table_status') }}</th>
       <th style="width:130px;"></th>
     </tr>
   </thead>
@@ -55,6 +57,7 @@
         {% else %}-{% endif %}
       </td>
       <td style="white-space:nowrap;">{{ '%.2f' % task.total_weight_g if task.total_weight_g else '-' }}g</td>
+      <td style="white-space:nowrap;">{{ print_status_badge(task) }}</td>
       <td>
         {% if task.is_manual %}
         <div style="display:flex;gap:0.4rem;align-items:center;">

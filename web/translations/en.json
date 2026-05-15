@@ -44,7 +44,10 @@
     "empty": "Empty",
     "manual": "Manual",
     "connected": "Connected",
-    "not_connected": "Not logged in"
+    "not_connected": "Not logged in",
+    "print_completed": "Completed",
+    "print_failed": "Failed",
+    "print_in_progress": "Printing"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -62,7 +65,8 @@
     "table_printer": "Printer",
     "table_start_time": "Start Time",
     "table_duration": "Duration",
-    "table_usage": "Usage"
+    "table_usage": "Usage",
+    "table_status": "Status"
   },
   "tasks": {
     "title": "Print History",
@@ -82,6 +86,7 @@
     "table_start_time": "Start Time",
     "table_duration": "Duration",
     "table_usage": "Usage",
+    "table_status": "Status",
     "detail_back": "← Go Back",
     "detail_manual_badge": "Manual Task",
     "detail_printer": "Printer",

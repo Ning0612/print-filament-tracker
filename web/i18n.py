@@ -77,6 +77,10 @@ def t(key: str, **kwargs) -> str:
 
 
 def register_i18n(app) -> None:
+    # Register t as a Jinja2 global so it's accessible inside imported macros
+    # (context_processor variables are not visible in externally-imported macros).
+    app.jinja_env.globals["t"] = t
+
     @app.before_request
     def _maybe_clear_i18n_cache():
         # In debug mode the reloader only watches .py files; clear the

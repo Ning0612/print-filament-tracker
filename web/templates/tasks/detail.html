@@ -1,3 +1,4 @@
+{% from "_macros.html" import print_status_badge %}
 {% extends "base.html" %}
 {% block title %}{{ task.print_name or t('tasks.detail_back') }} — PrintFilamentTracker{% endblock %}
 
@@ -46,7 +47,11 @@
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
       <div><small style="color:var(--pico-muted-color);">{{ t('tasks.detail_duration') }}</small><br><strong>{% if task.duration_seconds %}{{ task.duration_seconds // 3600 }}h {{ (task.duration_seconds % 3600) // 60 }}m{% else %}-{% endif %}</strong></div>
-      <div><small style="color:var(--pico-muted-color);">{{ t('tasks.detail_total_usage') }}</small><br><strong>{{ '%.2f' % task.total_weight_g if task.total_weight_g else '-' }}g</strong></div>
+      <div>
+        <small style="color:var(--pico-muted-color);">{{ t('tasks.detail_total_usage') }}</small><br>
+        <strong>{{ '%.2f' % task.total_weight_g if task.total_weight_g else '-' }}g</strong>
+        {{ print_status_badge(task) }}
+      </div>
     </div>
     <div style="border-top:1px solid var(--pico-muted-border-color);padding-top:0.75rem;">
       <small style="color:var(--pico-muted-color);font-weight:600;text-transform:uppercase;letter-spacing:0.04em;">{{ t('tasks.detail_filament_section') }}</small>

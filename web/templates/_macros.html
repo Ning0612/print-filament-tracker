@@ -1,0 +1,11 @@
+{% macro print_status_badge(task) %}
+{% if not task.is_manual and task.status is not none %}
+  {% if task.status == 2 %}
+    <span class="print-status-badge status-completed">{{ t('status.print_completed') }}</span>
+  {% elif task.status == 3 %}
+    <span class="print-status-badge status-failed">{{ t('status.print_failed') }}</span>
+  {% else %}
+    <span class="print-status-badge status-in-progress">{{ t('status.print_in_progress') }}</span>
+  {% endif %}
+{% endif %}
+{% endmacro %}

@@ -40,6 +40,7 @@ CREATE TABLE IF NOT EXISTS print_task (
   started_at DATETIME,
   ended_at DATETIME,
   duration_seconds INTEGER,
+  status INTEGER,
   total_weight_g REAL,
   cover_url TEXT,
   raw_json TEXT,
@@ -109,10 +110,18 @@ def init_db(db_path: Path) -> None:
         _migrate_add_column(conn, "print_task", "is_manual INTEGER NOT NULL DEFAULT 0")
         _migrate_add_column(conn, "print_task", "plate_index INTEGER")
         _migrate_add_column(conn, "print_task", "plate_name TEXT")
+        _migrate_add_column(conn, "print_task", "status INTEGER")
         _migrate_add_column(conn, "print_task_filament", "is_ignored INTEGER NOT NULL DEFAULT 0")
         _migrate_add_column(conn, "print_task_filament", "mapped_at DATETIME")
         _migrate_add_column(conn, "printer", "image_url TEXT")
         try:
+            conn.execute(
+                """
+                UPDATE print_task
+                SET status = json_extract(raw_json, '$.status')
+                WHERE status IS NULL AND raw_json IS NOT NULL AND is_manual = 0
+                """
+            )
             conn.execute(
                 """
                 UPDATE print_task
@@ -211,9 +220,9 @@ def insert_print_task_ignore(conn: sqlite3.Connection, task: dict) -> int | None
         """
         INSERT OR IGNORE INTO print_task
           (external_id, print_name, printer_id, started_at, ended_at,
-           duration_seconds, total_weight_g, cover_url, raw_json,
+           duration_seconds, status, total_weight_g, cover_url, raw_json,
            plate_index, plate_name)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             task["external_id"],
@@ -222,6 +231,7 @@ def insert_print_task_ignore(conn: sqlite3.Connection, task: dict) -> int | None
             task.get("started_at"),
             task.get("ended_at"),
             task.get("duration_seconds"),
+            task.get("status"),
             task.get("total_weight_g"),
             task.get("cover_url"),
             task.get("raw_json"),
@@ -235,20 +245,20 @@ def insert_print_task_ignore(conn: sqlite3.Connection, task: dict) -> int | None
 def upsert_print_task(conn: sqlite3.Connection, task: dict) -> tuple[int, bool]:
     """Insert or update a cloud print task. Returns (task_db_id, is_new).
 
-    Mutable fields (ended_at, duration_seconds, total_weight_g, raw_json,
-    print_name, plate_index, plate_name) are updated when a record already
-    exists. COALESCE ensures existing non-NULL values are never overwritten by
-    NULL — this protects completed records from partial in-progress snapshots.
-    cover_url uses reverse COALESCE (keep existing) so user-uploaded covers
-    are never replaced by auto-downloaded paths.
+    Mutable fields (ended_at, duration_seconds, status, total_weight_g,
+    raw_json, print_name, plate_index, plate_name) are updated when a record
+    already exists. COALESCE ensures existing non-NULL values are never
+    overwritten by NULL — this protects completed records from partial
+    in-progress snapshots. cover_url uses reverse COALESCE (keep existing)
+    so user-uploaded covers are never replaced by auto-downloaded paths.
     """
     cursor = conn.execute(
         """
         INSERT OR IGNORE INTO print_task
           (external_id, print_name, printer_id, started_at, ended_at,
-           duration_seconds, total_weight_g, cover_url, raw_json,
+           duration_seconds, status, total_weight_g, cover_url, raw_json,
            plate_index, plate_name)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             task["external_id"],
@@ -257,6 +267,7 @@ def upsert_print_task(conn: sqlite3.Connection, task: dict) -> tuple[int, bool]:
             task.get("started_at"),
             task.get("ended_at"),
             task.get("duration_seconds"),
+            task.get("status"),
             task.get("total_weight_g"),
             task.get("cover_url"),
             task.get("raw_json"),
@@ -274,6 +285,7 @@ def upsert_print_task(conn: sqlite3.Connection, task: dict) -> tuple[int, bool]:
         UPDATE print_task SET
           ended_at         = COALESCE(?, ended_at),
           duration_seconds = COALESCE(?, duration_seconds),
+          status           = COALESCE(?, status),
           total_weight_g   = COALESCE(?, total_weight_g),
           raw_json         = ?,
           print_name       = COALESCE(?, print_name),
@@ -285,6 +297,7 @@ def upsert_print_task(conn: sqlite3.Connection, task: dict) -> tuple[int, bool]:
         (
             task.get("ended_at"),
             task.get("duration_seconds"),
+            task.get("status"),
             task.get("total_weight_g"),
             task.get("raw_json"),
             task.get("print_name"),
@@ -868,6 +881,7 @@ def get_tasks_grouped_by_spool(conn: sqlite3.Connection) -> dict:
         """
         SELECT
           pt.id, pt.print_name, pt.started_at, pt.cover_url,
+          pt.status, pt.is_manual,
           SUM(ptf.used_weight_g) AS used_weight_g,
           ptf.filament_spool_id
         FROM print_task pt
@@ -891,6 +905,7 @@ def get_tasks_for_spool(conn: sqlite3.Connection, spool_id: int) -> list:
         """
         SELECT
           pt.id, pt.print_name, pt.started_at, pt.cover_url,
+          pt.status, pt.is_manual,
           SUM(ptf.used_weight_g) AS used_weight_g
         FROM print_task pt
         JOIN print_task_filament ptf ON ptf.print_task_id = pt.id

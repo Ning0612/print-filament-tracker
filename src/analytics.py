@@ -275,6 +275,7 @@ def _build_timeline(tasks: list) -> tuple:
             "task_name": task.get("print_name") or "",
             "start_dt": start_dt,
             "end_dt": end_dt,
+            "failed": task.get("status") == 3,
         })
         all_times += [start_dt, end_dt]
 
@@ -306,7 +307,7 @@ def _build_timeline(tasks: list) -> tuple:
                 })
             w = max(pct(pt["end_dt"]) - pct(pt["start_dt"]), 0.5)
             segments.append({
-                "type": "printing",
+                "type": "printing_failed" if pt["failed"] else "printing",
                 "left_pct": pct(pt["start_dt"]),
                 "width_pct": w,
                 "task_id": pt["task_id"],

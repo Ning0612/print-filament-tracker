@@ -180,6 +180,7 @@ def ingest_raw_tasks(
                     "started_at": raw.get("startTime"),
                     "ended_at": raw.get("endTime"),
                     "duration_seconds": raw.get("costTime"),
+                    "status": raw.get("status"),
                     "total_weight_g": raw.get("weight"),
                     "cover_url": local_cover,
                     "raw_json": json.dumps(raw, ensure_ascii=False),

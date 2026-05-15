@@ -110,11 +110,11 @@
         <div style="position:relative;height:2rem;">
           <div style="position:absolute;inset:0;border-radius:0.375rem;overflow:hidden;background:var(--pico-muted-border-color);">
             {% for seg in printer.segments %}
-            <div style="position:absolute;left:{{ seg.left_pct }}%;width:{{ seg.width_pct }}%;min-width:{% if seg.type == 'printing' %}4{% else %}2{% endif %}px;height:100%;background:{% if seg.type == 'printing' %}#ef4444{% else %}#4ade80{% endif %};"></div>
+            <div style="position:absolute;left:{{ seg.left_pct }}%;width:{{ seg.width_pct }}%;min-width:{% if seg.type != 'idle' %}4{% else %}2{% endif %}px;height:100%;background:{% if seg.type == 'printing' %}#ef4444{% elif seg.type == 'printing_failed' %}#eab308{% else %}#4ade80{% endif %};"></div>
             {% endfor %}
           </div>
           {% for seg in printer.segments %}
-          {% if seg.type == 'printing' %}
+          {% if seg.type in ('printing', 'printing_failed') %}
           <a href="{{ url_for('tasks.detail_view', task_id=seg.task_id) }}"
              data-tooltip="{{ seg.tooltip }}"
              style="position:absolute;top:0;left:{{ seg.left_pct }}%;width:{{ seg.width_pct }}%;min-width:4px;height:100%;display:block;cursor:pointer;"></a>
