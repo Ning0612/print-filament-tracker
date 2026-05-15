@@ -287,6 +287,7 @@ def start_backup_scheduler(app) -> None:
 def _reload_app_config(app) -> None:
     """Re-read app_config from DB and refresh app.config + scheduler states after a restore."""
     from src.db import get_app_config, get_connection
+    from web.app import _make_tz_filters
     db_path = app.config["DB_PATH"]
     try:
         with get_connection(db_path) as conn:
@@ -295,6 +296,7 @@ def _reload_app_config(app) -> None:
             sync_interval = get_app_config(conn, "auto_sync_interval") or "0"
             backup_interval = get_app_config(conn, "backup_interval_minutes") or "0"
             backup_keep = get_app_config(conn, "backup_keep_count") or "7"
+            tz_offset = get_app_config(conn, "display_tz_offset_minutes") or "0"
 
         app.config["BAMBU_TOKEN"] = token
         app.config["BAMBU_REGION"] = region
@@ -314,6 +316,15 @@ def _reload_app_config(app) -> None:
             app.config["BACKUP_KEEP_COUNT"] = max(1, min(30, int(backup_keep)))
         except (ValueError, TypeError):
             app.config["BACKUP_KEEP_COUNT"] = 7
+
+        try:
+            new_tz = max(-720, min(840, int(tz_offset)))
+        except (ValueError, TypeError):
+            new_tz = 480
+        app.config["DISPLAY_TZ_OFFSET_MINUTES"] = new_tz
+        tz_fmt, tz_d = _make_tz_filters(new_tz)
+        app.jinja_env.filters["tz_format"] = tz_fmt
+        app.jinja_env.filters["tz_date"] = tz_d
 
         # Sync in-memory scheduler states so the new intervals take effect immediately.
         now = datetime.now()
@@ -359,6 +370,7 @@ def index():
     backup_ctx = _backup_status_context()
     backup_interval = backup_ctx["backup_auto_state"]["interval_minutes"]
     backup_keep_count = int(current_app.config.get("BACKUP_KEEP_COUNT", 7))
+    display_tz_offset = int(current_app.config.get("DISPLAY_TZ_OFFSET_MINUTES", 0))
     return render_template(
         "settings/index.html",
         token_masked=_mask_token(token),
@@ -369,6 +381,7 @@ def index():
         auto_sync_state=auto_sync_snap,
         backup_interval=backup_interval,
         backup_keep_count=backup_keep_count,
+        display_tz_offset=display_tz_offset,
         **backup_ctx,
     )
 
@@ -655,4 +668,29 @@ def restore_backup():
     _reload_app_config(current_app._get_current_object())
 
     flash(t("flash.backup.restore_done", file=filename), "success")
+    return redirect(url_for("settings.index"))
+
+
+@bp.route("/timezone", methods=["POST"])
+def set_timezone():
+    from flask import redirect
+    from web.app import _make_tz_filters
+    try:
+        offset = int(request.form.get("tz_offset_minutes", "0"))
+        if not (-720 <= offset <= 840):
+            offset = 480
+    except (ValueError, TypeError):
+        offset = 480
+
+    try:
+        _save_app_config("display_tz_offset_minutes", str(offset))
+    except Exception as exc:
+        current_app.logger.warning("無法儲存 display_tz_offset_minutes 到 DB：%s", exc)
+
+    current_app.config["DISPLAY_TZ_OFFSET_MINUTES"] = offset
+    tz_fmt, tz_d = _make_tz_filters(offset)
+    current_app.jinja_env.filters["tz_format"] = tz_fmt
+    current_app.jinja_env.filters["tz_date"] = tz_d
+
+    flash(t("flash.settings.timezone_saved"), "success")
     return redirect(url_for("settings.index"))

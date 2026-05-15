@@ -153,7 +153,7 @@
         {% endif %}
       </div>
       <div class="task-gallery-info">
-        <div class="task-gallery-date">{{ (task.started_at or '')[:16].replace('T', ' ') or '-' }}</div>
+        <div class="task-gallery-date">{{ task.started_at | tz_format }}</div>
         <div style="font-size:0.83rem;margin-bottom:0.3rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:500;">{{ task.print_name or t('common.unnamed') }}</div>
         <div class="task-gallery-weight">{{ '%.1f'|format(task.total_weight_g or 0) }}g</div>
         {% if task.duration_seconds %}

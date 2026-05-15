@@ -42,8 +42,8 @@
       {% endif %}
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
-      <div><small style="color:var(--pico-muted-color);">{{ t('tasks.detail_start_time') }}</small><br><strong>{{ (task.started_at or '')[:16] | replace('T', ' ') or '-' }}</strong></div>
-      <div><small style="color:var(--pico-muted-color);">{{ t('tasks.detail_end_time') }}</small><br><strong>{{ (task.ended_at or '')[:16] | replace('T', ' ') or '-' }}</strong></div>
+      <div><small style="color:var(--pico-muted-color);">{{ t('tasks.detail_start_time') }}</small><br><strong>{{ task.started_at | tz_format }}</strong></div>
+      <div><small style="color:var(--pico-muted-color);">{{ t('tasks.detail_end_time') }}</small><br><strong>{{ task.ended_at | tz_format }}</strong></div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
       <div><small style="color:var(--pico-muted-color);">{{ t('tasks.detail_duration') }}</small><br><strong>{% if task.duration_seconds %}{{ task.duration_seconds // 3600 }}h {{ (task.duration_seconds % 3600) // 60 }}m{% else %}-{% endif %}</strong></div>

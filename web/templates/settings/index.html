@@ -69,6 +69,58 @@
     </script>
   </article>
 
+  <!-- ── Timezone ── -->
+  <article>
+    <header><strong>{{ t('settings.tz_section') }}</strong></header>
+    <p>{{ t('settings.tz_hint') }}</p>
+    <form method="post" action="{{ url_for('settings.set_timezone') }}"
+          style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;margin-bottom:0;">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <label for="tz-offset" style="margin:0;white-space:nowrap;">{{ t('settings.tz_label') }}</label>
+      <select id="tz-offset" name="tz_offset_minutes" style="width:auto;margin:0;">
+        <option value="-720" {% if display_tz_offset == -720 %}selected{% endif %}>UTC-12:00</option>
+        <option value="-660" {% if display_tz_offset == -660 %}selected{% endif %}>UTC-11:00</option>
+        <option value="-600" {% if display_tz_offset == -600 %}selected{% endif %}>UTC-10:00</option>
+        <option value="-570" {% if display_tz_offset == -570 %}selected{% endif %}>UTC-09:30</option>
+        <option value="-540" {% if display_tz_offset == -540 %}selected{% endif %}>UTC-09:00</option>
+        <option value="-480" {% if display_tz_offset == -480 %}selected{% endif %}>UTC-08:00</option>
+        <option value="-420" {% if display_tz_offset == -420 %}selected{% endif %}>UTC-07:00</option>
+        <option value="-360" {% if display_tz_offset == -360 %}selected{% endif %}>UTC-06:00</option>
+        <option value="-300" {% if display_tz_offset == -300 %}selected{% endif %}>UTC-05:00</option>
+        <option value="-240" {% if display_tz_offset == -240 %}selected{% endif %}>UTC-04:00</option>
+        <option value="-210" {% if display_tz_offset == -210 %}selected{% endif %}>UTC-03:30</option>
+        <option value="-180" {% if display_tz_offset == -180 %}selected{% endif %}>UTC-03:00</option>
+        <option value="-120" {% if display_tz_offset == -120 %}selected{% endif %}>UTC-02:00</option>
+        <option value="-60"  {% if display_tz_offset == -60  %}selected{% endif %}>UTC-01:00</option>
+        <option value="0"    {% if display_tz_offset == 0    %}selected{% endif %}>UTC+00:00</option>
+        <option value="60"   {% if display_tz_offset == 60   %}selected{% endif %}>UTC+01:00</option>
+        <option value="120"  {% if display_tz_offset == 120  %}selected{% endif %}>UTC+02:00</option>
+        <option value="180"  {% if display_tz_offset == 180  %}selected{% endif %}>UTC+03:00</option>
+        <option value="210"  {% if display_tz_offset == 210  %}selected{% endif %}>UTC+03:30</option>
+        <option value="240"  {% if display_tz_offset == 240  %}selected{% endif %}>UTC+04:00</option>
+        <option value="270"  {% if display_tz_offset == 270  %}selected{% endif %}>UTC+04:30</option>
+        <option value="300"  {% if display_tz_offset == 300  %}selected{% endif %}>UTC+05:00</option>
+        <option value="330"  {% if display_tz_offset == 330  %}selected{% endif %}>UTC+05:30</option>
+        <option value="345"  {% if display_tz_offset == 345  %}selected{% endif %}>UTC+05:45</option>
+        <option value="360"  {% if display_tz_offset == 360  %}selected{% endif %}>UTC+06:00</option>
+        <option value="390"  {% if display_tz_offset == 390  %}selected{% endif %}>UTC+06:30</option>
+        <option value="420"  {% if display_tz_offset == 420  %}selected{% endif %}>UTC+07:00</option>
+        <option value="480"  {% if display_tz_offset == 480  %}selected{% endif %}>UTC+08:00</option>
+        <option value="525"  {% if display_tz_offset == 525  %}selected{% endif %}>UTC+08:45</option>
+        <option value="540"  {% if display_tz_offset == 540  %}selected{% endif %}>UTC+09:00</option>
+        <option value="570"  {% if display_tz_offset == 570  %}selected{% endif %}>UTC+09:30</option>
+        <option value="600"  {% if display_tz_offset == 600  %}selected{% endif %}>UTC+10:00</option>
+        <option value="630"  {% if display_tz_offset == 630  %}selected{% endif %}>UTC+10:30</option>
+        <option value="660"  {% if display_tz_offset == 660  %}selected{% endif %}>UTC+11:00</option>
+        <option value="720"  {% if display_tz_offset == 720  %}selected{% endif %}>UTC+12:00</option>
+        <option value="765"  {% if display_tz_offset == 765  %}selected{% endif %}>UTC+12:45</option>
+        <option value="780"  {% if display_tz_offset == 780  %}selected{% endif %}>UTC+13:00</option>
+        <option value="840"  {% if display_tz_offset == 840  %}selected{% endif %}>UTC+14:00</option>
+      </select>
+      <button type="submit" style="margin:0;">{{ t('settings.save_btn') }}</button>
+    </form>
+  </article>
+
   <!-- ── Language ── -->
   <article>
     <header><strong>{{ t('settings.lang_section') }}</strong></header>

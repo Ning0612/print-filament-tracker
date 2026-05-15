@@ -310,7 +310,10 @@
     "backup_restore_wrong_word": "Wrong word entered. Restore cancelled.",
     "backup_no_backups": "No backup files yet.",
     "next_backup": "Next backup:",
-    "last_backup_label": "Last backup:"
+    "last_backup_label": "Last backup:",
+    "tz_section": "Timezone",
+    "tz_hint": "Set the display timezone. Bambu Cloud API times are UTC+0; select your local timezone.",
+    "tz_label": "Display timezone:"
   },
   "analytics": {
     "title": "Analytics",
@@ -377,7 +380,8 @@
       "send_code_failed": "Failed to send verification code: {err}",
       "session_expired": "Login session has expired. Please start over.",
       "login_failed": "Login failed. Server response: {data}",
-      "unexpected_response": "Unexpected login response: {data}"
+      "unexpected_response": "Unexpected login response: {data}",
+      "timezone_saved": "Timezone saved."
     },
     "sync": {
       "no_token": "No token set. Please log in to your Bambu account first.",

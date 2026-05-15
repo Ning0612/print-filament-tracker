@@ -934,10 +934,30 @@ def get_tasks_for_spool(conn: sqlite3.Connection, spool_id: int) -> list:
 
 # --- Analytics queries ---
 
-def get_heatmap_available_years(conn: sqlite3.Connection) -> list:
+def _tz_mod(col: str, tz_minutes: int) -> str:
+    """Return SQLite expression that shifts UTC timestamps by tz_minutes.
+
+    For the 'now' literal (always UTC): returns DATETIME('now', modifier).
+    For column references: uses CASE to only shift strings ending in 'Z'
+    (cloud tasks), leaving manual task local-time strings untouched.
+    """
+    if tz_minutes == 0:
+        return col
+    mod = f"+{tz_minutes} minutes" if tz_minutes >= 0 else f"{tz_minutes} minutes"
+    if col.startswith("'") and col.endswith("'"):
+        return f"DATETIME({col}, '{mod}')"
+    return (
+        f"CASE WHEN {col} LIKE '%Z' "
+        f"THEN DATETIME({col}, '{mod}') "
+        f"ELSE {col} END"
+    )
+
+
+def get_heatmap_available_years(conn: sqlite3.Connection, tz_offset_minutes: int = 0) -> list:
+    tz = _tz_mod("started_at", tz_offset_minutes)
     rows = conn.execute(
-        """
-        SELECT DISTINCT STRFTIME('%Y', started_at) AS year
+        f"""
+        SELECT DISTINCT STRFTIME('%Y', {tz}) AS year
         FROM print_task
         WHERE started_at IS NOT NULL
         ORDER BY year
@@ -946,16 +966,17 @@ def get_heatmap_available_years(conn: sqlite3.Connection) -> list:
     return [int(r["year"]) for r in rows]
 
 
-def get_heatmap_data_for_year(conn: sqlite3.Connection, year: int) -> list:
+def get_heatmap_data_for_year(conn: sqlite3.Connection, year: int, tz_offset_minutes: int = 0) -> list:
+    tz = _tz_mod("started_at", tz_offset_minutes)
     return conn.execute(
-        """
-        SELECT DATE(started_at) AS date,
+        f"""
+        SELECT DATE({tz}) AS date,
                COUNT(*) AS count,
                COALESCE(SUM(total_weight_g), 0.0) AS weight_g
         FROM print_task
-        WHERE started_at >= ? AND started_at < ?
+        WHERE DATE({tz}) >= ? AND DATE({tz}) < ?
           AND started_at IS NOT NULL
-        GROUP BY DATE(started_at)
+        GROUP BY DATE({tz})
         ORDER BY date
         """,
         (f"{year}-01-01", f"{year + 1}-01-01"),
@@ -995,18 +1016,20 @@ def get_material_usage_stats(conn: sqlite3.Connection) -> list:
     ).fetchall()
 
 
-def get_heatmap_data(conn: sqlite3.Connection, weeks: int = 52) -> list:
+def get_heatmap_data(conn: sqlite3.Connection, weeks: int = 52, tz_offset_minutes: int = 0) -> list:
     # Query 7 extra days so the grid's left-edge weeks are always fully covered.
     days = weeks * 7 + 7
+    tz = _tz_mod("started_at", tz_offset_minutes)
+    tz_now = _tz_mod("'now'", tz_offset_minutes)
     return conn.execute(
         f"""
-        SELECT DATE(started_at) AS date,
+        SELECT DATE({tz}) AS date,
                COUNT(*) AS count,
                COALESCE(SUM(total_weight_g), 0.0) AS weight_g
         FROM print_task
-        WHERE DATE(started_at) >= DATE('now', '-{days} days')
+        WHERE DATE({tz}) >= DATE({tz_now}, '-{days} days')
           AND started_at IS NOT NULL
-        GROUP BY DATE(started_at)
+        GROUP BY DATE({tz})
         ORDER BY date
         """
     ).fetchall()
@@ -1069,15 +1092,17 @@ def get_cost_breakdown(conn: sqlite3.Connection) -> dict:
     }
 
 
-def get_monthly_trend(conn: sqlite3.Connection, months: int = 12) -> list:
+def get_monthly_trend(conn: sqlite3.Connection, months: int = 12, tz_offset_minutes: int = 0) -> list:
+    tz = _tz_mod("started_at", tz_offset_minutes)
+    tz_now = _tz_mod("'now'", tz_offset_minutes)
     return conn.execute(
         f"""
-        SELECT STRFTIME('%Y-%m', started_at) AS month,
+        SELECT STRFTIME('%Y-%m', {tz}) AS month,
                COUNT(*) AS task_count,
                COALESCE(SUM(total_weight_g), 0.0) AS weight_g,
                COALESCE(SUM(duration_seconds), 0) AS duration_s
         FROM print_task
-        WHERE started_at >= DATE('now', '-{months} months')
+        WHERE {tz} >= DATE({tz_now}, '-{months} months')
           AND started_at IS NOT NULL
         GROUP BY month
         ORDER BY month
@@ -1141,10 +1166,11 @@ def get_spool_cost_ranking(conn: sqlite3.Connection) -> list:
     ).fetchall()
 
 
-def get_weekday_stats(conn: sqlite3.Connection) -> list:
+def get_weekday_stats(conn: sqlite3.Connection, tz_offset_minutes: int = 0) -> list:
+    tz = _tz_mod("started_at", tz_offset_minutes)
     return conn.execute(
-        """
-        SELECT CAST(STRFTIME('%w', started_at) AS INTEGER) AS weekday,
+        f"""
+        SELECT CAST(STRFTIME('%w', {tz}) AS INTEGER) AS weekday,
                COUNT(*) AS task_count,
                COALESCE(SUM(total_weight_g), 0.0) AS weight_g
         FROM print_task
@@ -1155,13 +1181,14 @@ def get_weekday_stats(conn: sqlite3.Connection) -> list:
     ).fetchall()
 
 
-def get_tasks_for_date(conn: sqlite3.Connection, date_str: str) -> list:
+def get_tasks_for_date(conn: sqlite3.Connection, date_str: str, tz_offset_minutes: int = 0) -> list:
+    tz = _tz_mod("pt.started_at", tz_offset_minutes)
     rows = conn.execute(
-        """
+        f"""
         SELECT pt.*, p.name AS printer_name
         FROM print_task pt LEFT JOIN printer p ON p.id = pt.printer_id
-        WHERE DATE(pt.started_at) = ?
-        ORDER BY pt.started_at
+        WHERE DATE({tz}) = ?
+        ORDER BY {tz}
         """,
         (date_str,),
     ).fetchall()
@@ -1184,9 +1211,10 @@ def get_tasks_for_date(conn: sqlite3.Connection, date_str: str) -> list:
     return tasks
 
 
-def get_daily_filament_summary(conn: sqlite3.Connection, date_str: str) -> list:
+def get_daily_filament_summary(conn: sqlite3.Connection, date_str: str, tz_offset_minutes: int = 0) -> list:
+    tz = _tz_mod("pt.started_at", tz_offset_minutes)
     rows = conn.execute(
-        """
+        f"""
         SELECT
             ptf.filament_spool_id,
             fs.id AS spool_id,
@@ -1199,7 +1227,7 @@ def get_daily_filament_summary(conn: sqlite3.Connection, date_str: str) -> list:
         FROM print_task_filament ptf
         JOIN print_task pt ON pt.id = ptf.print_task_id
         LEFT JOIN filament_spool fs ON fs.id = ptf.filament_spool_id
-        WHERE DATE(pt.started_at) = ? AND ptf.is_ignored = 0
+        WHERE DATE({tz}) = ? AND ptf.is_ignored = 0
         GROUP BY ptf.filament_spool_id, ptf.color_hex, ptf.material
         ORDER BY total_g DESC
         """,

@@ -4,6 +4,7 @@ import secrets
 import sys as _sys
 import threading
 import time
+from datetime import datetime, timedelta
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
 
@@ -18,6 +19,31 @@ _GLOBAL_BASE = "https://api.bambulab.com"
 _CHINA_BASE = "https://api.bambulab.cn"
 
 _VALID_REGIONS = {"global", "china"}
+
+
+def _make_tz_filters(tz_minutes: int):
+    """Build tz_format and tz_date Jinja2 filters for the given UTC offset in minutes."""
+    _delta = timedelta(minutes=tz_minutes)
+
+    def tz_format(dt_str, fmt="%Y-%m-%d %H:%M"):
+        if not dt_str:
+            return "-"
+        s = str(dt_str).strip()
+        try:
+            if s.endswith("Z"):
+                dt = datetime.fromisoformat(s[:-1]) + _delta
+            elif len(s) > 19 and s[19] in ("+", "-"):
+                dt = datetime.fromisoformat(s[:19]) + _delta
+            else:
+                dt = datetime.fromisoformat(s[:19])
+            return dt.strftime(fmt)
+        except ValueError:
+            return s[:16].replace("T", " ")
+
+    def tz_date(dt_str):
+        return tz_format(dt_str, "%Y-%m-%d")
+
+    return tz_format, tz_date
 
 
 def _get_resource_dir() -> Path:
@@ -95,6 +121,11 @@ def create_app(db_path: Path | None = None) -> Flask:
             set_app_config(conn, "backup_keep_count", "7")
             db_backup_keep = "7"
 
+        db_tz_offset = get_app_config(conn, "display_tz_offset_minutes")
+        if db_tz_offset is None:
+            set_app_config(conn, "display_tz_offset_minutes", "0")
+            db_tz_offset = "0"
+
     app.config["BAMBU_TOKEN"] = db_token or ""
     app.config["BAMBU_REGION"] = db_region or "global"
     app.config["BAMBU_API_BASE"] = api_base
@@ -110,6 +141,15 @@ def create_app(db_path: Path | None = None) -> Flask:
         app.config["BACKUP_KEEP_COUNT"] = max(1, min(30, int(db_backup_keep or "7")))
     except (ValueError, TypeError):
         app.config["BACKUP_KEEP_COUNT"] = 7
+    try:
+        tz_offset_minutes = max(-720, min(840, int(db_tz_offset or "480")))
+    except (ValueError, TypeError):
+        tz_offset_minutes = 480
+    app.config["DISPLAY_TZ_OFFSET_MINUTES"] = tz_offset_minutes
+
+    tz_fmt, tz_d = _make_tz_filters(tz_offset_minutes)
+    app.jinja_env.filters["tz_format"] = tz_fmt
+    app.jinja_env.filters["tz_date"] = tz_d
 
     # SECRET_KEY: read from env, generate and persist to .env if absent.
     _secret_key = os.getenv("SECRET_KEY", "").strip()

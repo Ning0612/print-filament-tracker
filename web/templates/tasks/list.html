@@ -50,7 +50,7 @@
       </td>
       <td style="white-space:nowrap;">{{ task.printer_name or '-' }}</td>
       <td style="white-space:nowrap;">{{ task.plate_name or task.plate_index if (task.plate_name or task.plate_index is not none) else '-' }}</td>
-      <td style="white-space:nowrap;">{{ (task.started_at or '')[:16] | replace('T', ' ') }}</td>
+      <td style="white-space:nowrap;">{{ task.started_at | tz_format }}</td>
       <td style="white-space:nowrap;">
         {% if task.duration_seconds %}
           {{ task.duration_seconds // 3600 }}h {{ (task.duration_seconds % 3600) // 60 }}m

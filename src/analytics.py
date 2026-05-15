@@ -94,8 +94,8 @@ def _build_year_grid(year: int, by_date: dict) -> tuple:
     return grid, month_labels
 
 
-def get_heatmap_year_payload(conn: sqlite3.Connection, year: int) -> dict:
-    rows = get_heatmap_data_for_year(conn, year)
+def get_heatmap_year_payload(conn: sqlite3.Connection, year: int, tz_offset_minutes: int = 0) -> dict:
+    rows = get_heatmap_data_for_year(conn, year, tz_offset_minutes)
     by_date = {
         r["date"]: {"count": r["count"], "weight_g": round(r["weight_g"], 1)}
         for r in rows
@@ -116,16 +116,16 @@ def get_heatmap_year_payload(conn: sqlite3.Connection, year: int) -> dict:
     }
 
 
-def get_heatmap_payload(conn: sqlite3.Connection) -> dict:
+def get_heatmap_payload(conn: sqlite3.Connection, tz_offset_minutes: int = 0) -> dict:
     """Returns available years list + earliest year's grid for initial render."""
-    years = get_heatmap_available_years(conn)
+    years = get_heatmap_available_years(conn, tz_offset_minutes)
     if not years:
         return {"years": [], "current_year": None, "has_data": False,
                 "grid": [], "month_labels": [], "max_count": 1,
                 "total_tasks": 0, "total_days_active": 0}
 
     current_year = years[0]  # default to first (oldest) year with data
-    year_data = get_heatmap_year_payload(conn, current_year)
+    year_data = get_heatmap_year_payload(conn, current_year, tz_offset_minutes)
     return {"years": years, "current_year": current_year, **year_data}
 
 
@@ -155,8 +155,8 @@ def get_color_swatch_payload(conn: sqlite3.Connection) -> list:
     ]
 
 
-def get_monthly_trend_payload(conn: sqlite3.Connection, months: int = 60) -> dict:
-    rows = get_monthly_trend(conn, months=months)
+def get_monthly_trend_payload(conn: sqlite3.Connection, months: int = 60, tz_offset_minutes: int = 0) -> dict:
+    rows = get_monthly_trend(conn, months=months, tz_offset_minutes=tz_offset_minutes)
     by_month = {r["month"]: r for r in rows}
 
     today = date.today()
@@ -240,8 +240,21 @@ def get_spool_cost_ranking_payload(conn: sqlite3.Connection, top_n: int = 15) ->
     }
 
 
-def _build_timeline(tasks: list) -> tuple:
+def _parse_dt(dt_str: str, tz_delta: timedelta) -> datetime:
+    s = str(dt_str).strip()
+    try:
+        if s.endswith("Z"):
+            return datetime.fromisoformat(s[:-1]) + tz_delta
+        if len(s) > 19 and s[19] in ("+", "-"):
+            return datetime.fromisoformat(s[:19]) + tz_delta
+        return datetime.fromisoformat(s[:19])
+    except ValueError:
+        raise
+
+
+def _build_timeline(tasks: list, tz_offset_minutes: int = 0) -> tuple:
     """Build per-printer timeline segments. Returns (printers, tl_start_label, tl_end_label)."""
+    tz_delta = timedelta(minutes=tz_offset_minutes)
     printer_tasks: dict = {}
     all_times: list = []
 
@@ -250,7 +263,7 @@ def _build_timeline(tasks: list) -> tuple:
         if not start_str:
             continue
         try:
-            start_dt = datetime.fromisoformat(start_str[:19])
+            start_dt = _parse_dt(start_str, tz_delta)
         except ValueError:
             continue
 
@@ -259,7 +272,7 @@ def _build_timeline(tasks: list) -> tuple:
         end_dt = None
         if end_str:
             try:
-                end_dt = datetime.fromisoformat(end_str[:19])
+                end_dt = _parse_dt(end_str, tz_delta)
             except ValueError:
                 pass
         if end_dt is None or end_dt <= start_dt:
@@ -338,9 +351,9 @@ def _build_timeline(tasks: list) -> tuple:
     return result, "00:00", "24:00"
 
 
-def get_daily_detail_payload(conn: sqlite3.Connection, date_str: str) -> dict:
-    tasks = get_tasks_for_date(conn, date_str)
-    filament_summary = get_daily_filament_summary(conn, date_str)
+def get_daily_detail_payload(conn: sqlite3.Connection, date_str: str, tz_offset_minutes: int = 0) -> dict:
+    tasks = get_tasks_for_date(conn, date_str, tz_offset_minutes)
+    filament_summary = get_daily_filament_summary(conn, date_str, tz_offset_minutes)
 
     total_duration_s = sum(t.get("duration_seconds") or 0 for t in tasks)
     total_weight_g = sum(t.get("total_weight_g") or 0 for t in tasks)
@@ -385,7 +398,7 @@ def get_daily_detail_payload(conn: sqlite3.Connection, date_str: str) -> dict:
         )
     ]
 
-    timeline, tl_start, tl_end = _build_timeline(tasks)
+    timeline, tl_start, tl_end = _build_timeline(tasks, tz_offset_minutes)
 
     return {
         "date": date_str,
@@ -403,8 +416,8 @@ def get_daily_detail_payload(conn: sqlite3.Connection, date_str: str) -> dict:
     }
 
 
-def get_weekday_stats_payload(conn: sqlite3.Connection) -> dict:
-    rows = get_weekday_stats(conn)
+def get_weekday_stats_payload(conn: sqlite3.Connection, tz_offset_minutes: int = 0) -> dict:
+    rows = get_weekday_stats(conn, tz_offset_minutes=tz_offset_minutes)
     by_weekday = {r["weekday"]: dict(r) for r in rows}
     # SQLite %w: 0=Sun, 1=Mon..6=Sat → reorder to Mon–Sun (1,2,3,4,5,6,0)
     order = [1, 2, 3, 4, 5, 6, 0]

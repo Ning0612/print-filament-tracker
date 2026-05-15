@@ -149,7 +149,7 @@
               {% endif %}
             </div>
             <div class="task-gallery-info">
-              <div class="task-gallery-date">{{ (task.started_at or '')[:10] or '-' }}</div>
+              <div class="task-gallery-date">{{ task.started_at | tz_date }}</div>
               <div class="task-gallery-weight">{{ '%.1f'|format(task.used_weight_g or 0) }}g</div>
               <div>{{ print_status_badge(task) }}</div>
             </div>

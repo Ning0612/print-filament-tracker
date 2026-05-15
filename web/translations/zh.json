@@ -310,7 +310,10 @@
     "backup_restore_wrong_word": "確認詞不符，還原已取消。",
     "backup_no_backups": "尚無備份檔案。",
     "next_backup": "下次備份：",
-    "last_backup_label": "上次備份："
+    "last_backup_label": "上次備份：",
+    "tz_section": "時區設定",
+    "tz_hint": "設定時間顯示基準。Bambu Cloud API 時間為 UTC+0，請依您所在地區選擇正確時區。",
+    "tz_label": "顯示時區："
   },
   "analytics": {
     "title": "分析",
@@ -377,7 +380,8 @@
       "send_code_failed": "驗證碼發送失敗：{err}",
       "session_expired": "登入工作階段已過期，請重新開始。",
       "login_failed": "登入失敗，伺服器回應：{data}",
-      "unexpected_response": "未預期的登入回應：{data}"
+      "unexpected_response": "未預期的登入回應：{data}",
+      "timezone_saved": "時區設定已儲存。"
     },
     "sync": {
       "no_token": "尚未設定 Token，請先登入 Bambu 帳號。",

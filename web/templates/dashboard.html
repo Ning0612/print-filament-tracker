@@ -90,7 +90,7 @@
       </td>
       <td><a href="{{ url_for('tasks.detail_view', task_id=task.id) }}">{{ task.print_name or t('common.unnamed') }}</a></td>
       <td style="white-space:nowrap;">{{ task.printer_name or '-' }}</td>
-      <td style="white-space:nowrap;">{{ (task.started_at or '')[:16] | replace('T', ' ') }}</td>
+      <td style="white-space:nowrap;">{{ task.started_at | tz_format }}</td>
       <td style="white-space:nowrap;">{{ (task.duration_seconds // 3600) if task.duration_seconds else 0 }}h {{ ((task.duration_seconds % 3600) // 60) if task.duration_seconds else 0 }}m</td>
       <td style="white-space:nowrap;">{{ '%.1f' % task.total_weight_g if task.total_weight_g else '-' }}g</td>
       <td style="white-space:nowrap;">{{ print_status_badge(task) }}</td>
