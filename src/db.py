@@ -1411,7 +1411,7 @@ def get_daily_filament_summary(conn: sqlite3.Connection, date_str: str, tz_offse
         JOIN print_task pt ON pt.id = ptf.print_task_id
         LEFT JOIN filament_spool fs ON fs.id = ptf.filament_spool_id
         WHERE DATE({tz}) = ? AND ptf.is_ignored = 0
-        GROUP BY ptf.filament_spool_id, ptf.color_hex, ptf.material
+        GROUP BY ptf.filament_spool_id, COALESCE(fs.color_hex, ptf.color_hex), COALESCE(fs.material, ptf.material)
         ORDER BY total_g DESC
         """,
         (date_str,),
