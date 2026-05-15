@@ -37,76 +37,113 @@
   {% endif %}
 </div>
 
-<p class="dashboard-section-label" style="margin-top:1.5rem;">{{ t('dashboard.filament_economics') }}</p>
-<div class="stats-grid">
-  <article>
-    <header>{{ t('dashboard.total_initial') }}</header>
-    {% if stats.total_initial_g >= 1000 %}
-      <p class="stat-number">{{ '%.1f' % (stats.total_initial_g / 1000) }}<small style="font-size:1rem;font-weight:normal;">kg</small></p>
-    {% else %}
-      <p class="stat-number">{{ '%.1f' % stats.total_initial_g }}<small style="font-size:1rem;font-weight:normal;">g</small></p>
-    {% endif %}
-  </article>
-  <article>
-    <header>{{ t('dashboard.total_remaining') }}</header>
-    {% if stats.total_remaining_g >= 1000 %}
-      <p class="stat-number">{{ '%.1f' % (stats.total_remaining_g / 1000) }}<small style="font-size:1rem;font-weight:normal;">kg</small></p>
-    {% else %}
-      <p class="stat-number">{{ '%.1f' % stats.total_remaining_g }}<small style="font-size:1rem;font-weight:normal;">g</small></p>
-    {% endif %}
-  </article>
-  <article>
-    <header>{{ t('dashboard.consumed_weight') }}</header>
-    {% if stats.total_consumed_g >= 1000 %}
-      <p class="stat-number">{{ '%.1f' % (stats.total_consumed_g / 1000) }}<small style="font-size:1rem;font-weight:normal;">kg</small></p>
-    {% else %}
-      <p class="stat-number">{{ '%.1f' % stats.total_consumed_g }}<small style="font-size:1rem;font-weight:normal;">g</small></p>
-    {% endif %}
-  </article>
-  <article>
-    <header>{{ t('dashboard.total_spool_cost') }}</header>
-    {% if cost.priced_spool_count > 0 %}
-      <p class="stat-number">${{ "%.1f"|format(cost.known_total) }}</p>
-      {% if cost.unpriced_count > 0 %}
-        <small style="color:var(--pico-muted-color);">+{{ cost.unpriced_count }} {{ t('dashboard.unpriced_spools') }}</small>
-      {% endif %}
-    {% elif cost.unpriced_count > 0 %}
-      <p class="stat-number" style="color:var(--pico-muted-color);">—</p>
-      <small style="color:var(--pico-muted-color);">{{ cost.unpriced_count }} {{ t('dashboard.unpriced_spools') }}</small>
-    {% else %}
-      <p class="stat-number" style="color:var(--pico-muted-color);">—</p>
-    {% endif %}
-  </article>
-  <article>
-    <header>{{ t('dashboard.remaining_cost') }}</header>
-    {% if cost.priced_spool_count > 0 %}
-      <p class="stat-number">${{ "%.1f"|format(cost.known_remaining) }}</p>
-    {% else %}
-      <p class="stat-number" style="color:var(--pico-muted-color);">—</p>
-    {% endif %}
-  </article>
-  <article>
-    <header>{{ t('dashboard.consumed_cost') }}</header>
-    {% if cost.priced_spool_count > 0 %}
-      <p class="stat-number">${{ "%.1f"|format(cost.known_used) }}</p>
-    {% else %}
-      <p class="stat-number" style="color:var(--pico-muted-color);">—</p>
-    {% endif %}
-  </article>
-</div>
+{%- if stats.total_initial_g > 0 %}
+  {%- set w_consume_pct  = stats.total_consumed_g  / stats.total_initial_g * 100 %}
+  {%- set w_remain_pct   = stats.total_remaining_g / stats.total_initial_g * 100 %}
+  {%- set w_bar_consumed = [w_consume_pct, 100.0] | min %}
+  {%- set w_bar_remain   = [100.0 - w_bar_consumed, 0.0] | max %}
+{%- else %}
+  {%- set w_consume_pct = 0 %}
+  {%- set w_remain_pct  = 0 %}
+  {%- set w_bar_consumed = 0 %}
+  {%- set w_bar_remain   = 0 %}
+{%- endif %}
+{%- if cost.known_total > 0 %}
+  {%- set c_consume_pct  = cost.known_used      / cost.known_total * 100 %}
+  {%- set c_remain_pct   = cost.known_remaining / cost.known_total * 100 %}
+  {%- set c_bar_consumed = [c_consume_pct, 100.0] | min %}
+  {%- set c_bar_remain   = [100.0 - c_bar_consumed, 0.0] | max %}
+{%- else %}
+  {%- set c_consume_pct  = 0 %}
+  {%- set c_remain_pct   = 0 %}
+  {%- set c_bar_consumed = 0 %}
+  {%- set c_bar_remain   = 0 %}
+{%- endif %}
 
 <p class="dashboard-section-label" style="margin-top:1.5rem;">{{ t('dashboard.print_stats') }}</p>
-<div class="stats-grid">
-  <article>
-    <header>{{ t('dashboard.total_tasks') }}</header>
-    <p class="stat-number">{{ print_stats.total_tasks }}</p>
-  </article>
-  <article>
-    <header>{{ t('dashboard.total_duration') }}</header>
-    {% set h = print_stats.total_duration_seconds // 3600 %}
-    {% set m = (print_stats.total_duration_seconds % 3600) // 60 %}
-    <p class="stat-number">{{ h }}<small style="font-size:1rem;font-weight:normal;">h</small> {{ '%02d' % m }}<small style="font-size:1rem;font-weight:normal;">m</small></p>
-  </article>
+<div class="dashboard-summary-grid">
+
+  <div class="econ-panel print-stats-panel">
+    <div class="print-stats-vertical">
+      <div>
+        <p class="print-stat-label">{{ t('dashboard.total_tasks') }}</p>
+        <p class="print-stat-value">{{ print_stats.total_tasks }}</p>
+      </div>
+      <div>
+        {%- set h = print_stats.total_duration_seconds // 3600 %}
+        {%- set m = (print_stats.total_duration_seconds % 3600) // 60 %}
+        <p class="print-stat-label">{{ t('dashboard.total_duration') }}</p>
+        <p class="print-stat-value">{{ h }}<span class="print-stat-unit">h</span> {{ '%02d' % m }}<span class="print-stat-unit">m</span></p>
+      </div>
+    </div>
+  </div>
+
+  <div class="econ-panel">
+    <p class="econ-panel-label">{{ t('dashboard.weight_panel') }}</p>
+    {% if stats.total_initial_g >= 1000 %}
+      <p class="econ-total">{{ '%.1f' % (stats.total_initial_g / 1000) }}<span class="econ-unit">kg</span></p>
+    {% else %}
+      <p class="econ-total">{{ '%.1f' % stats.total_initial_g }}<span class="econ-unit">g</span></p>
+    {% endif %}
+    {% if stats.total_initial_g > 0 %}
+    <div class="econ-bar-track">
+      <div class="econ-bar-consumed" style="width:{{ '%.1f' % w_bar_consumed }}%"></div>
+      <div class="econ-bar-remaining" style="width:{{ '%.1f' % w_bar_remain }}%"></div>
+    </div>
+    {% endif %}
+    <div class="econ-breakdown">
+      <div>
+        <p class="econ-item-label">{{ t('dashboard.consumed_weight') }}</p>
+        {% if stats.total_consumed_g >= 1000 %}
+          <p class="econ-item-value econ-item-value--consumed">{{ '%.1f' % (stats.total_consumed_g / 1000) }}<span class="econ-item-unit">kg</span></p>
+        {% else %}
+          <p class="econ-item-value econ-item-value--consumed">{{ '%.1f' % stats.total_consumed_g }}<span class="econ-item-unit">g</span></p>
+        {% endif %}
+        {% if stats.total_initial_g > 0 %}<p class="econ-item-pct">{{ w_consume_pct | int }}%</p>{% endif %}
+      </div>
+      <div style="text-align:right">
+        <p class="econ-item-label">{{ t('dashboard.total_remaining') }}</p>
+        {% if stats.total_remaining_g >= 1000 %}
+          <p class="econ-item-value econ-item-value--remaining">{{ '%.1f' % (stats.total_remaining_g / 1000) }}<span class="econ-item-unit">kg</span></p>
+        {% else %}
+          <p class="econ-item-value econ-item-value--remaining">{{ '%.1f' % stats.total_remaining_g }}<span class="econ-item-unit">g</span></p>
+        {% endif %}
+        {% if stats.total_initial_g > 0 %}<p class="econ-item-pct">{{ w_remain_pct | int }}%</p>{% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="econ-panel">
+    <p class="econ-panel-label">{{ t('dashboard.cost_panel') }}</p>
+    {% if cost.priced_spool_count > 0 %}
+      <p class="econ-total">${{ "%.1f"|format(cost.known_total) }}</p>
+      <div class="econ-bar-track">
+        <div class="econ-bar-consumed" style="width:{{ '%.1f' % c_bar_consumed }}%"></div>
+        <div class="econ-bar-remaining" style="width:{{ '%.1f' % c_bar_remain }}%"></div>
+      </div>
+      <div class="econ-breakdown">
+        <div>
+          <p class="econ-item-label">{{ t('dashboard.consumed_cost') }}</p>
+          <p class="econ-item-value econ-item-value--consumed">${{ "%.1f"|format(cost.known_used) }}</p>
+          <p class="econ-item-pct">{{ c_consume_pct | int }}%</p>
+        </div>
+        <div style="text-align:right">
+          <p class="econ-item-label">{{ t('dashboard.remaining_cost') }}</p>
+          <p class="econ-item-value econ-item-value--remaining">${{ "%.1f"|format(cost.known_remaining) }}</p>
+          <p class="econ-item-pct">{{ c_remain_pct | int }}%</p>
+        </div>
+      </div>
+      {% if cost.unpriced_count > 0 %}
+        <p class="econ-unpriced-note">+{{ cost.unpriced_count }} {{ t('dashboard.unpriced_spools') }}</p>
+      {% endif %}
+    {% elif cost.unpriced_count > 0 %}
+      <p class="econ-total econ-total--muted">—</p>
+      <p class="econ-unpriced-note">{{ cost.unpriced_count }} {{ t('dashboard.unpriced_spools') }}</p>
+    {% else %}
+      <p class="econ-total econ-total--muted">—</p>
+    {% endif %}
+  </div>
+
 </div>
 
 <h2 style="margin-top:2rem;">

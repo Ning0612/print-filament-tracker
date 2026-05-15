@@ -28,14 +28,12 @@ def index():
         row = conn.execute(
             """
             SELECT COUNT(*) AS cnt,
-                   COALESCE(SUM(total_weight_g), 0.0) AS weight_g,
                    COALESCE(SUM(duration_seconds), 0) AS duration_s
             FROM print_task
             """
         ).fetchone()
         print_stats = {
             "total_tasks": row["cnt"],
-            "total_weight_g": row["weight_g"],
             "total_duration_seconds": row["duration_s"],
         }
         cost = get_cost_breakdown(conn)

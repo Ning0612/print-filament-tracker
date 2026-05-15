@@ -59,6 +59,8 @@
     "total_weight": "Total Weight Used",
     "total_duration": "Total Print Time",
     "filament_economics": "Filament Usage & Cost",
+    "weight_panel": "Usage",
+    "cost_panel": "Cost",
     "total_initial": "Total Filament",
     "total_remaining": "Remaining Stock",
     "consumed_weight": "Consumed Weight",

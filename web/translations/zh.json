@@ -59,6 +59,8 @@
     "total_weight": "總用料重量",
     "total_duration": "總列印時長",
     "filament_economics": "耗材用量與成本",
+    "weight_panel": "用量",
+    "cost_panel": "成本",
     "total_initial": "耗材總量",
     "total_remaining": "庫存剩餘量",
     "consumed_weight": "已消耗用量",
