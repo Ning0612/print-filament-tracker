@@ -1,3 +1,4 @@
+{% from "_macros.html" import print_status_badge %}
 <tr id="mapped-row-{{ r.id }}" class="spool-detail-{{ r.filament_spool_id }}">
   <td>
     {% if r.cover_url %}
@@ -8,6 +9,7 @@
   </td>
   <td><a href="{{ url_for('tasks.detail_view', task_id=r.print_task_id) }}">{{ r.print_name or t('common.unnamed') }}</a></td>
   <td>{{ r.started_at | tz_date }}</td>
+  <td style="white-space:nowrap;">{{ print_status_badge(r) }}</td>
   <td>{{ r.material or '-' }}</td>
   <td>
     {% if r.color_hex %}

@@ -600,7 +600,8 @@ def get_unmapped_filaments(conn: sqlite3.Connection) -> list:
         SELECT
           ptf.id, ptf.print_task_id, ptf.slot_id,
           ptf.used_weight_g, ptf.color_hex, ptf.material,
-          pt.print_name, pt.started_at, pt.external_id, pt.cover_url
+          pt.print_name, pt.started_at, pt.external_id, pt.cover_url,
+          pt.status, pt.is_manual
         FROM print_task_filament ptf
         JOIN print_task pt ON pt.id = ptf.print_task_id
         WHERE ptf.filament_spool_id IS NULL AND ptf.is_ignored = 0
@@ -615,7 +616,8 @@ def get_ignored_filaments(conn: sqlite3.Connection) -> list:
         SELECT
           ptf.id, ptf.print_task_id, ptf.slot_id,
           ptf.used_weight_g, ptf.color_hex, ptf.material,
-          pt.print_name, pt.started_at, pt.external_id, pt.cover_url
+          pt.print_name, pt.started_at, pt.external_id, pt.cover_url,
+          pt.status, pt.is_manual
         FROM print_task_filament ptf
         JOIN print_task pt ON pt.id = ptf.print_task_id
         WHERE ptf.filament_spool_id IS NULL AND ptf.is_ignored = 1
@@ -696,6 +698,7 @@ def get_mapped_filaments(conn: sqlite3.Connection) -> list:
           ptf.used_weight_g, ptf.color_hex, ptf.material,
           ptf.filament_spool_id,
           pt.print_name, pt.started_at, pt.cover_url,
+          pt.status, pt.is_manual,
           fs.color_name AS spool_color_name,
           fs.color_hex AS spool_color_hex,
           fs.material AS spool_material,
@@ -725,6 +728,7 @@ def get_mapped_filament_by_id(conn: sqlite3.Connection, ptf_id: int):
           ptf.used_weight_g, ptf.color_hex, ptf.material,
           ptf.filament_spool_id,
           pt.print_name, pt.started_at, pt.cover_url,
+          pt.status, pt.is_manual,
           fs.color_name AS spool_color_name,
           fs.color_hex AS spool_color_hex,
           fs.material AS spool_material

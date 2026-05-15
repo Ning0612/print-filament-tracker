@@ -1,3 +1,4 @@
+{% from "_macros.html" import print_status_badge %}
 {% extends "base.html" %}
 {% block title %}{{ t('mapping.title') }} — PrintFilamentTracker{% endblock %}
 
@@ -38,6 +39,7 @@
         <th style="width:80px;">{{ t('mapping.table_image') }}</th>
         <th>{{ t('mapping.table_task') }}</th>
         <th>{{ t('mapping.table_date') }}</th>
+        <th>{{ t('tasks.table_status') }}</th>
         <th>{{ t('mapping.table_material') }}</th>
         <th>{{ t('mapping.table_color') }}</th>
         <th>{{ t('mapping.table_usage') }}</th>
@@ -57,6 +59,7 @@
         </td>
         <td><a href="{{ url_for('tasks.detail_view', task_id=r.print_task_id) }}">{{ r.print_name or t('common.unnamed') }}</a></td>
         <td>{{ r.started_at | tz_date }}</td>
+        <td style="white-space:nowrap;">{{ print_status_badge(r) }}</td>
         <td id="mat-{{ r.id }}" style="white-space:nowrap;">
           <span>{{ r.material or '-' }}</span>
           <button class="outline"
@@ -112,6 +115,7 @@
         <th style="width:80px;">{{ t('mapping.table_image') }}</th>
         <th>{{ t('mapping.table_task') }}</th>
         <th>{{ t('mapping.table_date') }}</th>
+        <th>{{ t('tasks.table_status') }}</th>
         <th>{{ t('mapping.table_material') }}</th>
         <th>{{ t('mapping.table_color') }}</th>
         <th>{{ t('mapping.table_usage') }}</th>
@@ -124,7 +128,7 @@
       <tr class="spool-group-header"
           onclick="toggleSpoolGroup({{ g.spool_id }})"
           style="cursor:pointer;">
-        <td colspan="6">
+        <td colspan="7">
           <span id="toggle-{{ g.spool_id }}" style="font-size:0.75rem;margin-right:0.35rem;display:inline-block;width:0.8em;">▶</span>
           {% if g.spool_color_hex %}
           <span class="color-swatch" style="--swatch-color:{{ g.spool_color_hex }};"></span>
@@ -146,6 +150,7 @@
         </td>
         <td><a href="{{ url_for('tasks.detail_view', task_id=r.print_task_id) }}">{{ r.print_name or t('common.unnamed') }}</a></td>
         <td>{{ r.started_at | tz_date }}</td>
+        <td style="white-space:nowrap;">{{ print_status_badge(r) }}</td>
         <td>{{ r.material or '-' }}</td>
         <td>
           {% if r.color_hex %}
@@ -205,6 +210,7 @@
         <th style="width:80px;">{{ t('mapping.table_image') }}</th>
         <th>{{ t('mapping.table_task') }}</th>
         <th>{{ t('mapping.table_date') }}</th>
+        <th>{{ t('tasks.table_status') }}</th>
         <th>{{ t('mapping.table_material') }}</th>
         <th>{{ t('mapping.table_color') }}</th>
         <th>{{ t('mapping.table_usage') }}</th>
@@ -223,6 +229,7 @@
         </td>
         <td><a href="{{ url_for('tasks.detail_view', task_id=r.print_task_id) }}">{{ r.print_name or t('common.unnamed') }}</a></td>
         <td>{{ r.started_at | tz_date }}</td>
+        <td style="white-space:nowrap;">{{ print_status_badge(r) }}</td>
         <td>{{ r.material or '-' }}</td>
         <td>
           {% if r.color_hex %}
