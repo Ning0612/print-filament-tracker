@@ -378,7 +378,7 @@
       "no_token": "No token set. Please log in to your Bambu account first.",
       "running": "Downloading print history from Bambu Cloud...",
       "auto_running": "Auto-syncing...",
-      "done": "Sync complete! Added {inserted}, skipped {skipped}, filament records {filaments}."
+      "done": "Sync complete! Added {inserted}, updated {updated}, skipped {skipped}, filament records {filaments}."
     },
     "backup": {
       "running": "Backup in progress...",

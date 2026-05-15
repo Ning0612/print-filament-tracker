@@ -141,7 +141,8 @@ def cmd_import(args: argparse.Namespace) -> int:
 
     print(
         f"[OK] 匯入完成：新增 {stats['inserted']} 筆，"
-        f"略過 {stats['skipped']} 筆重複，"
+        f"更新 {stats['updated']} 筆，"
+        f"略過 {stats['skipped']} 筆，"
         f"filament 記錄 {stats['filaments']} 筆"
     )
     return 0

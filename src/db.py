@@ -232,6 +232,137 @@ def insert_print_task_ignore(conn: sqlite3.Connection, task: dict) -> int | None
     return cursor.lastrowid if cursor.rowcount > 0 else None
 
 
+def upsert_print_task(conn: sqlite3.Connection, task: dict) -> tuple[int, bool]:
+    """Insert or update a cloud print task. Returns (task_db_id, is_new).
+
+    Mutable fields (ended_at, duration_seconds, total_weight_g, raw_json,
+    print_name, plate_index, plate_name) are updated when a record already
+    exists. COALESCE ensures existing non-NULL values are never overwritten by
+    NULL — this protects completed records from partial in-progress snapshots.
+    cover_url uses reverse COALESCE (keep existing) so user-uploaded covers
+    are never replaced by auto-downloaded paths.
+    """
+    cursor = conn.execute(
+        """
+        INSERT OR IGNORE INTO print_task
+          (external_id, print_name, printer_id, started_at, ended_at,
+           duration_seconds, total_weight_g, cover_url, raw_json,
+           plate_index, plate_name)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """,
+        (
+            task["external_id"],
+            task.get("print_name"),
+            task.get("printer_id"),
+            task.get("started_at"),
+            task.get("ended_at"),
+            task.get("duration_seconds"),
+            task.get("total_weight_g"),
+            task.get("cover_url"),
+            task.get("raw_json"),
+            task.get("plate_index"),
+            task.get("plate_name"),
+        ),
+    )
+    if cursor.rowcount > 0:
+        return cursor.lastrowid, True
+
+    # Row already exists — update mutable cloud-authoritative fields.
+    # COALESCE(incoming, existing) means: only overwrite if incoming is non-NULL.
+    conn.execute(
+        """
+        UPDATE print_task SET
+          ended_at         = COALESCE(?, ended_at),
+          duration_seconds = COALESCE(?, duration_seconds),
+          total_weight_g   = COALESCE(?, total_weight_g),
+          raw_json         = ?,
+          print_name       = COALESCE(?, print_name),
+          plate_index      = COALESCE(?, plate_index),
+          plate_name       = COALESCE(?, plate_name),
+          cover_url        = COALESCE(cover_url, ?)
+        WHERE external_id = ? AND is_manual = 0
+        """,
+        (
+            task.get("ended_at"),
+            task.get("duration_seconds"),
+            task.get("total_weight_g"),
+            task.get("raw_json"),
+            task.get("print_name"),
+            task.get("plate_index"),
+            task.get("plate_name"),
+            task.get("cover_url"),
+            task["external_id"],
+        ),
+    )
+    row = conn.execute(
+        "SELECT id FROM print_task WHERE external_id = ?", (task["external_id"],)
+    ).fetchone()
+    return row["id"], False
+
+
+def sync_task_filament(conn: sqlite3.Connection, print_task_id: int, ptf: dict) -> bool:
+    """Update an existing filament row or insert if it doesn't exist.
+
+    Matches by (print_task_id, slot_id). Only cloud-sourced fields
+    (used_weight_g, color_hex, material) are updated; filament_spool_id,
+    is_ignored, and mapped_at are always preserved to protect user mappings.
+    Returns True if a new row was inserted, False if an existing row was updated.
+    """
+    existing = get_ptf_row_by_task_and_slot(conn, print_task_id, ptf.get("slot_id"))
+    if existing:
+        conn.execute(
+            """
+            UPDATE print_task_filament SET
+              used_weight_g = COALESCE(?, used_weight_g),
+              color_hex     = COALESCE(?, color_hex),
+              material      = COALESCE(?, material)
+            WHERE id = ?
+            """,
+            (
+                ptf.get("used_weight_g"),
+                ptf.get("color_hex"),
+                ptf.get("material"),
+                existing["id"],
+            ),
+        )
+        return False
+    conn.execute(
+        """
+        INSERT INTO print_task_filament
+          (print_task_id, filament_spool_id, slot_id, used_weight_g, color_hex, material)
+        VALUES (?, ?, ?, ?, ?, ?)
+        """,
+        (
+            print_task_id,
+            ptf.get("filament_spool_id"),
+            ptf.get("slot_id"),
+            ptf.get("used_weight_g"),
+            ptf.get("color_hex"),
+            ptf.get("material"),
+        ),
+    )
+    return True
+
+
+def delete_unmapped_null_slot_ptf(conn: sqlite3.Connection, print_task_id: int) -> int:
+    """Remove the NULL-slot fallback PTF row if the task now has real slot data.
+
+    When a print is synced mid-job, amsDetailMapping may be empty, creating a
+    single row with slot_id=NULL. After the print completes, real slot rows are
+    inserted. The stale NULL-slot row should be cleaned up — but only if it
+    has no user mapping (filament_spool_id IS NULL) so we never destroy
+    mappings the user already confirmed.
+    """
+    cursor = conn.execute(
+        """
+        DELETE FROM print_task_filament
+        WHERE print_task_id = ? AND slot_id IS NULL AND filament_spool_id IS NULL
+        """,
+        (print_task_id,),
+    )
+    return cursor.rowcount
+
+
 def insert_print_task_filament(conn: sqlite3.Connection, ptf: dict) -> None:
     conn.execute(
         """

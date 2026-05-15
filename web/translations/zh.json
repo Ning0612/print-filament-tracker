@@ -378,7 +378,7 @@
       "no_token": "尚未設定 Token，請先登入 Bambu 帳號。",
       "running": "正在從 Bambu Cloud 下載列印歷史...",
       "auto_running": "自動同步中...",
-      "done": "同步完成！新增 {inserted} 筆，略過 {skipped} 筆，耗材記錄 {filaments} 筆。"
+      "done": "同步完成！新增 {inserted} 筆，更新 {updated} 筆，略過 {skipped} 筆，耗材記錄 {filaments} 筆。"
     },
     "backup": {
       "running": "備份進行中...",

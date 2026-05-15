@@ -130,6 +130,7 @@ def _run_sync(app) -> None:
                 "message_key": "flash.sync.done",
                 "message_params": {
                     "inserted": stats["inserted"],
+                    "updated": stats["updated"],
                     "skipped": stats["skipped"],
                     "filaments": stats["filaments"],
                 },

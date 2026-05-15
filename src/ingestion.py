@@ -4,11 +4,12 @@ from pathlib import Path
 
 from .config import AppConfig
 from .db import (
+    delete_unmapped_null_slot_ptf,
     get_connection,
     get_db_path,
     insert_print_task_filament,
-    insert_print_task_ignore,
-    update_task_cover_if_null,
+    sync_task_filament,
+    upsert_print_task,
     upsert_printer,
 )
 
@@ -144,7 +145,7 @@ def _build_filament_rows(raw_task: dict, print_task_id: int) -> list[dict]:
 def ingest_raw_tasks(
     raw_hits: list[dict], db_path: Path, covers_dir: Path | None = None
 ) -> dict[str, int]:
-    stats: dict[str, int] = {"inserted": 0, "skipped": 0, "filaments": 0}
+    stats: dict[str, int] = {"inserted": 0, "updated": 0, "skipped": 0, "filaments": 0}
 
     errors: list[str] = []
 
@@ -186,17 +187,27 @@ def ingest_raw_tasks(
                     "plate_name": plate_name_raw or None,
                 }
 
-                task_db_id = insert_print_task_ignore(conn, task_row)
-                if task_db_id is None:
-                    stats["skipped"] += 1
-                    if local_cover:
-                        update_task_cover_if_null(conn, raw["id"], local_cover)
-                    continue
+                task_db_id, is_new = upsert_print_task(conn, task_row)
+                filament_rows = _build_filament_rows(raw, task_db_id)
 
-                stats["inserted"] += 1
-                for row in _build_filament_rows(raw, task_db_id):
-                    insert_print_task_filament(conn, row)
-                    stats["filaments"] += 1
+                if is_new:
+                    stats["inserted"] += 1
+                    for row in filament_rows:
+                        insert_print_task_filament(conn, row)
+                        stats["filaments"] += 1
+                else:
+                    stats["updated"] += 1
+                    has_real_slots = any(
+                        row.get("slot_id") is not None for row in filament_rows
+                    )
+                    for row in filament_rows:
+                        inserted = sync_task_filament(conn, task_db_id, row)
+                        if inserted:
+                            stats["filaments"] += 1
+                    # When cloud now provides real slot data, remove the stale
+                    # NULL-slot fallback row (only if it has no user mapping).
+                    if has_real_slots:
+                        delete_unmapped_null_slot_ptf(conn, task_db_id)
 
         except Exception as exc:  # noqa: BLE001
             errors.append(f"task id={raw.get('id')} 處理失敗，已跳過：{exc}")
