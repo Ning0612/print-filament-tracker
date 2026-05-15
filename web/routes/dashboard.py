@@ -1,6 +1,6 @@
 from flask import Blueprint, current_app, render_template
 
-from src.db import get_connection, get_recent_tasks
+from src.db import get_connection, get_cost_breakdown, get_recent_tasks
 from src.filament import list_spools, list_unmapped
 
 bp = Blueprint("dashboard", __name__)
@@ -18,6 +18,9 @@ def index():
         "low": sum(1 for s in spools if s["status"] == "low"),
         "sealed": sum(1 for s in spools if s["status"] == "sealed"),
         "empty": sum(1 for s in spools if s["status"] == "empty"),
+        "total_initial_g": sum((s["initial_weight_g"] or 0.0) for s in spools),
+        "total_remaining_g": sum(max(s["remaining_weight_g"], 0.0) for s in spools),
+        "total_consumed_g": sum(max(s["used_weight_g"], 0.0) for s in spools),
     }
 
     with get_connection(db_path) as conn:
@@ -35,6 +38,7 @@ def index():
             "total_weight_g": row["weight_g"],
             "total_duration_seconds": row["duration_s"],
         }
+        cost = get_cost_breakdown(conn)
 
     return render_template(
         "dashboard.html",
@@ -43,4 +47,5 @@ def index():
         unmapped_count=unmapped_count,
         recent_tasks=recent_tasks,
         print_stats=print_stats,
+        cost=cost,
     )

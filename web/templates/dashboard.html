@@ -37,20 +37,69 @@
   {% endif %}
 </div>
 
+<p class="dashboard-section-label" style="margin-top:1.5rem;">{{ t('dashboard.filament_economics') }}</p>
+<div class="stats-grid">
+  <article>
+    <header>{{ t('dashboard.total_initial') }}</header>
+    {% if stats.total_initial_g >= 1000 %}
+      <p class="stat-number">{{ '%.1f' % (stats.total_initial_g / 1000) }}<small style="font-size:1rem;font-weight:normal;">kg</small></p>
+    {% else %}
+      <p class="stat-number">{{ '%.1f' % stats.total_initial_g }}<small style="font-size:1rem;font-weight:normal;">g</small></p>
+    {% endif %}
+  </article>
+  <article>
+    <header>{{ t('dashboard.total_remaining') }}</header>
+    {% if stats.total_remaining_g >= 1000 %}
+      <p class="stat-number">{{ '%.1f' % (stats.total_remaining_g / 1000) }}<small style="font-size:1rem;font-weight:normal;">kg</small></p>
+    {% else %}
+      <p class="stat-number">{{ '%.1f' % stats.total_remaining_g }}<small style="font-size:1rem;font-weight:normal;">g</small></p>
+    {% endif %}
+  </article>
+  <article>
+    <header>{{ t('dashboard.consumed_weight') }}</header>
+    {% if stats.total_consumed_g >= 1000 %}
+      <p class="stat-number">{{ '%.1f' % (stats.total_consumed_g / 1000) }}<small style="font-size:1rem;font-weight:normal;">kg</small></p>
+    {% else %}
+      <p class="stat-number">{{ '%.1f' % stats.total_consumed_g }}<small style="font-size:1rem;font-weight:normal;">g</small></p>
+    {% endif %}
+  </article>
+  <article>
+    <header>{{ t('dashboard.total_spool_cost') }}</header>
+    {% if cost.priced_spool_count > 0 %}
+      <p class="stat-number">${{ "%.1f"|format(cost.known_total) }}</p>
+      {% if cost.unpriced_count > 0 %}
+        <small style="color:var(--pico-muted-color);">+{{ cost.unpriced_count }} {{ t('dashboard.unpriced_spools') }}</small>
+      {% endif %}
+    {% elif cost.unpriced_count > 0 %}
+      <p class="stat-number" style="color:var(--pico-muted-color);">—</p>
+      <small style="color:var(--pico-muted-color);">{{ cost.unpriced_count }} {{ t('dashboard.unpriced_spools') }}</small>
+    {% else %}
+      <p class="stat-number" style="color:var(--pico-muted-color);">—</p>
+    {% endif %}
+  </article>
+  <article>
+    <header>{{ t('dashboard.remaining_cost') }}</header>
+    {% if cost.priced_spool_count > 0 %}
+      <p class="stat-number">${{ "%.1f"|format(cost.known_remaining) }}</p>
+    {% else %}
+      <p class="stat-number" style="color:var(--pico-muted-color);">—</p>
+    {% endif %}
+  </article>
+  <article>
+    <header>{{ t('dashboard.consumed_cost') }}</header>
+    {% if cost.priced_spool_count > 0 %}
+      <p class="stat-number">${{ "%.1f"|format(cost.known_used) }}</p>
+    {% else %}
+      <p class="stat-number" style="color:var(--pico-muted-color);">—</p>
+    {% endif %}
+  </article>
+</div>
+
 <p class="dashboard-section-label" style="margin-top:1.5rem;">{{ t('dashboard.print_stats') }}</p>
 <div class="stats-grid">
   <article>
     <header>{{ t('dashboard.total_tasks') }}</header>
     <p class="stat-number">{{ print_stats.total_tasks }}</p>
-  </article>
-  <article>
-    <header>{{ t('dashboard.total_weight') }}</header>
-    {% set kg = print_stats.total_weight_g / 1000 %}
-    {% if print_stats.total_weight_g >= 1000 %}
-      <p class="stat-number">{{ '%.1f' % kg }}<small style="font-size:1rem;font-weight:normal;">kg</small></p>
-    {% else %}
-      <p class="stat-number">{{ print_stats.total_weight_g | int }}<small style="font-size:1rem;font-weight:normal;">g</small></p>
-    {% endif %}
   </article>
   <article>
     <header>{{ t('dashboard.total_duration') }}</header>
