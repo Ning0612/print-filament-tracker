@@ -233,6 +233,40 @@ window._chartLabels = {
 </div>
 
 <script>
+// Heatmap tooltip — fixed-position to avoid overflow-x:auto clipping
+document.addEventListener('DOMContentLoaded', function () {
+  var tip = document.createElement('div');
+  tip.id = 'hm-tip';
+  document.body.appendChild(tip);
+
+  var container = document.getElementById('heatmap-container');
+  if (!container) return;
+
+  container.addEventListener('mouseover', function (e) {
+    var cell = e.target.closest('.heatmap-cell[data-tooltip]');
+    if (!cell) { tip.style.display = 'none'; return; }
+    tip.textContent = cell.dataset.tooltip;
+    tip.style.display = 'block';
+  });
+
+  container.addEventListener('mousemove', function (e) {
+    if (tip.style.display === 'none') return;
+    var x = e.clientX + 14;
+    var y = e.clientY - 38;
+    if (x + tip.offsetWidth > window.innerWidth - 8) x = e.clientX - tip.offsetWidth - 8;
+    if (y < 8) y = e.clientY + 18;
+    tip.style.left = x + 'px';
+    tip.style.top  = y + 'px';
+  });
+
+  container.addEventListener('mouseout', function (e) {
+    if (!e.target.closest('.heatmap-cell[data-tooltip]')) return;
+    tip.style.display = 'none';
+  });
+});
+</script>
+
+<script>
 (function () {
   document.addEventListener('DOMContentLoaded', function () {
     var d = window._analyticsData;

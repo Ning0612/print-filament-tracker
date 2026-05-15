@@ -1050,6 +1050,26 @@ body > footer.container-fluid {
 a.heatmap-cell { display: block; cursor: pointer; text-decoration: none; }
 a.heatmap-cell:hover { opacity: 0.75; outline: 2px solid var(--pico-primary); outline-offset: 1px; }
 
+/* Suppress Pico's built-in data-tooltip pseudo-elements on heatmap cells
+   (overflow-x:auto on the wrapper clips absolute-positioned tooltips) */
+.heatmap-cell[data-tooltip]::before,
+.heatmap-cell[data-tooltip]::after { display: none !important; }
+
+/* Fixed-position heatmap tooltip (set via JS) */
+#hm-tip {
+  display: none;
+  position: fixed;
+  z-index: 9999;
+  background: var(--pico-tooltip-background-color, #1b1b1b);
+  color: var(--pico-tooltip-color, #fff);
+  padding: 0.3rem 0.6rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  pointer-events: none;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(0,0,0,.25);
+}
+
 /* Material legend */
 .material-legend {
   margin-top: 1rem;
