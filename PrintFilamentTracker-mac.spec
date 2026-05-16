@@ -109,7 +109,7 @@ app = BUNDLE(
     bundle_identifier = "com.printfilamenttracker.app",
     info_plist        = {
         "CFBundleDisplayName":        "PrintFilamentTracker",
-        "CFBundleShortVersionString": "1.0.0",
+        "CFBundleShortVersionString": "1.1.0",
         "NSHighResolutionCapable":    True,
         "LSUIElement":                True,
         "NSHumanReadableCopyright":   "Copyright © 2026 Ning0612",

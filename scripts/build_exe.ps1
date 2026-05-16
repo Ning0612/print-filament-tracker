@@ -26,7 +26,9 @@
 [CmdletBinding()]
 param(
     [switch]$SkipInstall,
-    [switch]$NoUpx
+    [switch]$NoUpx,
+    [switch]$SkipMsi,
+    [string]$Version = "1.1.0"
 )
 
 Set-StrictMode -Version Latest
@@ -123,15 +125,34 @@ if (-not (Test-Path $OutputExe)) { Write-Fail "找不到輸出：$OutputExe" }
 $sizeMB = [math]::Round((Get-Item $OutputExe).Length / 1MB, 1)
 Write-OK "輸出：$OutputExe（$sizeMB MB）"
 
+# ── STEP 5：打包 MSI（需要 wix CLI 已安裝） ──────────────────────────────────
+$MsiOut = Join-Path $distPath "PrintFilamentTracker-$Version.msi"
+if ($SkipMsi) {
+    Write-Host "  [SKIP] -SkipMsi 已指定，略過 MSI 打包" -ForegroundColor Yellow
+} elseif (-not (Get-Command wix -ErrorAction SilentlyContinue)) {
+    Write-Host "  [SKIP] 未偵測到 wix，略過 MSI 打包" -ForegroundColor Yellow
+    Write-Host "         安裝方式：dotnet tool install --global wix" -ForegroundColor Yellow
+} else {
+    Write-Step "打包 MSI 安裝程式（v$Version）"
+    $WxsFile = Join-Path $RepoRoot "installer\Product.wxs"
+    & wix build $WxsFile -d "Version=$Version" -d "ExeSource=$OutputExe" -o $MsiOut
+    if ($LASTEXITCODE -ne 0) { Write-Fail "WiX 建置失敗，請查看上方錯誤訊息" }
+    $msiMB = [math]::Round((Get-Item $MsiOut).Length / 1MB, 1)
+    Write-OK "MSI 輸出：$MsiOut（$msiMB MB）"
+}
+
 Write-Host ""
 Write-Host ("=" * 60) -ForegroundColor Cyan
-Write-Host "  建置完成！" -ForegroundColor Cyan
+Write-Host "  建置完成！v$Version" -ForegroundColor Cyan
 Write-Host ("=" * 60) -ForegroundColor Cyan
 Write-Host ""
-Write-Host "  使用方式：" -ForegroundColor White
-Write-Host "    1. 將 dist\PrintFilamentTracker.exe 複製至任意目錄後執行"
-Write-Host "    2. 點擊系統托盤圖示「開啟 PrintFilamentTracker」"
-Write-Host "    3. 資料庫與設定自動儲存於："
-Write-Host '       %LOCALAPPDATA%\PrintFilamentTracker\' -ForegroundColor Yellow
+Write-Host "  輸出檔案：" -ForegroundColor White
+Write-Host "    dist\PrintFilamentTracker.exe          （免安裝，直接執行）"
+if (-not $SkipMsi -and (Test-Path $MsiOut)) {
+    Write-Host "    dist\PrintFilamentTracker-$Version.msi  （安裝程式，含開始選單）"
+}
+Write-Host ""
+Write-Host "  資料庫與設定自動儲存於：" -ForegroundColor White
+Write-Host '    %LOCALAPPDATA%\PrintFilamentTracker\' -ForegroundColor Yellow
 Write-Host ""
 Write-Host "  遇到防毒誤判時，嘗試：.\scripts\build_exe.ps1 -NoUpx" -ForegroundColor Yellow

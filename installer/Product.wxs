@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  WiX v4 安裝程式定義 - PrintFilamentTracker
+  建置由 scripts\build_exe.ps1 自動呼叫，ExeSource 由外部傳入確保路徑正確
+-->
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+
+  <Package
+    Name="PrintFilamentTracker"
+    Manufacturer="Ning0612"
+    Version="$(var.Version).0"
+    UpgradeCode="F7A2B3C4-E5D6-4870-9192-A3B4C5D6E7F8"
+    Scope="perMachine">
+
+    <!-- UpgradeCode 固定不變，用於識別同一產品的升版 -->
+    <MajorUpgrade DowngradeErrorMessage="已安裝較新版本，無法降版。" />
+    <MediaTemplate EmbedCab="yes" />
+
+    <Feature Id="Main" Level="1">
+      <ComponentGroupRef Id="AppFiles" />
+      <ComponentRef Id="StartMenuShortcut" />
+    </Feature>
+  </Package>
+
+  <!-- 目錄結構：使用 StandardDirectory 取代舊式 TARGETDIR 寫法 -->
+  <Fragment>
+    <StandardDirectory Id="ProgramFiles64Folder">
+      <Directory Id="INSTALLFOLDER" Name="PrintFilamentTracker" />
+    </StandardDirectory>
+    <StandardDirectory Id="ProgramMenuFolder">
+      <Directory Id="AppMenuFolder" Name="PrintFilamentTracker" />
+    </StandardDirectory>
+  </Fragment>
+
+  <!-- 主程式 + 開始選單 -->
+  <Fragment>
+    <ComponentGroup Id="AppFiles" Directory="INSTALLFOLDER">
+      <Component Guid="*">
+        <!-- ExeSource 由 build_exe.ps1 以絕對路徑傳入，避免相對路徑解析問題 -->
+        <File Source="$(var.ExeSource)" KeyPath="yes" />
+      </Component>
+    </ComponentGroup>
+
+    <Component Id="StartMenuShortcut" Directory="AppMenuFolder" Guid="*">
+      <Shortcut Id="AppShortcut"
+                Name="PrintFilamentTracker"
+                Description="Bambu Lab 列印耗材管理工具"
+                Target="[INSTALLFOLDER]PrintFilamentTracker.exe"
+                WorkingDirectory="INSTALLFOLDER" />
+      <RemoveFolder Id="CleanupMenu" Directory="AppMenuFolder" On="uninstall" />
+      <!-- WiX 規定：Shortcut component 必須有 registry KeyPath -->
+      <RegistryValue Root="HKCU"
+                     Key="Software\Ning0612\PrintFilamentTracker"
+                     Name="installed" Type="integer" Value="1"
+                     KeyPath="yes" />
+    </Component>
+  </Fragment>
+
+</Wix>
