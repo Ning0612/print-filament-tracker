@@ -31,7 +31,7 @@ PrintFilamentTracker 提供預先打包的執行檔，**無需安裝 Python**：
 
 | 作業系統 | 安裝方式 |
 |---------|---------|
-| Windows 10 / 11 | 下載 `.exe`，雙擊執行 |
+| Windows 10 / 11 | 下載 `.msi`（安裝程式）或 `.exe`（免安裝） |
 | macOS 12+（Monterey）| 下載 `.app`，右鍵開啟 |
 
 程式啟動後：
@@ -45,7 +45,17 @@ PrintFilamentTracker 提供預先打包的執行檔，**無需安裝 Python**：
 
 ### 下載與執行
 
-1. 前往 [GitHub Releases](https://github.com/Ning0612/PrintFilamentTracker/releases) 下載最新版 `PrintFilamentTracker.exe`
+前往 [GitHub Releases](https://github.com/Ning0612/PrintFilamentTracker/releases) 下載最新版，有兩種版本可選：
+
+**方式一：MSI 安裝程式（推薦）**
+
+1. 下載 `PrintFilamentTracker-x.x.x.msi`
+2. 雙擊執行安裝精靈，程式會安裝至 `Program Files\PrintFilamentTracker\`
+3. 安裝後可從「開始選單」啟動，並在「新增或移除程式」中管理
+
+**方式二：免安裝 .exe**
+
+1. 下載 `PrintFilamentTracker.exe`
 2. 將 `.exe` 移至您希望長期存放的目錄，例如：
    ```
    C:\Users\你的名字\PrintFilamentTracker\PrintFilamentTracker.exe
@@ -57,7 +67,7 @@ PrintFilamentTracker 提供預先打包的執行檔，**無需安裝 Python**：
 - 於背景啟動 Waitress Web 伺服器
 - 開啟預設瀏覽器前往 `http://127.0.0.1:7580`
 
-**再次執行**（程式已在執行中）：重複執行 `.exe` 只會開啟瀏覽器，不會建立第二個實例。
+**再次執行**（程式已在執行中）：重複執行只會開啟瀏覽器，不會建立第二個實例。
 
 ### SmartScreen 與防毒警告
 
@@ -109,7 +119,12 @@ explorer "$env:LOCALAPPDATA\PrintFilamentTracker"
 
 **停止程式**：右鍵點擊系統托盤圖示 → 選擇「**結束**」
 
-**解除安裝**：
+**解除安裝（MSI 安裝版）**：
+1. 右鍵系統托盤圖示 → 結束程式
+2. 前往「設定」→「應用程式」→「已安裝的應用程式」，找到 PrintFilamentTracker 後解除安裝
+3. （可選）刪除資料目錄：`%LOCALAPPDATA%\PrintFilamentTracker\`
+
+**解除安裝（免安裝 .exe 版）**：
 1. 右鍵系統托盤圖示 → 結束程式
 2. 刪除 `.exe` 檔案
 3. （可選）刪除資料目錄：`%LOCALAPPDATA%\PrintFilamentTracker\`
@@ -320,8 +335,11 @@ cp .env.example .env
 ### 建置執行檔
 
 ```powershell
-# Windows（輸出：dist\PrintFilamentTracker.exe）
-.\scripts\build_exe.ps1 -NoUpx
+# Windows（輸出：dist\PrintFilamentTracker.exe + dist\PrintFilamentTracker-x.x.x.msi）
+.\scripts\build_exe.ps1 -NoUpx -Version "1.1.0"
+
+# 僅建置 .exe，略過 MSI
+.\scripts\build_exe.ps1 -NoUpx -SkipMsi
 ```
 
 ```bash

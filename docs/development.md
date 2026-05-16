@@ -103,9 +103,13 @@ PrintFilamentTracker/
 ├── tray_main.py            # System Tray 入口點（打包後的主入口）
 ├── PrintFilamentTracker.spec      # Windows PyInstaller spec
 ├── PrintFilamentTracker-mac.spec  # macOS PyInstaller spec
+├── file_version_info.txt          # Windows PE 版本元數據（嵌入 .exe 標頭）
+│
+├── installer/
+│   └── Product.wxs         # WiX v4 MSI 安裝程式定義
 │
 ├── scripts/
-│   ├── build_exe.ps1       # Windows 建置腳本（PyInstaller）
+│   ├── build_exe.ps1       # Windows 建置腳本（PyInstaller + WiX MSI）
 │   ├── build_exe.sh        # macOS 建置腳本（PyInstaller）
 │   └── get_token.py        # Bambu Cloud Token 取得工具（開發用）
 │
@@ -169,21 +173,37 @@ print('OK')
 ### 自行建置執行檔
 
 ```powershell
-# Windows（需先安裝 venv 依賴）
-.venv\Scripts\python.exe -m pip install -r requirements.txt
-.\scripts\build_exe.ps1        # 需系統安裝 UPX
-.\scripts\build_exe.ps1 -NoUpx # 無 UPX 版本（防毒誤報率較低）
-# 輸出：dist\PrintFilamentTracker.exe
+# Windows — 建置 .exe（同時打包 .msi 安裝程式，需安裝 WiX v4）
+.\scripts\build_exe.ps1 -Version "1.1.0"
+
+# 常用參數：
+#   -NoUpx      停用 UPX 壓縮（防毒誤報率較低）
+#   -SkipMsi    略過 MSI 打包，只產出 .exe
+#   -SkipInstall 略過 pip install 步驟
+.\scripts\build_exe.ps1 -NoUpx -Version "1.2.0"
+.\scripts\build_exe.ps1 -NoUpx -SkipMsi         # 僅 .exe
+
+# 輸出：
+#   dist\PrintFilamentTracker.exe          ← 免安裝版
+#   dist\PrintFilamentTracker-1.1.0.msi   ← 安裝程式版（需 WiX）
 ```
 
 ```bash
 # macOS
-.venv/bin/python -m pip install -r requirements.txt
 bash scripts/build_exe.sh
 # 輸出：dist/PrintFilamentTracker.app
 ```
 
-建置腳本會自動完成：PNG 圖示轉換（`.ico`/`.icns`）→ PyInstaller 打包 → 輸出驗證。
+**版本號管理**：版本號在 `file_version_info.txt` 中定義（Windows PE 標頭），並透過 `-Version` 參數傳入建置腳本。兩者須保持一致。
+
+**MSI 打包前置需求（Windows）**：
+
+```powershell
+# 安裝 WiX v4（需要 .NET SDK）
+dotnet tool install --global wix --version "4.*"
+```
+
+建置腳本流程：PNG 圖示轉換（`.ico`）→ PyInstaller 打包 → 輸出驗證 → WiX MSI 打包。
 
 ---
 
