@@ -242,14 +242,11 @@ def get_spool_cost_ranking_payload(conn: sqlite3.Connection, top_n: int = 15) ->
 
 def _parse_dt(dt_str: str, tz_delta: timedelta) -> datetime:
     s = str(dt_str).strip()
-    try:
-        if s.endswith("Z"):
-            return datetime.fromisoformat(s[:-1]) + tz_delta
-        if len(s) > 19 and s[19] in ("+", "-"):
-            return datetime.fromisoformat(s[:19]) + tz_delta
-        return datetime.fromisoformat(s[:19])
-    except ValueError:
-        raise
+    if s.endswith("Z"):
+        return datetime.fromisoformat(s[:-1]) + tz_delta
+    if len(s) > 19 and s[19] in ("+", "-"):
+        return datetime.fromisoformat(s[:19]) + tz_delta
+    return datetime.fromisoformat(s[:19])
 
 
 def _build_timeline(tasks: list, tz_offset_minutes: int = 0) -> tuple:

@@ -215,33 +215,6 @@ def get_printer_id_by_device_id(conn: sqlite3.Connection, device_id: str) -> int
 
 # --- Print task helpers ---
 
-def insert_print_task_ignore(conn: sqlite3.Connection, task: dict) -> int | None:
-    cursor = conn.execute(
-        """
-        INSERT OR IGNORE INTO print_task
-          (external_id, print_name, printer_id, started_at, ended_at,
-           duration_seconds, status, total_weight_g, cover_url, raw_json,
-           plate_index, plate_name)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """,
-        (
-            task["external_id"],
-            task.get("print_name"),
-            task.get("printer_id"),
-            task.get("started_at"),
-            task.get("ended_at"),
-            task.get("duration_seconds"),
-            task.get("status"),
-            task.get("total_weight_g"),
-            task.get("cover_url"),
-            task.get("raw_json"),
-            task.get("plate_index"),
-            task.get("plate_name"),
-        ),
-    )
-    return cursor.lastrowid if cursor.rowcount > 0 else None
-
-
 def upsert_print_task(conn: sqlite3.Connection, task: dict) -> tuple[int, bool]:
     """Insert or update a cloud print task. Returns (task_db_id, is_new).
 
@@ -311,50 +284,6 @@ def upsert_print_task(conn: sqlite3.Connection, task: dict) -> tuple[int, bool]:
         "SELECT id FROM print_task WHERE external_id = ?", (task["external_id"],)
     ).fetchone()
     return row["id"], False
-
-
-def sync_task_filament(conn: sqlite3.Connection, print_task_id: int, ptf: dict) -> bool:
-    """Update an existing filament row or insert if it doesn't exist.
-
-    Matches by (print_task_id, slot_id). Only cloud-sourced fields
-    (used_weight_g, color_hex, material) are updated; filament_spool_id,
-    is_ignored, and mapped_at are always preserved to protect user mappings.
-    Returns True if a new row was inserted, False if an existing row was updated.
-    """
-    existing = get_ptf_row_by_task_and_slot(conn, print_task_id, ptf.get("slot_id"))
-    if existing:
-        conn.execute(
-            """
-            UPDATE print_task_filament SET
-              used_weight_g = COALESCE(?, used_weight_g),
-              color_hex     = COALESCE(?, color_hex),
-              material      = COALESCE(?, material)
-            WHERE id = ?
-            """,
-            (
-                ptf.get("used_weight_g"),
-                ptf.get("color_hex"),
-                ptf.get("material"),
-                existing["id"],
-            ),
-        )
-        return False
-    conn.execute(
-        """
-        INSERT INTO print_task_filament
-          (print_task_id, filament_spool_id, slot_id, used_weight_g, color_hex, material)
-        VALUES (?, ?, ?, ?, ?, ?)
-        """,
-        (
-            print_task_id,
-            ptf.get("filament_spool_id"),
-            ptf.get("slot_id"),
-            ptf.get("used_weight_g"),
-            ptf.get("color_hex"),
-            ptf.get("material"),
-        ),
-    )
-    return True
 
 
 def _hex_color_distance(left: str | None, right: str | None) -> int | None:

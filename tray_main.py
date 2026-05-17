@@ -235,8 +235,7 @@ def main() -> None:
     # daemon 執行緒不殘留在後台。托盤應用程式標準做法。
     # ⚠️ 注意：os._exit() 會跳過 atexit、finally、GC，
     #    若未來需要在程式結束前執行清理，請放在 _on_quit() 而非此處。
-    import os as _os
-    _os._exit(0)
+    os._exit(0)
 
 
 if __name__ == "__main__":
