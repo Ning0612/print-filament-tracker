@@ -7,6 +7,7 @@
     header, footer, .cost-print-actions, .flash { display: none !important; }
     main { margin: 0 !important; padding: 0 !important; }
     .cost-print-page { padding: 0; }
+    a { text-decoration: none !important; color: inherit !important; }
   }
 </style>
 {% endblock %}
@@ -76,7 +77,8 @@
         {# Task row #}
         <tr style="border-bottom:1px solid var(--pico-muted-border-color);">
           <td style="padding:0.6rem 0.75rem;">
-            <div style="display:flex;align-items:center;gap:0.6rem;">
+            <a href="{{ url_for('tasks.detail_view', task_id=task.id) }}"
+               style="display:flex;align-items:center;gap:0.6rem;text-decoration:none;color:inherit;">
               {% if task.cover_url %}
               <img src="{{ task.cover_url }}" alt="" style="width:2.5rem;height:2.5rem;object-fit:cover;border-radius:var(--radius-sm);flex-shrink:0;">
               {% else %}
@@ -98,7 +100,7 @@
                 </div>
                 {% endif %}
               </div>
-            </div>
+            </a>
           </td>
           <td style="text-align:right;padding:0.6rem 0.75rem;font-family:var(--pico-font-family-monospace);font-size:0.88rem;">
             {{ '%.2f'|format(task.filament_cost) }}
