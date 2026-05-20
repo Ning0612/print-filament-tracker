@@ -1,28 +1,58 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
   WiX v4 安裝程式定義 - PrintFilamentTracker
-  建置由 scripts\build_exe.ps1 自動呼叫，ExeSource 由外部傳入確保路徑正確
+  建置由 scripts\build_exe.ps1 自動呼叫
+  外部變數：Version, ExeSource, IconSource
 -->
-<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
+     xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">
 
   <Package
     Name="PrintFilamentTracker"
     Manufacturer="Ning0612"
     Version="$(var.Version).0"
     UpgradeCode="F7A2B3C4-E5D6-4870-9192-A3B4C5D6E7F8"
+    Codepage="950"
     Scope="perMachine">
 
-    <!-- UpgradeCode 固定不變，用於識別同一產品的升版 -->
     <MajorUpgrade DowngradeErrorMessage="已安裝較新版本，無法降版。" />
     <MediaTemplate EmbedCab="yes" />
 
-    <Feature Id="Main" Level="1">
+    <!-- 程式圖示：顯示於「程式和功能」清單及安裝精靈 -->
+    <Icon Id="AppIcon" SourceFile="$(var.IconSource)" />
+    <Property Id="ARPPRODUCTICON" Value="AppIcon" />
+    <Property Id="ARPHELPLINK" Value="https://github.com/Ning0612/PrintFilamentTracker" />
+
+    <!-- 安裝精靈使用者介面 -->
+    <WixVariable Id="WixUILicenseRtf" Value="$(sys.SOURCEFILEDIR)license.rtf" />
+    <ui:WixUI Id="WixUI_FeatureTree" />
+
+    <!-- 完成畫面：立即啟動選項（預設勾選） -->
+    <Property Id="WIXUI_EXITDIALOGOPTIONALCHECKBOXTEXT" Value="立即啟動 PrintFilamentTracker" />
+    <Property Id="WIXUI_EXITDIALOGOPTIONALCHECKBOX" Value="1" />
+
+    <!-- 安裝完成後啟動應用程式 -->
+    <CustomAction Id="LaunchApp"
+                  FileRef="MainExeFile"
+                  ExeCommand=""
+                  Impersonate="yes"
+                  Return="asyncNoWait" />
+
+    <!-- 功能清單 -->
+    <Feature Id="Main" Title="主程式" Level="1">
       <ComponentGroupRef Id="AppFiles" />
       <ComponentRef Id="StartMenuShortcut" />
     </Feature>
+
+    <Feature Id="DesktopShortcutFeature"
+             Title="桌面捷徑"
+             Description="在桌面建立 PrintFilamentTracker 的快捷方式"
+             Level="1">
+      <ComponentRef Id="DesktopShortcutComp" />
+    </Feature>
   </Package>
 
-  <!-- 目錄結構：使用 StandardDirectory 取代舊式 TARGETDIR 寫法 -->
+  <!-- 目錄結構 -->
   <Fragment>
     <StandardDirectory Id="ProgramFiles64Folder">
       <Directory Id="INSTALLFOLDER" Name="PrintFilamentTracker" />
@@ -30,30 +60,49 @@
     <StandardDirectory Id="ProgramMenuFolder">
       <Directory Id="AppMenuFolder" Name="PrintFilamentTracker" />
     </StandardDirectory>
+    <StandardDirectory Id="DesktopFolder" />
   </Fragment>
 
-  <!-- 主程式 + 開始選單 -->
+  <!-- 元件定義 -->
   <Fragment>
     <ComponentGroup Id="AppFiles" Directory="INSTALLFOLDER">
       <Component Guid="*">
-        <!-- ExeSource 由 build_exe.ps1 以絕對路徑傳入，避免相對路徑解析問題 -->
-        <File Source="$(var.ExeSource)" KeyPath="yes" />
+        <File Id="MainExeFile" Source="$(var.ExeSource)" KeyPath="yes" />
       </Component>
     </ComponentGroup>
 
     <Component Id="StartMenuShortcut" Directory="AppMenuFolder" Guid="*">
       <Shortcut Id="AppShortcut"
                 Name="PrintFilamentTracker"
-                Description="Bambu Lab 列印耗材管理工具"
+                Description="列印耗材管理工具"
                 Target="[INSTALLFOLDER]PrintFilamentTracker.exe"
                 WorkingDirectory="INSTALLFOLDER" />
       <RemoveFolder Id="CleanupMenu" Directory="AppMenuFolder" On="uninstall" />
-      <!-- WiX 規定：Shortcut component 必須有 registry KeyPath -->
-      <RegistryValue Root="HKCU"
+      <RegistryValue Root="HKLM"
                      Key="Software\Ning0612\PrintFilamentTracker"
                      Name="installed" Type="integer" Value="1"
                      KeyPath="yes" />
     </Component>
+
+    <Component Id="DesktopShortcutComp" Directory="DesktopFolder" Guid="*">
+      <Shortcut Id="DesktopShortcut"
+                Name="PrintFilamentTracker"
+                Description="列印耗材管理工具"
+                Target="[INSTALLFOLDER]PrintFilamentTracker.exe"
+                WorkingDirectory="INSTALLFOLDER" />
+      <RegistryValue Root="HKLM"
+                     Key="Software\Ning0612\PrintFilamentTracker"
+                     Name="desktop" Type="integer" Value="1"
+                     KeyPath="yes" />
+    </Component>
+  </Fragment>
+
+  <!-- 完成畫面按鈕事件：觸發啟動動作 -->
+  <Fragment>
+    <UI>
+      <Publish Dialog="ExitDialog" Control="Finish" Event="DoAction" Value="LaunchApp" Order="1"
+               Condition="WIXUI_EXITDIALOGOPTIONALCHECKBOX = 1 AND NOT Installed" />
+    </UI>
   </Fragment>
 
 </Wix>

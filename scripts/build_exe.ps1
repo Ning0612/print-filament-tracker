@@ -77,7 +77,7 @@ Set-Content -Path $tmpPy -Encoding UTF8 -Value @'
 from PIL import Image
 import sys
 img = Image.open(sys.argv[1]).convert("RGBA")
-sizes = [(16,16),(24,24),(32,32),(48,48),(64,64),(128,128),(256,256)]
+sizes = [(16,16),(24,24),(32,32),(48,48),(64,64),(128,128),(256,256),(512,512)]
 imgs = [img.resize(s, Image.LANCZOS) for s in sizes]
 imgs[0].save(sys.argv[2], format='ICO', append_images=imgs[1:])
 print("ICO saved:", sys.argv[2])
@@ -134,8 +134,21 @@ if ($SkipMsi) {
     Write-Host "         安裝方式：dotnet tool install --global wix" -ForegroundColor Yellow
 } else {
     Write-Step "打包 MSI 安裝程式（v$Version）"
+
+    # 確保 WixToolset.UI.wixext 4.0.5 已安裝（需與 WiX CLI 4.x 相容，idempotent）
+    $uiExt = "WixToolset.UI.wixext/4.0.5"
+    Write-Host "  [INFO] 確認 $uiExt 擴充功能..." -ForegroundColor Yellow
+    & wix extension add $uiExt
+    if ($LASTEXITCODE -ne 0) { Write-Fail "擴充功能安裝失敗，請手動執行：wix extension add $uiExt" }
+    Write-OK "$uiExt 已就緒"
+
     $WxsFile = Join-Path $RepoRoot "installer\Product.wxs"
-    & wix build $WxsFile -d "Version=$Version" -d "ExeSource=$OutputExe" -o $MsiOut
+    & wix build $WxsFile `
+        -d "Version=$Version" `
+        -d "ExeSource=$OutputExe" `
+        -d "IconSource=$IcoIcon" `
+        -ext WixToolset.UI.wixext `
+        -o $MsiOut
     if ($LASTEXITCODE -ne 0) { Write-Fail "WiX 建置失敗，請查看上方錯誤訊息" }
     $msiMB = [math]::Round((Get-Item $MsiOut).Length / 1MB, 1)
     Write-OK "MSI 輸出：$MsiOut（$msiMB MB）"

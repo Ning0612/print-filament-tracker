@@ -2,13 +2,15 @@
 # PrintFilamentTracker-mac.spec — macOS 打包規格（生成 .app bundle）
 #
 # 使用方式：
-#   bash scripts/build_exe.sh
-#   或手動：.venv/bin/python -m PyInstaller PrintFilamentTracker-mac.spec --clean
+#   bash scripts/build_exe.sh --version=1.2.0
+#   或手動：PYINSTALLER_APP_VERSION=1.2.0 .venv/bin/python -m PyInstaller PrintFilamentTracker-mac.spec --clean
 
+import os
 from pathlib import Path
 
 block_cipher = None
 project_root = Path(SPECPATH)
+app_version  = os.environ.get("PYINSTALLER_APP_VERSION", "1.1.0")
 
 datas = [
     (str(project_root / "web" / "templates"),    "web/templates"),
@@ -109,7 +111,7 @@ app = BUNDLE(
     bundle_identifier = "com.printfilamenttracker.app",
     info_plist        = {
         "CFBundleDisplayName":        "PrintFilamentTracker",
-        "CFBundleShortVersionString": "1.1.0",
+        "CFBundleShortVersionString": app_version,
         "NSHighResolutionCapable":    True,
         "LSUIElement":                True,
         "NSHumanReadableCopyright":   "Copyright © 2026 Ning0612",

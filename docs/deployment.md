@@ -50,8 +50,10 @@ PrintFilamentTracker 提供預先打包的執行檔，**無需安裝 Python**：
 **方式一：MSI 安裝程式（推薦）**
 
 1. 下載 `PrintFilamentTracker-x.x.x.msi`
-2. 雙擊執行安裝精靈，程式會安裝至 `Program Files\PrintFilamentTracker\`
-3. 安裝後可從「開始選單」啟動，並在「新增或移除程式」中管理
+2. 雙擊執行，依照安裝精靈完成安裝：
+   - **選擇功能**：可勾選是否建立「桌面捷徑」（預設勾選）
+   - **完成畫面**：可勾選「立即啟動 PrintFilamentTracker」（預設勾選）
+3. 安裝後可從「開始選單」或桌面捷徑啟動，並在「設定 → 新增或移除程式」中管理
 
 **方式二：免安裝 .exe**
 
@@ -336,7 +338,7 @@ cp .env.example .env
 
 ```powershell
 # Windows（輸出：dist\PrintFilamentTracker.exe + dist\PrintFilamentTracker-x.x.x.msi）
-.\scripts\build_exe.ps1 -NoUpx -Version "1.1.0"
+.\scripts\build_exe.ps1 -NoUpx -Version "1.2.0"
 
 # 僅建置 .exe，略過 MSI
 .\scripts\build_exe.ps1 -NoUpx -SkipMsi
@@ -344,7 +346,7 @@ cp .env.example .env
 
 ```bash
 # macOS（輸出：dist/PrintFilamentTracker.app）
-bash scripts/build_exe.sh
+bash scripts/build_exe.sh --version=1.2.0
 ```
 
 詳細說明請參考 [開發指南](development.md)。

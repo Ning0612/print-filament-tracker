@@ -121,12 +121,15 @@ PrintFilamentTracker/
 ├── web/            # Flask 應用（routes, templates, i18n, static）
 │   └── static/img/ # 品牌圖片（icon、banner）
 ├── scripts/        # 建置與工具腳本
-│   ├── build_exe.ps1   # Windows 建置腳本（PyInstaller）
-│   ├── build_exe.sh    # macOS 建置腳本（PyInstaller）
+│   ├── build_exe.ps1   # Windows 建置腳本（PyInstaller + WiX MSI）
+│   ├── build_exe.sh    # macOS 建置腳本（PyInstaller，支援 --version=）
 │   └── get_token.py    # Bambu Cloud Token 取得工具（開發用）
 ├── tray_main.py    # 系統托盤入口點
 ├── PrintFilamentTracker.spec     # Windows PyInstaller spec
 ├── PrintFilamentTracker-mac.spec # macOS PyInstaller spec
+├── installer/      # Windows MSI 安裝程式定義（WiX v4）
+│   ├── Product.wxs # WiX 安裝精靈規格（含圖示、桌面捷徑、啟動選項）
+│   └── license.rtf # 授權條款（PolyForm Noncommercial License 1.0.0）
 ├── data/           # 資料目錄（凍結版位於系統資料目錄）
 ├── docs/           # 技術文件
 └── requirements.txt
@@ -139,14 +142,14 @@ PrintFilamentTracker/
 ```powershell
 # Windows
 .venv\Scripts\python.exe -m pip install -r requirements.txt
-.\scripts\build_exe.ps1 -NoUpx
-# 輸出：dist\PrintFilamentTracker.exe
+.\scripts\build_exe.ps1 -NoUpx -Version "1.2.0"
+# 輸出：dist\PrintFilamentTracker.exe + dist\PrintFilamentTracker-1.2.0.msi
 ```
 
 ```bash
 # macOS
 .venv/bin/python -m pip install -r requirements.txt
-bash scripts/build_exe.sh
+bash scripts/build_exe.sh --version=1.2.0
 # 輸出：dist/PrintFilamentTracker.app
 ```
 

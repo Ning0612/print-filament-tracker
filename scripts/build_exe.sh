@@ -15,8 +15,12 @@ SPEC_FILE="$REPO_ROOT/PrintFilamentTracker-mac.spec"
 OUTPUT_APP="$REPO_ROOT/dist/PrintFilamentTracker.app"
 
 SKIP_INSTALL=false
+VERSION="1.1.0"
 for arg in "$@"; do
-    case "$arg" in --skip-install) SKIP_INSTALL=true ;; esac
+    case "$arg" in
+        --skip-install) SKIP_INSTALL=true ;;
+        --version=*)    VERSION="${arg#*=}" ;;
+    esac
 done
 
 step() { echo; echo "[STEP] $1"; }
@@ -81,6 +85,7 @@ ok "ICNS 圖示建立：$ICNS_ICON"
 # ── STEP 3：PyInstaller ───────────────────────────────────────────────────────
 step "執行 PyInstaller（生成 .app bundle）"
 cd "$REPO_ROOT"
+export PYINSTALLER_APP_VERSION="$VERSION"
 "$VENV_PYTHON" -m PyInstaller \
     --clean \
     --noconfirm \
@@ -98,7 +103,7 @@ ok "輸出: $OUTPUT_APP (約 ${SIZE_MB} MB)"
 
 echo ""
 echo "================================================================"
-echo "  建置完成！"
+echo "  建置完成！v${VERSION}"
 echo "================================================================"
 echo ""
 echo "  使用方式："
