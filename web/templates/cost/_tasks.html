@@ -1,0 +1,84 @@
+{% if date_groups %}
+  {% for date_str, day_tasks in date_groups %}
+  <div class="cost-date-group">
+    <div class="cost-date-header">
+      <span class="cost-date-header-date">{{ date_str }}</span>
+      <span class="cost-date-header-count">{{ day_tasks|length }} {{ t('cost.tasks_unit') }}</span>
+    </div>
+    <div class="task-gallery-grid">
+      {% for task in day_tasks %}
+      <div class="task-gallery-card cost-task-card" id="cost-card-{{ task.id }}">
+
+        {# Thumbnail with checkbox overlay #}
+        <div class="cost-task-thumb-wrap">
+          <input type="checkbox"
+                 id="cb-task-{{ task.id }}"
+                 name="task_ids[]"
+                 value="{{ task.id }}"
+                 class="cost-task-cb">
+          <label for="cb-task-{{ task.id }}" class="cost-task-thumb-label">
+            <div class="task-gallery-thumb">
+              {% if task.cover_url %}
+              <img src="{{ task.cover_url }}" alt="" decoding="async" loading="lazy">
+              {% endif %}
+            </div>
+          </label>
+        </div>
+
+        {# Task info #}
+        <div class="task-gallery-info">
+          <div class="task-gallery-date">{{ task.started_at | tz_format }}</div>
+          <div style="font-size:0.83rem;margin-bottom:0.2rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:500;"
+               title="{{ task.print_name or '' }}">
+            {{ task.print_name or t('common.unnamed') }}
+          </div>
+          {% if task.printer_name %}
+          <div style="font-size:0.72rem;color:var(--pico-muted-color);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:0.1rem;"
+               title="{{ task.printer_name }}">{{ task.printer_name }}</div>
+          {% endif %}
+          <div class="task-gallery-weight">{{ '%.1f'|format(task.total_weight_g or 0) }}g</div>
+          {% if task.duration_seconds %}
+          {% set th = task.duration_seconds // 3600 %}
+          {% set tm = (task.duration_seconds % 3600) // 60 %}
+          <div style="color:var(--pico-muted-color);font-size:0.75rem;font-family:var(--pico-font-family-monospace);">
+            ⏱{%- if th > 0 %} {{ th }}h{{ '%02d'|format(tm) }}m{%- else %} {{ tm }}m{%- endif %}
+          </div>
+          {% endif %}
+        </div>
+
+        {# Filament rows — visible only when task is checked (via CSS :has) #}
+        {% if task.filaments %}
+        <div class="cost-filament-rows">
+          {% for f in task.filaments %}
+          <label class="cost-filament-row">
+            <input type="checkbox"
+                   name="ptf_ids[]"
+                   value="{{ f.ptf_id }}"
+                   class="cost-ptf-cb"
+                   checked>
+            <span class="color-swatch"
+                  style="--swatch-color:{{ f.ptf_display_color }};width:0.8rem;height:0.8rem;border-radius:50%;flex-shrink:0;"></span>
+            <span class="cost-ptf-label">{{ f.ptf_label }}</span>
+            <span class="cost-ptf-meta">
+              <span class="cost-ptf-weight">{{ '%.1f'|format(f.used_weight_g or 0) }}g</span>
+              {% if f.cost is not none %}
+              <span class="cost-ptf-cost">{{ '%.2f'|format(f.cost) }} 元</span>
+              {% else %}
+              <span class="cost-ptf-cost cost-ptf-no-price">— 元</span>
+              {% endif %}
+            </span>
+          </label>
+          {% endfor %}
+        </div>
+        {% endif %}
+
+      </div>{# end cost-task-card #}
+      {% endfor %}
+    </div>{# end task-gallery-grid #}
+  </div>{# end cost-date-group #}
+  {% endfor %}
+{% else %}
+<p style="color:var(--pico-muted-color);text-align:center;padding:3rem 0;">
+  {{ t('cost.no_tasks') }}
+</p>
+{% endif %}

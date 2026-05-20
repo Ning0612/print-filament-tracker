@@ -11,6 +11,7 @@
     "tasks": "列印歷史",
     "mapping": "耗材對照",
     "analytics": "分析",
+    "cost": "成本計算",
     "settings": "設定",
     "theme_toggle_aria": "切換深/淺色模式",
     "theme_toggle_title": "切換主題"
@@ -378,6 +379,29 @@
     "day_total_cost": "當日消耗成本",
     "day_material_section": "材料類型分布",
     "day_timeline_section": "列印時間軸"
+  },
+  "cost": {
+    "title": "成本計算",
+    "panel_title": "成本試算",
+    "search_placeholder": "搜尋任務名稱…",
+    "tasks_unit": "個任務",
+    "no_tasks": "尚無列印記錄。",
+    "select_hint": "勾選左欄任務即可試算成本",
+    "hourly_rate_label": "時間費率（元/小時）",
+    "filament_cost": "耗材成本",
+    "time_cost": "時間成本",
+    "total": "總計",
+    "task_count_label": "共 {n} 個任務",
+    "unpriced_hint": "{n} 筆耗材無定價（{g}g），未計入上方金額",
+    "per_task_title": "任務明細",
+    "no_tasks_selected": "請先勾選至少一個任務",
+    "preview_btn": "預覽報表",
+    "print_title": "列印成本報表",
+    "print_btn": "列印 / 匯出 PDF",
+    "table_task": "列印任務",
+    "table_filament_cost": "耗材成本",
+    "table_time_cost": "時間成本",
+    "table_total": "小計"
   },
   "flash": {
     "app": {

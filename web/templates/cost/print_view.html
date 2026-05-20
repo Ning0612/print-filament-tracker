@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+{% block title %}{{ t('cost.print_title') }} — PrintFilamentTracker{% endblock %}
+
+{% block extra_head %}
+<style>
+  @media print {
+    header, footer, .cost-print-actions, .flash { display: none !important; }
+    main { margin: 0 !important; padding: 0 !important; }
+    .cost-print-page { padding: 0; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="cost-print-page">
+
+  <div class="cost-print-actions" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;flex-wrap:wrap;gap:0.75rem;">
+    <a href="{{ url_for('cost.index') }}" onclick="window.close();return false;">{{ t('common.back') }}</a>
+    <button onclick="window.print()" style="margin:0;">{{ t('cost.print_btn') }}</button>
+  </div>
+
+  {% if not report or not report.has_data %}
+  <p style="color:var(--pico-muted-color);text-align:center;padding:3rem 0;">{{ t('cost.no_tasks_selected') }}</p>
+  {% else %}
+
+  {# Report header #}
+  <div style="border-bottom:2px solid var(--pico-muted-border-color);padding-bottom:1rem;margin-bottom:1.5rem;">
+    <h2 style="margin:0 0 0.25rem;">{{ t('cost.print_title') }}</h2>
+    <div style="color:var(--pico-muted-color);font-size:0.85rem;">
+      {{ t('cost.task_count_label', n=report.task_count) }}
+      {% if hourly_rate > 0 %}
+       · {{ t('cost.hourly_rate_label') }}: {{ '%.2f'|format(hourly_rate) }}/h
+      {% endif %}
+    </div>
+  </div>
+
+  {# Summary stats #}
+  <div class="stats-grid" style="margin-bottom:1.75rem;">
+    <article>
+      <p style="margin:0 0 0.25rem;font-size:0.75rem;color:var(--pico-muted-color);font-weight:600;text-transform:uppercase;letter-spacing:0.04em;">{{ t('cost.filament_cost') }}</p>
+      <strong style="font-size:1.5rem;font-family:var(--pico-font-family-monospace);">{{ '%.2f'|format(report.filament_cost) }}</strong>
+    </article>
+    {% if hourly_rate > 0 %}
+    <article>
+      <p style="margin:0 0 0.25rem;font-size:0.75rem;color:var(--pico-muted-color);font-weight:600;text-transform:uppercase;letter-spacing:0.04em;">{{ t('cost.time_cost') }}</p>
+      <strong style="font-size:1.5rem;font-family:var(--pico-font-family-monospace);">{{ '%.2f'|format(report.time_cost) }}</strong>
+    </article>
+    {% endif %}
+    <article>
+      <p style="margin:0 0 0.25rem;font-size:0.75rem;color:var(--pico-muted-color);font-weight:600;text-transform:uppercase;letter-spacing:0.04em;">{{ t('cost.total') }}</p>
+      <strong style="font-size:1.5rem;font-family:var(--pico-font-family-monospace);color:var(--pico-primary);">{{ '%.2f'|format(report.total) }}</strong>
+    </article>
+  </div>
+
+  {% if report.unpriced_count > 0 %}
+  <div style="background:color-mix(in srgb,#f59e0b 12%,transparent);border:1px solid #f59e0b;border-radius:var(--radius-sm);padding:0.5rem 0.75rem;margin-bottom:1.5rem;font-size:0.85rem;">
+    ⚠ {{ t('cost.unpriced_hint', n=report.unpriced_count, g='%.1f'|format(report.unpriced_weight_g)) }}
+  </div>
+  {% endif %}
+
+  {# Per-task detail table #}
+  <div style="overflow-x:auto;">
+    <table style="width:100%;border-collapse:collapse;">
+      <thead>
+        <tr style="border-bottom:2px solid var(--pico-muted-border-color);">
+          <th style="text-align:left;padding:0.5rem 0.75rem;font-size:0.8rem;font-weight:600;color:var(--pico-muted-color);text-transform:uppercase;letter-spacing:0.04em;">{{ t('cost.table_task') }}</th>
+          <th style="text-align:right;padding:0.5rem 0.75rem;font-size:0.8rem;font-weight:600;color:var(--pico-muted-color);text-transform:uppercase;letter-spacing:0.04em;">{{ t('cost.table_filament_cost') }}</th>
+          {% if hourly_rate > 0 %}
+          <th style="text-align:right;padding:0.5rem 0.75rem;font-size:0.8rem;font-weight:600;color:var(--pico-muted-color);text-transform:uppercase;letter-spacing:0.04em;">{{ t('cost.table_time_cost') }}</th>
+          {% endif %}
+          <th style="text-align:right;padding:0.5rem 0.75rem;font-size:0.8rem;font-weight:600;color:var(--pico-muted-color);text-transform:uppercase;letter-spacing:0.04em;">{{ t('cost.table_total') }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for task in report.per_task %}
+        {# Task row #}
+        <tr style="border-bottom:1px solid var(--pico-muted-border-color);">
+          <td style="padding:0.6rem 0.75rem;">
+            <div style="display:flex;align-items:center;gap:0.6rem;">
+              {% if task.cover_url %}
+              <img src="{{ task.cover_url }}" alt="" style="width:2.5rem;height:2.5rem;object-fit:cover;border-radius:var(--radius-sm);flex-shrink:0;">
+              {% else %}
+              <div style="width:2.5rem;height:2.5rem;background:var(--pico-muted-border-color);border-radius:var(--radius-sm);flex-shrink:0;"></div>
+              {% endif %}
+              <div>
+                <div style="font-weight:500;font-size:0.88rem;">{{ task.print_name }}</div>
+                {% if task.started_at %}
+                <div style="color:var(--pico-muted-color);font-size:0.75rem;font-family:var(--pico-font-family-monospace);">{{ task.started_at | tz_format }}</div>
+                {% endif %}
+                {% if task.printer_name %}
+                <div style="color:var(--pico-muted-color);font-size:0.75rem;">{{ task.printer_name }}</div>
+                {% endif %}
+                {% if task.duration_seconds %}
+                {% set th = task.duration_seconds // 3600 %}
+                {% set tm = (task.duration_seconds % 3600) // 60 %}
+                <div style="color:var(--pico-muted-color);font-size:0.75rem;font-family:var(--pico-font-family-monospace);">
+                  ⏱{%- if th > 0 %} {{ th }}h{{ '%02d'|format(tm) }}m{%- else %} {{ tm }}m{%- endif %}
+                </div>
+                {% endif %}
+              </div>
+            </div>
+          </td>
+          <td style="text-align:right;padding:0.6rem 0.75rem;font-family:var(--pico-font-family-monospace);font-size:0.88rem;">
+            {{ '%.2f'|format(task.filament_cost) }}
+          </td>
+          {% if hourly_rate > 0 %}
+          <td style="text-align:right;padding:0.6rem 0.75rem;font-family:var(--pico-font-family-monospace);font-size:0.88rem;">
+            {{ '%.2f'|format(task.time_cost) }}
+          </td>
+          {% endif %}
+          <td style="text-align:right;padding:0.6rem 0.75rem;font-family:var(--pico-font-family-monospace);font-size:0.88rem;font-weight:600;">
+            {{ '%.2f'|format(task.total) }}
+          </td>
+        </tr>
+        {# Filament detail rows #}
+        {% if task.filaments %}
+        {% for f in task.filaments %}
+        <tr style="background:color-mix(in srgb,var(--pico-muted-border-color) 30%,transparent);">
+          <td style="padding:0.25rem 0.75rem 0.25rem 3.75rem;">
+            <div style="display:flex;align-items:center;gap:0.4rem;font-size:0.8rem;color:var(--pico-muted-color);">
+              <span class="color-swatch" style="--swatch-color:{{ f.color }};width:0.7rem;height:0.7rem;border-radius:50%;flex-shrink:0;"></span>
+              <span>{{ f.label }}</span>
+              <span style="font-family:var(--pico-font-family-monospace);">{{ '%.1f'|format(f.weight_g) }}g</span>
+              {% if f.cost is not none and f.weight_g > 0 %}
+              <span style="font-family:var(--pico-font-family-monospace);color:var(--pico-muted-color);font-size:0.75rem;margin-left:0.75rem;">{{ '%.4f'|format(f.cost / f.weight_g) }} 元/g</span>
+              {% endif %}
+            </div>
+          </td>
+          <td style="text-align:right;padding:0.25rem 0.75rem;font-size:0.8rem;font-family:var(--pico-font-family-monospace);color:var(--pico-muted-color);">
+            {% if f.cost is not none %}{{ '%.2f'|format(f.cost) }}{% else %}—{% endif %}
+          </td>
+          {% if hourly_rate > 0 %}<td></td>{% endif %}
+          <td></td>
+        </tr>
+        {% endfor %}
+        {% endif %}
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {# 總計區塊：移出 tfoot 避免多頁列印時每頁重複出現 #}
+  {% set tot_h = report.total_duration_seconds // 3600 %}
+  {% set tot_m = (report.total_duration_seconds % 3600) // 60 %}
+  <div style="border-top:2px solid var(--pico-muted-border-color);margin-top:0;padding:0.6rem 0.75rem;display:flex;justify-content:flex-end;align-items:center;gap:2rem;flex-wrap:wrap;page-break-inside:avoid;">
+    <span style="font-weight:700;margin-right:auto;">{{ t('cost.total') }}</span>
+    {% if report.total_duration_seconds > 0 %}
+    <span style="font-size:0.8rem;color:var(--pico-muted-color);font-weight:600;text-transform:uppercase;letter-spacing:0.04em;">⏱
+      <span style="font-family:var(--pico-font-family-monospace);color:var(--pico-color);font-size:1rem;margin-left:0.2rem;">
+        {%- if tot_h > 0 %}{{ tot_h }}h{{ '%02d'|format(tot_m) }}m{%- else %}{{ tot_m }}m{%- endif %}
+      </span>
+    </span>
+    {% endif %}
+    <span style="font-size:0.8rem;color:var(--pico-muted-color);font-weight:600;text-transform:uppercase;letter-spacing:0.04em;">{{ t('cost.filament_cost') }}
+      <span style="font-family:var(--pico-font-family-monospace);color:var(--pico-color);font-size:1rem;margin-left:0.4rem;">{{ '%.2f'|format(report.filament_cost) }}</span>
+    </span>
+    {% if hourly_rate > 0 %}
+    <span style="font-size:0.8rem;color:var(--pico-muted-color);font-weight:600;text-transform:uppercase;letter-spacing:0.04em;">{{ t('cost.time_cost') }}
+      <span style="font-family:var(--pico-font-family-monospace);color:var(--pico-color);font-size:1rem;margin-left:0.4rem;">{{ '%.2f'|format(report.time_cost) }}</span>
+    </span>
+    {% endif %}
+    <span style="font-size:0.8rem;color:var(--pico-muted-color);font-weight:600;text-transform:uppercase;letter-spacing:0.04em;">{{ t('cost.table_total') }}
+      <span style="font-family:var(--pico-font-family-monospace);color:var(--pico-primary);font-size:1.1rem;font-weight:700;margin-left:0.4rem;">{{ '%.2f'|format(report.total) }}</span>
+    </span>
+  </div>
+
+  {% endif %}{# end has_data #}
+</div>
+{% endblock %}

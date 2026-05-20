@@ -11,6 +11,7 @@
     "tasks": "Print History",
     "mapping": "Mapping",
     "analytics": "Analytics",
+    "cost": "Cost",
     "settings": "Settings",
     "theme_toggle_aria": "Toggle dark/light mode",
     "theme_toggle_title": "Toggle theme"
@@ -378,6 +379,29 @@
     "day_total_cost": "Daily Cost",
     "day_material_section": "Material Distribution",
     "day_timeline_section": "Print Timeline"
+  },
+  "cost": {
+    "title": "Cost Calculator",
+    "panel_title": "Cost Summary",
+    "search_placeholder": "Search task name…",
+    "tasks_unit": "task(s)",
+    "no_tasks": "No print records found.",
+    "select_hint": "Select tasks on the left to calculate cost",
+    "hourly_rate_label": "Time Rate (per hour)",
+    "filament_cost": "Filament Cost",
+    "time_cost": "Time Cost",
+    "total": "Total",
+    "task_count_label": "{n} task(s)",
+    "unpriced_hint": "{n} filament(s) have no price set ({g}g), not included above",
+    "per_task_title": "Per-task Breakdown",
+    "no_tasks_selected": "Please select at least one task",
+    "preview_btn": "Preview Report",
+    "print_title": "Print Cost Report",
+    "print_btn": "Print / Export PDF",
+    "table_task": "Print Task",
+    "table_filament_cost": "Filament Cost",
+    "table_time_cost": "Time Cost",
+    "table_total": "Total"
   },
   "flash": {
     "app": {

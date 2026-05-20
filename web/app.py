@@ -188,6 +188,7 @@ def create_app(db_path: Path | None = None) -> Flask:
 
     from web.i18n import register_i18n
     from web.routes.analytics import bp as analytics_bp
+    from web.routes.cost import bp as cost_bp
     from web.routes.dashboard import bp as dashboard_bp
     from web.routes.lang import bp as lang_bp
     from web.routes.mapping import bp as mapping_bp
@@ -204,6 +205,7 @@ def create_app(db_path: Path | None = None) -> Flask:
     app.register_blueprint(tasks_bp, url_prefix="/tasks")
     app.register_blueprint(mapping_bp, url_prefix="/mapping")
     app.register_blueprint(analytics_bp, url_prefix="/analytics")
+    app.register_blueprint(cost_bp, url_prefix="/cost")
     app.register_blueprint(settings_bp)
 
     from web.routes.settings import start_auto_sync_scheduler, start_backup_scheduler

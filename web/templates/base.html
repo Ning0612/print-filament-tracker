@@ -27,6 +27,7 @@
         <li><a href="{{ url_for('tasks.list_view') }}" {% if request.path.startswith('/tasks') %}aria-current="page"{% endif %}>{{ t('nav.tasks') }}</a></li>
         <li><a href="{{ url_for('mapping.list_view') }}" {% if request.path.startswith('/mapping') %}aria-current="page"{% endif %}>{{ t('nav.mapping') }}</a></li>
         <li><a href="{{ url_for('analytics.index') }}" {% if request.path.startswith('/analytics') %}aria-current="page"{% endif %}>{{ t('nav.analytics') }}</a></li>
+        <li><a href="{{ url_for('cost.index') }}" {% if request.path.startswith('/cost') %}aria-current="page"{% endif %}>{{ t('nav.cost') }}</a></li>
         <li><a href="{{ url_for('settings.index') }}" {% if request.path.startswith('/settings') %}aria-current="page"{% endif %}>{{ t('nav.settings') }}</a></li>
         <li>
           {# ── Language switcher — add a new JSON file to support more languages ── #}

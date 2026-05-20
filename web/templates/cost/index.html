@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% block title %}{{ t('cost.title') }} — PrintFilamentTracker{% endblock %}
+
+{% block content %}
+<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem;margin-bottom:1.25rem;">
+  <h1 style="margin:0;">{{ t('cost.title') }}</h1>
+</div>
+
+<form id="cost-form"
+      hx-post="{{ url_for('cost.recalc') }}"
+      hx-target="#cost-summary"
+      hx-trigger="change from:.cost-task-cb, change from:.cost-ptf-cb, change from:#hourly-rate, keyup changed delay:600ms from:#hourly-rate">
+  <div class="cost-layout">
+
+    {# ── Left column: task gallery ── #}
+    <div class="cost-left">
+      <div class="cost-search-bar">
+        <input type="search"
+               id="cost-search"
+               placeholder="{{ t('cost.search_placeholder') }}"
+               value="{{ search }}"
+               hx-get="{{ url_for('cost.tasks_fragment') }}"
+               hx-target="#cost-gallery"
+               hx-trigger="keyup changed delay:300ms, search"
+               hx-swap="innerHTML"
+               autocomplete="off"
+               style="margin-bottom:0;">
+      </div>
+
+      <div id="cost-gallery">
+        {% include "cost/_tasks.html" %}
+      </div>
+    </div>
+
+    {# ── Right column: sticky cost panel ── #}
+    <div class="cost-right">
+      <div class="cost-panel">
+        <h3 style="margin:0 0 1rem;font-size:1rem;">{{ t('cost.panel_title') }}</h3>
+
+        <div id="cost-summary">
+          {% include "cost/_cost_summary.html" with context %}
+        </div>
+
+        <div class="cost-actions" style="margin-top:1rem;display:flex;flex-direction:column;gap:0.5rem;">
+          <button type="button" id="btn-preview" class="cost-preview-btn">
+            {{ t('cost.preview_btn') }}
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </div>{# end cost-layout #}
+</form>
+
+<script>
+(function () {
+  var btnPreview = document.getElementById('btn-preview');
+  if (!btnPreview) return;
+
+  btnPreview.addEventListener('click', function () {
+    var form = document.getElementById('cost-form');
+    var checkedTasks = form.querySelectorAll('input.cost-task-cb:checked');
+    if (!checkedTasks.length) {
+      alert('{{ t("cost.no_tasks_selected") }}');
+      return;
+    }
+
+    var params = new URLSearchParams();
+    checkedTasks.forEach(function (cb) {
+      params.append('task_ids[]', cb.value);
+    });
+
+    // Collect ptf checkboxes only from CHECKED task cards
+    form.querySelectorAll('.cost-task-card').forEach(function (card) {
+      var taskCb = card.querySelector('input.cost-task-cb');
+      if (!taskCb || !taskCb.checked) return;
+      card.querySelectorAll('input.cost-ptf-cb:checked').forEach(function (ptf) {
+        params.append('ptf_ids[]', ptf.value);
+      });
+    });
+
+    var rateInput = document.getElementById('hourly-rate');
+    params.append('hourly_rate', rateInput ? (rateInput.value || '0') : '0');
+
+    window.open('{{ url_for("cost.print_view") }}?' + params.toString(), '_blank');
+  });
+})();
+</script>
+{% endblock %}
