@@ -174,7 +174,9 @@ class _TrayApp:
             / "web" / "static" / "img"
             / "print-filament-tracker-icon.png"
         )
-        image = Image.open(str(icon_path))
+        # 預先縮至 256×256 LANCZOS：pystray 內部會建立臨時 ICO，
+        # 較大的 base image 可讓 Pillow 嵌入更多尺寸（至 256），高 DPI 顯示更清晰。
+        image = Image.open(str(icon_path)).convert("RGBA").resize((256, 256), Image.LANCZOS)
 
         menu = pystray.Menu(
             pystray.MenuItem("開啟 PrintFilamentTracker", self._on_open, default=True),
