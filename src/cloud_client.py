@@ -1,10 +1,13 @@
 import json
+import logging
 from pathlib import Path
 
 import requests
 
 from .auth import AuthError, build_auth_headers, handle_auth_error, mask_token
 from .config import AppConfig
+
+logger = logging.getLogger(__name__)
 
 TASKS_PATH = "/v1/user-service/my/tasks"
 DEFAULT_PAGE_LIMIT = 500
@@ -51,7 +54,7 @@ class BambuCloudClient:
         seen_cursors: set[str] = set()
 
         while True:
-            print(f"[INFO] 正在取得第 {page_num} 頁...")
+            logger.info("正在取得第 %d 頁...", page_num)
             response = self._fetch_page(after=after)
             self._raw_pages.append(response)
 
@@ -62,25 +65,25 @@ class BambuCloudClient:
                 if not all_hits:
                     raise EmptyResultError("列印歷史為空，目前帳號無任何列印紀錄。")
                 if len(all_hits) < total:
-                    print(
-                        f"[WARN] 資料可能不完整：API 回傳空頁，"
-                        f"但 total={total} 尚有 {total - len(all_hits)} 筆未取得。"
+                    logger.warning(
+                        "資料可能不完整：API 回傳空頁，但 total=%d 尚有 %d 筆未取得。",
+                        total, total - len(all_hits),
                     )
                 break
 
             all_hits.extend(hits)
-            print(f"[INFO] 已取得 {len(all_hits)} / {total} 筆")
+            logger.info("已取得 %d / %d 筆", len(all_hits), total)
 
             if len(all_hits) >= total:
                 break
 
             next_cursor = PaginationStrategy.extract_next_cursor(response, hits)
             if not next_cursor:
-                print("[WARN] 無法取得下一頁游標，停止分頁。")
+                logger.warning("無法取得下一頁游標，停止分頁。")
                 break
 
             if next_cursor in seen_cursors:
-                print("[WARN] 偵測到重複游標，停止分頁以防無限迴圈。")
+                logger.warning("偵測到重複游標，停止分頁以防無限迴圈。")
                 break
             seen_cursors.add(next_cursor)
 
@@ -141,4 +144,4 @@ class BambuCloudClient:
         }
         with open(output_path, "w", encoding="utf-8") as f:
             json.dump(payload, f, ensure_ascii=False, indent=2)
-        print(f"[OK] Raw 資料已儲存：{output_path}")
+        logger.info("Raw 資料已儲存：%s", output_path)

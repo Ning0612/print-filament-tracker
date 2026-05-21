@@ -2,9 +2,11 @@ import csv
 import io
 import json
 import uuid
-from datetime import datetime, timezone
+from datetime import timezone
 from pathlib import Path
 from typing import Any
+
+from .normalize import normalize_date as _normalize_date
 
 from .db import (
     DatabaseError,
@@ -56,24 +58,6 @@ _SPOOL_FIELDS = [
 ]
 
 _CSV_FORMULA_CHARS = ("=", "+", "-", "@")
-
-# 支援的日期輸入格式（統一正規化為 YYYY-MM-DD）
-_DATE_FORMATS = ("%Y-%m-%d", "%Y/%m/%d")
-
-
-def _normalize_date(val: str | None) -> str | None:
-    """將常見日期字串正規化為 ISO 8601 YYYY-MM-DD，無效格式拋出 ValueError。"""
-    if not val:
-        return None
-    val = str(val).strip()
-    for fmt in _DATE_FORMATS:
-        try:
-            return datetime.strptime(val, fmt).strftime("%Y-%m-%d")
-        except ValueError:
-            continue
-    raise ValueError(
-        f"日期格式不正確：'{val}'，請使用 YYYY-MM-DD（例如 2024-01-15）。"
-    )
 
 
 # --- Computed fields ---

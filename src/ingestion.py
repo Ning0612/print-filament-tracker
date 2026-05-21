@@ -1,6 +1,10 @@
 import json
+import logging
+import threading
 import requests
 from pathlib import Path
+
+logger = logging.getLogger(__name__)
 
 from .config import AppConfig
 from .db import (
@@ -26,6 +30,17 @@ _ALLOWED_COVER_HOSTS = (
 
 
 _MAX_COVER_BYTES = 10 * 1024 * 1024  # 10 MB
+
+# Per-external_id locks to prevent concurrent downloads of the same cover
+_cover_locks: dict[int, threading.Lock] = {}
+_cover_locks_guard = threading.Lock()
+
+
+def _get_cover_lock(eid: int) -> threading.Lock:
+    with _cover_locks_guard:
+        if eid not in _cover_locks:
+            _cover_locks[eid] = threading.Lock()
+        return _cover_locks[eid]
 
 
 def _is_allowed_cover_url(url: str) -> bool:
@@ -56,33 +71,36 @@ def _is_valid_image_bytes(data: bytes) -> bool:
 
 def _cache_cover(external_id: int, url: str, covers_dir: Path) -> str | None:
     if not _is_allowed_cover_url(url):
-        print(f"[WARN] cover URL 來源不在白名單，已跳過：{url[:80]}")
+        logger.warning("cover URL 來源不在白名單，已跳過：%s", url[:80])
         return None
     covers_dir.mkdir(parents=True, exist_ok=True)
     out_path = covers_dir / f"{external_id}.png"
-    if out_path.exists():
+    if out_path.exists():  # fast path without lock
         return f"/covers/{external_id}.png"
-    try:
-        resp = requests.get(url, timeout=15)
-        resp.raise_for_status()
-        data = resp.content
-        if len(data) > _MAX_COVER_BYTES:
-            print(f"[WARN] 封面圖超過大小限制，已跳過（id={external_id}）")
-            return None
-        if not _is_valid_image_bytes(data):
-            print(f"[WARN] 封面圖格式無效，已跳過（id={external_id}）")
-            return None
-        tmp = out_path.with_suffix(".tmp")
+    with _get_cover_lock(external_id):
+        if out_path.exists():  # double-check under lock
+            return f"/covers/{external_id}.png"
         try:
-            tmp.write_bytes(data)
-            tmp.replace(out_path)
-        except Exception:
-            tmp.unlink(missing_ok=True)
-            raise
-        return f"/covers/{external_id}.png"
-    except Exception as exc:
-        print(f"[WARN] 封面圖下載失敗（id={external_id}），可能為過期 URL：{exc}")
-        return None
+            resp = requests.get(url, timeout=15)
+            resp.raise_for_status()
+            data = resp.content
+            if len(data) > _MAX_COVER_BYTES:
+                logger.warning("封面圖超過大小限制，已跳過（id=%d）", external_id)
+                return None
+            if not _is_valid_image_bytes(data):
+                logger.warning("封面圖格式無效，已跳過（id=%d）", external_id)
+                return None
+            tmp = out_path.with_suffix(".tmp")
+            try:
+                tmp.write_bytes(data)
+                tmp.replace(out_path)
+            except Exception:
+                tmp.unlink(missing_ok=True)
+                raise
+            return f"/covers/{external_id}.png"
+        except Exception as exc:
+            logger.warning("封面圖下載失敗（id=%d），可能為過期 URL：%s", external_id, exc)
+            return None
 
 
 def _extract_slot_id(item: dict) -> int | None:
@@ -214,9 +232,9 @@ def ingest_raw_tasks(
             stats["skipped"] += 1
 
     if errors:
-        print(f"[WARN] 匯入時有 {len(errors)} 筆記錄發生錯誤：")
+        logger.warning("匯入時有 %d 筆記錄發生錯誤：", len(errors))
         for e in errors:
-            print(f"  - {e}")
+            logger.warning("  - %s", e)
 
     return stats
 
@@ -263,7 +281,7 @@ def try_redownload_cover(external_id: int, covers_dir: Path, db_path: Path) -> s
             return None
         return _cache_cover(external_id, url, covers_dir)
     except Exception as exc:
-        print(f"[WARN] 封面圖重新下載失敗（external_id={external_id}）：{exc}")
+        logger.warning("封面圖重新下載失敗（external_id=%d）：%s", external_id, exc)
         return None
 
 

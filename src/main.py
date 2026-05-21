@@ -1,4 +1,5 @@
 import argparse
+import logging
 import sys
 from pathlib import Path
 
@@ -303,6 +304,7 @@ def cmd_web(args: argparse.Namespace) -> int:
 # --- main ---
 
 def main() -> None:
+    logging.basicConfig(level=logging.INFO, format="%(message)s", stream=sys.stdout)
     parser = build_parser()
     args = parser.parse_args()
 

@@ -1,11 +1,18 @@
 import json
+import logging
 import sqlite3
 import time
 from contextlib import contextmanager
 from pathlib import Path
 from typing import Iterator
 
+logger = logging.getLogger(__name__)
+
 DB_FILENAME = "tracker.db"
+
+# RGB Euclidean distance squared threshold for automatic filament color matching.
+# 8100 = 90^2 means each channel can differ by up to ~52 out of 255.
+_COLOR_DIST_THRESHOLD_SQ = 90 * 90
 
 _SCHEMA_SQL = """
 CREATE TABLE IF NOT EXISTS printer (
@@ -77,6 +84,9 @@ class DatabaseError(Exception):
     pass
 
 
+# ── Schema & Migration ──────────────────────────────────────────────────────
+
+
 def get_db_path(output_dir: Path) -> Path:
     return output_dir / DB_FILENAME
 
@@ -97,7 +107,7 @@ def init_db(db_path: Path) -> None:
         try:
             old_db.rename(db_path)
         except OSError as exc:
-            print(f"[WARN] 無法自動遷移 bambu.db → tracker.db：{exc}，請手動重新命名後重啟。")
+            logger.warning("無法自動遷移 bambu.db → tracker.db：%s，請手動重新命名後重啟。", exc)
     db_path.parent.mkdir(parents=True, exist_ok=True)
     with sqlite3.connect(db_path) as conn:
         # Production pragmas: WAL for concurrent read/write, busy timeout to
@@ -144,11 +154,14 @@ def init_db(db_path: Path) -> None:
             )
             conn.commit()
         except Exception as exc:
-            print(f"[WARN] 欄位回填失敗，已略過：{exc}")
+            logger.warning("欄位回填失敗，已略過：%s", exc)
         conn.executescript("""
             CREATE INDEX IF NOT EXISTS idx_print_task_started_at ON print_task(started_at);
             CREATE INDEX IF NOT EXISTS idx_print_task_printer ON print_task(printer_id);
         """)
+
+
+# ── Connection & App Config ─────────────────────────────────────────────────
 
 
 def get_app_config(conn: sqlite3.Connection, key: str) -> str | None:
@@ -179,7 +192,7 @@ def get_connection(db_path: Path) -> Iterator[sqlite3.Connection]:
         conn.close()
 
 
-# --- Printer helpers ---
+# ── Printer CRUD ────────────────────────────────────────────────────────────
 
 def upsert_printer(conn: sqlite3.Connection, device_id: str, name: str, model: str | None) -> int:
     conn.execute(
@@ -213,7 +226,7 @@ def get_printer_id_by_device_id(conn: sqlite3.Connection, device_id: str) -> int
     return row["id"] if row else None
 
 
-# --- Print task helpers ---
+# ── Print Task CRUD ─────────────────────────────────────────────────────────
 
 def upsert_print_task(conn: sqlite3.Connection, task: dict) -> tuple[int, bool]:
     """Insert or update a cloud print task. Returns (task_db_id, is_new).
@@ -343,7 +356,7 @@ def sync_task_filaments(conn: sqlite3.Connection, print_task_id: int, rows: list
                 candidate["spool_color_hex"],
                 row.get("color_hex"),
             )
-            if distance is None or distance > 90 * 90:
+            if distance is None or distance > _COLOR_DIST_THRESHOLD_SQ:
                 continue
             if closest_distance is None or distance < closest_distance:
                 match = candidate
@@ -444,7 +457,7 @@ def insert_print_task_filament(conn: sqlite3.Connection, ptf: dict) -> None:
     )
 
 
-# --- Filament spool helpers ---
+# ── Filament Spool CRUD ─────────────────────────────────────────────────────
 
 def insert_spool(conn: sqlite3.Connection, spool: dict) -> int:
     cursor = conn.execute(
@@ -677,6 +690,9 @@ def unmap_filament(conn: sqlite3.Connection, ptf_id: int) -> None:
     )
     if cursor.rowcount == 0:
         raise DatabaseError(f"print_task_filament id={ptf_id} 不存在或已是未對照狀態。")
+
+
+# ── Mapping & PTF Operations ────────────────────────────────────────────────
 
 
 def map_filament_to_spool(conn: sqlite3.Connection, ptf_id: int, spool_id: int) -> None:
@@ -1063,6 +1079,9 @@ def _tz_mod(col: str, tz_minutes: int) -> str:
         f"THEN DATETIME({col}, '{mod}') "
         f"ELSE {col} END"
     )
+
+
+# ── Analytics Queries ───────────────────────────────────────────────────────
 
 
 def get_heatmap_available_years(conn: sqlite3.Connection, tz_offset_minutes: int = 0) -> list:

@@ -4,6 +4,7 @@ from pathlib import Path
 from flask import Blueprint, abort, current_app, flash, redirect, render_template, request, url_for
 
 from web.i18n import t
+from web.utils import ALLOWED_IMAGE_EXTS, is_valid_image
 
 from src.db import (
     delete_manual_task,
@@ -19,21 +20,7 @@ from src.db import (
     update_task_cover_url,
 )
 
-_ALLOWED_COVER_EXTS = {".png", ".jpg", ".jpeg", ".webp", ".gif"}
-
 bp = Blueprint("tasks", __name__)
-
-
-def _is_valid_image(header: bytes) -> bool:
-    if header[:8] == b'\x89PNG\r\n\x1a\n':
-        return True
-    if header[:3] == b'\xff\xd8\xff':
-        return True
-    if header[:4] in (b'GIF8',) and header[4:5] in (b'7', b'9'):
-        return True
-    if header[:4] == b'RIFF' and len(header) >= 12 and header[8:12] == b'WEBP':
-        return True
-    return False
 
 PER_PAGE = 20
 
@@ -196,11 +183,11 @@ def _save_manual_cover(covers_dir: Path, task_id: int, file) -> str | None:
     if not file or not file.filename:
         return None
     ext = Path(file.filename).suffix.lower()
-    if ext not in _ALLOWED_COVER_EXTS:
+    if ext not in ALLOWED_IMAGE_EXTS:
         return None
     header = file.read(12)
     file.stream.seek(0)
-    if not _is_valid_image(header):
+    if not is_valid_image(header):
         return None
     covers_dir.mkdir(parents=True, exist_ok=True)
     filename = f"m{task_id}{ext}"
@@ -210,7 +197,7 @@ def _save_manual_cover(covers_dir: Path, task_id: int, file) -> str | None:
 
 def _remove_manual_cover(covers_dir: Path, task_id: int) -> None:
     """Delete any existing manual cover file for this task (all extensions)."""
-    for ext in _ALLOWED_COVER_EXTS:
+    for ext in ALLOWED_IMAGE_EXTS:
         p = covers_dir / f"m{task_id}{ext}"
         if p.exists():
             p.unlink()
@@ -313,7 +300,7 @@ def edit_manual(task_id: int):
     new_ext: str | None = None
     if cover_file and cover_file.filename:
         ext = Path(cover_file.filename).suffix.lower()
-        if ext not in _ALLOWED_COVER_EXTS:
+        if ext not in ALLOWED_IMAGE_EXTS:
             flash(t("flash.tasks.invalid_ext", ext=ext), "error")
             cover_file = None
         else:

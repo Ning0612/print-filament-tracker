@@ -1,7 +1,7 @@
-import re
 import sqlite3
 from pathlib import Path
 
+from src.normalize import normalize_date as _normalize_date_shared
 from src.db import (
     delete_printer_record,
     get_all_printers_full,
@@ -24,12 +24,10 @@ class PrinterValidationError(Exception):
 
 
 def _normalize_date(val: "str | None") -> "str | None":
-    if not val:
-        return None
-    val = val.strip().replace("/", "-")
-    if re.fullmatch(r"\d{4}-\d{2}-\d{2}", val):
-        return val
-    raise PrinterValidationError(f"日期格式錯誤（請使用 YYYY-MM-DD）：{val}")
+    try:
+        return _normalize_date_shared(val)
+    except ValueError as exc:
+        raise PrinterValidationError(str(exc)) from exc
 
 
 def _validate_printer_data(data: dict) -> None:

@@ -1,4 +1,25 @@
+from datetime import datetime
 from typing import Any
+
+_DATE_FORMATS = ("%Y-%m-%d", "%Y/%m/%d")
+
+
+def normalize_date(val: "str | None") -> "str | None":
+    """Normalize common date strings to ISO 8601 YYYY-MM-DD.
+
+    Accepts YYYY-MM-DD and YYYY/MM/DD. Validates that the date itself is
+    calendar-valid (e.g. rejects 2024-13-99). Returns None for empty input.
+    Raises ValueError for unrecognised formats or invalid dates.
+    """
+    if not val:
+        return None
+    val = str(val).strip()
+    for fmt in _DATE_FORMATS:
+        try:
+            return datetime.strptime(val, fmt).strftime("%Y-%m-%d")
+        except ValueError:
+            continue
+    raise ValueError(f"日期格式不正確：'{val}'，請使用 YYYY-MM-DD（例如 2024-01-15）。")
 
 
 def normalize_tasks(raw_hits: list[dict]) -> list[dict[str, Any]]:
