@@ -6,6 +6,8 @@ _HEX_RE = re.compile(r"^[0-9A-Fa-f]{6}$")
 
 from src.db import (
     get_cost_breakdown,
+    get_cross_day_ranges_for_year,
+    get_cross_day_tasks_for_date,
     get_daily_filament_summary,
     get_duration_histogram,
     get_heatmap_available_years,
@@ -40,16 +42,18 @@ def _hex6(color_hex: str) -> str:
     return "#888888"
 
 
-def _build_year_grid(year: int, by_date: dict) -> tuple:
+def _build_year_grid(year: int, by_date: dict, cross_day_dates: set | None = None) -> tuple:
     """
     Build heatmap grid for a full calendar year.
     Returns (grid, month_labels):
       grid: list of week-columns (Mon→Sun), each a list of 7 day-dicts
       month_labels: list of str per column (month name at first col of month, else "")
+    cross_day_dates: set of date strings that have cross-day tasks passing through them.
     """
     today = date.today()
     jan1 = date(year, 1, 1)
     dec31 = date(year, 12, 31)
+    _cross = cross_day_dates or set()
 
     # Start on the Monday of the week containing Jan 1
     start = jan1 - timedelta(days=jan1.weekday())
@@ -73,13 +77,17 @@ def _build_year_grid(year: int, by_date: dict) -> tuple:
             if in_year and not is_future:
                 info = by_date.get(ds, {"count": 0, "weight_g": 0.0})
                 col.append({
-                    "date": ds, "count": info["count"],
-                    "weight_g": info["weight_g"], "in_year": True, "future": False,
+                    "date": ds,
+                    "count": info["count"],
+                    "weight_g": info["weight_g"],
+                    "in_year": True,
+                    "future": False,
+                    "has_cross_day": ds in _cross and info["count"] == 0,
                 })
             else:
                 col.append({
                     "date": ds, "count": 0, "weight_g": 0.0,
-                    "in_year": in_year, "future": is_future,
+                    "in_year": in_year, "future": is_future, "has_cross_day": False,
                 })
 
             if in_year and current.month not in seen_months:
@@ -100,7 +108,19 @@ def get_heatmap_year_payload(conn: sqlite3.Connection, year: int, tz_offset_minu
         r["date"]: {"count": r["count"], "weight_g": round(r["weight_g"], 1)}
         for r in rows
     }
-    grid, month_labels = _build_year_grid(year, by_date)
+
+    # Build set of dates covered by cross-day tasks (excluding days that already have started tasks)
+    year_start = date(year, 1, 1)
+    year_end = date(year, 12, 31)
+    cross_day_dates: set = set()
+    for start_str, end_str in get_cross_day_ranges_for_year(conn, year, tz_offset_minutes):
+        cur = max(date.fromisoformat(start_str), year_start)
+        end_d = min(date.fromisoformat(end_str), year_end)
+        while cur <= end_d:
+            cross_day_dates.add(cur.isoformat())
+            cur += timedelta(days=1)
+
+    grid, month_labels = _build_year_grid(year, by_date, cross_day_dates)
     active_days = [d for col in grid for d in col if d["in_year"] and not d["future"]]
     max_count = max((d["count"] for d in active_days), default=1) or 1
     total_tasks = sum(r["count"] for r in rows)
@@ -249,11 +269,44 @@ def _parse_dt(dt_str: str, tz_delta: timedelta) -> datetime:
     return datetime.fromisoformat(s[:19])
 
 
-def _build_timeline(tasks: list, tz_offset_minutes: int = 0) -> tuple:
-    """Build per-printer timeline segments. Returns (printers, tl_start_label, tl_end_label)."""
+def _overlap_seconds(task: dict, day_start: datetime, day_end: datetime, tz_delta: timedelta) -> float:
+    """Return seconds a task overlaps with the local-time window [day_start, day_end]."""
+    start_str = task.get("started_at")
+    if not start_str:
+        return 0.0
+    try:
+        start_dt = _parse_dt(start_str, tz_delta)
+    except ValueError:
+        return 0.0
+    end_str = task.get("ended_at")
+    duration_s = task.get("duration_seconds") or 0
+    end_dt = None
+    if end_str:
+        try:
+            end_dt = _parse_dt(end_str, tz_delta)
+        except ValueError:
+            pass
+    if end_dt is None or end_dt <= start_dt:
+        if duration_s:
+            end_dt = start_dt + timedelta(seconds=duration_s)
+        else:
+            return 0.0
+    o_start = max(start_dt, day_start)
+    o_end = min(end_dt, day_end)
+    if o_end <= o_start:
+        return 0.0
+    return (o_end - o_start).total_seconds()
+
+
+def _build_timeline(tasks: list, tz_offset_minutes: int = 0, day_date: str | None = None) -> tuple:
+    """Build per-printer timeline segments. Returns (printers, tl_start_label, tl_end_label).
+
+    When day_date is provided, tasks are clipped to that day's 00:00–23:59:59 boundaries,
+    allowing cross-day tasks to appear on multiple day pages correctly.
+    """
     tz_delta = timedelta(minutes=tz_offset_minutes)
     printer_tasks: dict = {}
-    all_times: list = []
+    first_local_dt: datetime | None = None
 
     for task in tasks:
         start_str = task.get("started_at")
@@ -287,19 +340,30 @@ def _build_timeline(tasks: list, tz_offset_minutes: int = 0) -> tuple:
             "end_dt": end_dt,
             "failed": task.get("status") == 3,
         })
-        all_times += [start_dt, end_dt]
+        if first_local_dt is None:
+            first_local_dt = start_dt
 
     if not printer_tasks:
         return [], "", ""
 
-    # Always span the full day 00:00–23:59:59
-    sample_dt = all_times[0]
-    tl_start = sample_dt.replace(hour=0, minute=0, second=0, microsecond=0)
-    tl_end = sample_dt.replace(hour=23, minute=59, second=59, microsecond=0)
+    # Determine the full-day boundaries in local time
+    if day_date:
+        d = date.fromisoformat(day_date)
+        tl_start = datetime(d.year, d.month, d.day, 0, 0, 0)
+        tl_end = datetime(d.year, d.month, d.day, 23, 59, 59)
+    else:
+        tl_start = first_local_dt.replace(hour=0, minute=0, second=0, microsecond=0)
+        tl_end = first_local_dt.replace(hour=23, minute=59, second=59, microsecond=0)
     total_s = (tl_end - tl_start).total_seconds()
+    tl_day = tl_start.date()
 
     def pct(dt: datetime) -> float:
         return round((dt - tl_start).total_seconds() / total_s * 100, 2)
+
+    def _time_label(dt: datetime) -> str:
+        if dt.date() != tl_day:
+            return f"{dt.month}/{dt.day} {dt.strftime('%H:%M')}"
+        return dt.strftime("%H:%M")
 
     result = []
     for (_, printer_name), ptasks in sorted(printer_tasks.items(), key=lambda x: x[0][1]):
@@ -308,23 +372,32 @@ def _build_timeline(tasks: list, tz_offset_minutes: int = 0) -> tuple:
         cursor = tl_start
 
         for pt in ptasks:
-            if pt["start_dt"] > cursor:
+            # Clip to day boundaries for visual rendering
+            display_start = max(pt["start_dt"], tl_start)
+            display_end = min(pt["end_dt"], tl_end)
+            if display_end <= display_start:
+                continue
+
+            if display_start > cursor:
                 segments.append({
                     "type": "idle",
                     "left_pct": pct(cursor),
-                    "width_pct": pct(pt["start_dt"]) - pct(cursor),
-                    "tooltip": f"{cursor.strftime('%H:%M')}–{pt['start_dt'].strftime('%H:%M')}",
+                    "width_pct": pct(display_start) - pct(cursor),
+                    "tooltip": f"{cursor.strftime('%H:%M')}–{display_start.strftime('%H:%M')}",
                 })
-            w = max(pct(pt["end_dt"]) - pct(pt["start_dt"]), 0.5)
+            w = max(pct(display_end) - pct(display_start), 0.5)
+            # Tooltip shows actual (unclipped) times so cross-day extent is visible
             segments.append({
                 "type": "printing_failed" if pt["failed"] else "printing",
-                "left_pct": pct(pt["start_dt"]),
+                "left_pct": pct(display_start),
                 "width_pct": w,
                 "task_id": pt["task_id"],
                 "task_name": pt["task_name"],
-                "tooltip": f"{pt['task_name']}  {pt['start_dt'].strftime('%H:%M')}–{pt['end_dt'].strftime('%H:%M')}",
+                "tooltip": f"{pt['task_name']}  {_time_label(pt['start_dt'])}–{_time_label(pt['end_dt'])}",
+                "cross_from_prev": pt["start_dt"].date() < tl_day,
+                "cross_to_next": pt["end_dt"].date() > tl_day,
             })
-            cursor = max(cursor, pt["end_dt"])
+            cursor = max(cursor, display_end)
 
         if cursor < tl_end:
             segments.append({
@@ -334,8 +407,11 @@ def _build_timeline(tasks: list, tz_offset_minutes: int = 0) -> tuple:
                 "tooltip": f"{cursor.strftime('%H:%M')}–24:00",
             })
 
+        # Utilization counts only the portion of each task within this day
         printing_s = sum(
-            (pt["end_dt"] - pt["start_dt"]).total_seconds() for pt in ptasks
+            (min(pt["end_dt"], tl_end) - max(pt["start_dt"], tl_start)).total_seconds()
+            for pt in ptasks
+            if min(pt["end_dt"], tl_end) > max(pt["start_dt"], tl_start)
         )
         utilization_pct = round(printing_s / total_s * 100, 1)
 
@@ -350,9 +426,20 @@ def _build_timeline(tasks: list, tz_offset_minutes: int = 0) -> tuple:
 
 def get_daily_detail_payload(conn: sqlite3.Connection, date_str: str, tz_offset_minutes: int = 0) -> dict:
     tasks = get_tasks_for_date(conn, date_str, tz_offset_minutes)
+    cross_day_tasks = get_cross_day_tasks_for_date(conn, date_str, tz_offset_minutes)
     filament_summary = get_daily_filament_summary(conn, date_str, tz_offset_minutes)
 
-    total_duration_s = sum(t.get("duration_seconds") or 0 for t in tasks)
+    # Proportional duration: count only seconds each task overlaps with this calendar day.
+    # Covers both tasks that started today and cross-day tasks passing through.
+    # Weight/cost/task count remain start-date-only (no double counting).
+    _tz_delta = timedelta(minutes=tz_offset_minutes)
+    _d = date.fromisoformat(date_str)
+    _day_start = datetime(_d.year, _d.month, _d.day, 0, 0, 0)
+    _day_end = datetime(_d.year, _d.month, _d.day, 23, 59, 59)
+    total_duration_s = sum(
+        _overlap_seconds(t, _day_start, _day_end, _tz_delta)
+        for t in tasks + cross_day_tasks
+    )
     total_weight_g = sum(t.get("total_weight_g") or 0 for t in tasks)
 
     filaments = []
@@ -395,7 +482,7 @@ def get_daily_detail_payload(conn: sqlite3.Connection, date_str: str, tz_offset_
         )
     ]
 
-    timeline, tl_start, tl_end = _build_timeline(tasks, tz_offset_minutes)
+    timeline, tl_start, tl_end = _build_timeline(tasks + cross_day_tasks, tz_offset_minutes, date_str)
 
     return {
         "date": date_str,

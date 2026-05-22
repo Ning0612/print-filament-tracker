@@ -28,6 +28,12 @@
              class="heatmap-cell level-{{ lvl }}"
              data-tooltip="{{ t('analytics.heatmap_tooltip', date=day.date, count=day.count, weight=day.weight_g) }}"
              aria-label="{{ t('analytics.heatmap_aria', date=day.date, count=day.count) }}"></a>
+          {% elif day.has_cross_day %}
+          <a href="{{ url_for('analytics.day_view', date_str=day.date) }}"
+             class="heatmap-cell level-0"
+             style="outline:1px dashed var(--pico-muted-color);outline-offset:-2px;"
+             data-tooltip="{{ t('analytics.heatmap_tooltip', date=day.date, count=day.count, weight=day.weight_g) }}"
+             aria-label="{{ t('analytics.heatmap_aria', date=day.date, count=day.count) }}"></a>
           {% else %}
           <div class="heatmap-cell level-0"
                data-tooltip="{{ t('analytics.heatmap_tooltip', date=day.date, count=day.count, weight=day.weight_g) }}"

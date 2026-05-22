@@ -107,7 +107,7 @@
            title="{{ printer.printer_name }}">{{ printer.printer_name }}</div>
       <div style="display:grid;grid-template-columns:1fr auto;gap:0.75rem;align-items:center;">
       <div>
-        <div style="position:relative;height:2rem;">
+        <div data-tl-container style="position:relative;height:2rem;">
           <div style="position:absolute;inset:0;border-radius:0.375rem;overflow:hidden;background:var(--pico-muted-border-color);">
             {% for seg in printer.segments %}
             <div style="position:absolute;left:{{ seg.left_pct }}%;width:{{ seg.width_pct }}%;min-width:{% if seg.type != 'idle' %}4{% else %}2{% endif %}px;height:100%;background:{% if seg.type == 'printing' %}#ef4444{% elif seg.type == 'printing_failed' %}#eab308{% else %}#4ade80{% endif %};"></div>
@@ -116,11 +116,21 @@
           {% for seg in printer.segments %}
           {% if seg.type in ('printing', 'printing_failed') %}
           <a href="{{ url_for('tasks.detail_view', task_id=seg.task_id) }}"
-             data-tooltip="{{ seg.tooltip }}"
+             data-tl-tooltip="{{ seg.tooltip }}"
              style="position:absolute;top:0;left:{{ seg.left_pct }}%;width:{{ seg.width_pct }}%;min-width:4px;height:100%;display:block;cursor:pointer;"></a>
           {% else %}
-          <div data-tooltip="{{ seg.tooltip }}"
+          <div data-tl-tooltip="{{ seg.tooltip }}"
                style="position:absolute;top:0;left:{{ seg.left_pct }}%;width:{{ seg.width_pct }}%;min-width:2px;height:100%;cursor:default;"></div>
+          {% endif %}
+          {% endfor %}
+          {% for seg in printer.segments %}
+          {% if seg.type in ('printing', 'printing_failed') %}
+          {% if seg.cross_from_prev %}
+          <span style="position:absolute;top:50%;left:calc({{ seg.left_pct }}% + 3px);transform:translateY(-50%);font-size:0.72rem;font-weight:700;line-height:1;background:rgba(0,0,0,0.65);color:#fff;border-radius:0.25rem;padding:2px 5px;pointer-events:none;z-index:3;">-1</span>
+          {% endif %}
+          {% if seg.cross_to_next %}
+          <span style="position:absolute;top:50%;left:calc({{ seg.left_pct }}% + {{ seg.width_pct }}% - 3px);transform:translate(-100%,-50%);font-size:0.72rem;font-weight:700;line-height:1;background:rgba(0,0,0,0.65);color:#fff;border-radius:0.25rem;padding:2px 5px;pointer-events:none;z-index:3;">+1</span>
+          {% endif %}
           {% endif %}
           {% endfor %}
         </div>
@@ -135,9 +145,38 @@
     {% endfor %}
   </div>
 </div>
+<!-- Timeline floating tooltip (JS-driven, clamped to container bounds) -->
+<div id="tl-tip" style="position:fixed;display:none;z-index:200;background:#fff;color:#111;font-size:0.78rem;line-height:1.4;padding:0.28rem 0.55rem;border-radius:0.35rem;box-shadow:0 2px 10px rgba(0,0,0,0.18);pointer-events:none;white-space:nowrap;"></div>
+<script>
+(function () {
+  var tip = document.getElementById('tl-tip');
+  document.querySelectorAll('[data-tl-tooltip]').forEach(function (el) {
+    el.addEventListener('mouseenter', function (e) {
+      tip.textContent = el.getAttribute('data-tl-tooltip');
+      tip.style.display = 'block';
+      place(e, el);
+    });
+    el.addEventListener('mousemove', function (e) { place(e, el); });
+    el.addEventListener('mouseleave', function () { tip.style.display = 'none'; });
+  });
+  function place(e, el) {
+    var tw = tip.offsetWidth, th = tip.offsetHeight, pad = 6;
+    var cont = el.closest('[data-tl-container]');
+    var b = cont ? cont.getBoundingClientRect() : { left: pad, right: window.innerWidth - pad };
+    var x = e.clientX - tw / 2;
+    var y = e.clientY - th - 10;
+    if (x < b.left + pad) x = b.left + pad;
+    if (x + tw > b.right - pad) x = b.right - tw - pad;
+    if (y < 8) y = e.clientY + 16;
+    tip.style.left = x + 'px';
+    tip.style.top = y + 'px';
+  }
+})();
+</script>
 {% endif %}
 
 <!-- Tasks gallery -->
+{% if daily.tasks %}
 <div style="border-top:1px solid var(--pico-muted-border-color);padding-top:1.5rem;">
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;">
     <small style="color:var(--pico-muted-color);font-weight:600;text-transform:uppercase;letter-spacing:0.04em;">{{ t('analytics.day_tasks_section') }}</small>
@@ -169,6 +208,7 @@
     {% endfor %}
   </div>
 </div>
+{% endif %}{# daily.tasks #}
 
 {% if daily.material_dist %}
 <script>

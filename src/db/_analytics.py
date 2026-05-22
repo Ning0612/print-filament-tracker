@@ -278,6 +278,87 @@ def get_tasks_for_date(conn: sqlite3.Connection, date_str: str, tz_offset_minute
     return tasks
 
 
+def get_cross_day_ranges_for_year(conn: sqlite3.Connection, year: int, tz_offset_minutes: int = 0) -> list:
+    """Return (start_date, end_date) string pairs for all multi-day tasks overlapping the given year.
+    Used to mark intermediate/end days in the heatmap as navigable.
+    """
+    tz_s = _tz_mod("pt.started_at", tz_offset_minutes)
+    if tz_offset_minutes == 0:
+        local_eff_end = (
+            "CASE WHEN pt.ended_at IS NOT NULL THEN pt.ended_at "
+            "WHEN pt.duration_seconds > 0 THEN DATETIME(pt.started_at, '+' || pt.duration_seconds || ' seconds') "
+            "ELSE NULL END"
+        )
+    else:
+        mod = f"+{tz_offset_minutes} minutes" if tz_offset_minutes >= 0 else f"{tz_offset_minutes} minutes"
+        local_eff_end = (
+            f"CASE WHEN pt.ended_at IS NOT NULL THEN "
+            f"CASE WHEN pt.ended_at LIKE '%Z' THEN DATETIME(pt.ended_at, '{mod}') ELSE pt.ended_at END "
+            f"WHEN pt.duration_seconds > 0 THEN "
+            f"CASE WHEN pt.started_at LIKE '%Z' "
+            f"THEN DATETIME(pt.started_at, '+' || pt.duration_seconds || ' seconds', '{mod}') "
+            f"ELSE DATETIME(pt.started_at, '+' || pt.duration_seconds || ' seconds') END "
+            f"ELSE NULL END"
+        )
+    rows = conn.execute(
+        f"""
+        WITH ranges AS (
+            SELECT DATE({tz_s}) AS start_date,
+                   DATE({local_eff_end}) AS end_date
+            FROM print_task pt
+            WHERE pt.started_at IS NOT NULL
+        )
+        SELECT start_date, end_date FROM ranges
+        WHERE end_date IS NOT NULL
+          AND start_date != end_date
+          AND start_date < ?
+          AND end_date   >= ?
+        ORDER BY start_date
+        """,
+        (f"{year + 1}-01-01", f"{year}-01-01"),
+    ).fetchall()
+    return [(r["start_date"], r["end_date"]) for r in rows]
+
+
+def get_cross_day_tasks_for_date(conn: sqlite3.Connection, date_str: str, tz_offset_minutes: int = 0) -> list:
+    """Return tasks that started before date_str (local) but whose print range overlaps date_str.
+    Used for timeline display only; excluded from statistics.
+    """
+    tz_s = _tz_mod("pt.started_at", tz_offset_minutes)
+    tz_e = _tz_mod("pt.ended_at", tz_offset_minutes)
+
+    if tz_offset_minutes == 0:
+        eff_end_expr = "DATETIME(pt.started_at, '+' || pt.duration_seconds || ' seconds')"
+    else:
+        mod = f"+{tz_offset_minutes} minutes" if tz_offset_minutes >= 0 else f"{tz_offset_minutes} minutes"
+        eff_end_expr = (
+            f"CASE WHEN pt.started_at LIKE '%Z' "
+            f"THEN DATETIME(pt.started_at, '+' || pt.duration_seconds || ' seconds', '{mod}') "
+            f"ELSE DATETIME(pt.started_at, '+' || pt.duration_seconds || ' seconds') END"
+        )
+
+    rows = conn.execute(
+        f"""
+        SELECT pt.*, p.name AS printer_name
+        FROM print_task pt LEFT JOIN printer p ON p.id = pt.printer_id
+        WHERE pt.started_at IS NOT NULL
+          AND DATE({tz_s}) < ?
+          AND (
+            (pt.ended_at IS NOT NULL AND DATE({tz_e}) >= ?)
+            OR (pt.ended_at IS NULL AND pt.duration_seconds > 0 AND DATE({eff_end_expr}) >= ?)
+          )
+        ORDER BY {tz_s}
+        """,
+        (date_str, date_str, date_str),
+    ).fetchall()
+    tasks = []
+    for row in rows:
+        d = dict(row)
+        d["filaments"] = []
+        tasks.append(d)
+    return tasks
+
+
 def get_daily_filament_summary(conn: sqlite3.Connection, date_str: str, tz_offset_minutes: int = 0) -> list:
     tz = _tz_mod("pt.started_at", tz_offset_minutes)
     rows = conn.execute(

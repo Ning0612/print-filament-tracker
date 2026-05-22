@@ -68,7 +68,7 @@ def day_view(date_str: str):
     with get_connection(db_path) as conn:
         daily = get_daily_detail_payload(conn, date_str, tz)
 
-    if not daily["tasks"]:
+    if not daily["tasks"] and not daily["timeline"]:
         abort(404)
 
     return render_template("analytics/day.html", daily=daily)

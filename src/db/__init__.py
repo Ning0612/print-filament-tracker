@@ -61,6 +61,8 @@ from ._filament import (
 from ._analytics import (
     get_color_usage_stats,
     get_cost_breakdown,
+    get_cross_day_ranges_for_year,
+    get_cross_day_tasks_for_date,
     get_daily_filament_summary,
     get_duration_histogram,
     get_heatmap_available_years,
@@ -143,6 +145,8 @@ __all__ = [
     # analytics
     "get_color_usage_stats",
     "get_cost_breakdown",
+    "get_cross_day_ranges_for_year",
+    "get_cross_day_tasks_for_date",
     "get_daily_filament_summary",
     "get_duration_histogram",
     "get_heatmap_available_years",
