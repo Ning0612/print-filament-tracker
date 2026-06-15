@@ -21,7 +21,7 @@
     <!-- 程式圖示：顯示於「程式和功能」清單及安裝精靈 -->
     <Icon Id="AppIcon" SourceFile="$(var.IconSource)" />
     <Property Id="ARPPRODUCTICON" Value="AppIcon" />
-    <Property Id="ARPHELPLINK" Value="https://github.com/Ning0612/PrintFilamentTracker" />
+    <Property Id="ARPHELPLINK" Value="https://github.com/Ning0612/print-filament-tracker" />
 
     <!-- 安裝精靈使用者介面 -->
     <WixVariable Id="WixUILicenseRtf" Value="$(sys.SOURCEFILEDIR)license.rtf" />

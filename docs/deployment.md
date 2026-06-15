@@ -45,7 +45,7 @@ PrintFilamentTracker 提供預先打包的執行檔，**無需安裝 Python**：
 
 ### 下載與執行
 
-前往 [GitHub Releases](https://github.com/Ning0612/PrintFilamentTracker/releases) 下載最新版，有兩種版本可選：
+前往 [GitHub Releases](https://github.com/Ning0612/print-filament-tracker/releases) 下載最新版，有兩種版本可選：
 
 **方式一：MSI 安裝程式（推薦）**
 
@@ -137,7 +137,7 @@ explorer "$env:LOCALAPPDATA\PrintFilamentTracker"
 
 ### 下載與執行
 
-1. 前往 [GitHub Releases](https://github.com/Ning0612/PrintFilamentTracker/releases) 下載最新版 `PrintFilamentTracker.app.zip`
+1. 前往 [GitHub Releases](https://github.com/Ning0612/print-filament-tracker/releases) 下載最新版 `PrintFilamentTracker.app.zip`
 2. 解壓縮後，將 `PrintFilamentTracker.app` 移至您希望存放的目錄（如 `~/Applications/`）
 3. **首次開啟**（必須使用右鍵開啟以繞過 Gatekeeper）：
    - 右鍵點擊 `PrintFilamentTracker.app`

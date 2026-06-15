@@ -1,4 +1,4 @@
-# PrintFilamentTracker
+# Print Filament Tracker
 
 ![Banner](web/static/img/print-filament-tracker-banner.png)
 
@@ -53,7 +53,7 @@
 
 ### Windows 安裝
 
-1. 從 [Releases](https://github.com/Ning0612/PrintFilamentTracker/releases) 頁面下載 `PrintFilamentTracker.exe`
+1. 從 [Releases](https://github.com/Ning0612/print-filament-tracker/releases) 頁面下載 `PrintFilamentTracker.exe`
 2. 將 `.exe` 放置於任意目錄（建議 `C:\Users\你的名字\PrintFilamentTracker\`）
 3. 雙擊執行
 
@@ -69,7 +69,7 @@
 
 ### macOS 安裝
 
-1. 從 [Releases](https://github.com/Ning0612/PrintFilamentTracker/releases) 頁面下載 `PrintFilamentTracker.app.zip`
+1. 從 [Releases](https://github.com/Ning0612/print-filament-tracker/releases) 頁面下載 `PrintFilamentTracker.app.zip`
 2. 解壓縮後將 `.app` 拖曳至任意目錄
 3. **首次開啟**：右鍵點擊 `.app` → 選擇「**開啟**」→ 在對話框中確認開啟（繞過 Gatekeeper）
 
