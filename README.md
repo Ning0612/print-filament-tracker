@@ -7,6 +7,17 @@
 ![SQLite](https://img.shields.io/badge/SQLite-003B57?style=flat-square&logo=sqlite&logoColor=white)
 ![HTMX](https://img.shields.io/badge/htmx-336699?style=flat-square&logo=htmx&logoColor=white)
 ![Pico CSS](https://img.shields.io/badge/Pico_CSS-0172AD?style=flat-square&logo=css3&logoColor=white)
+## Demo 截圖
+
+已避開設備識別資訊，只保留對外展示需要的畫面。
+
+| 儀表板 | 列印分析 |
+|---|---|
+| ![Dashboard](docs/demo/dashboard.png) | ![Analysis](docs/demo/analysis.png) |
+
+| 列印歷史 | 耗材管理（裁切） |
+|---|---|
+| ![History](docs/demo/history.png) | ![Materials](docs/demo/materials-crop.png) |
 
 **個人本機工具**，專為單一用戶在自己的電腦上管理 Bambu Lab 3D 列印機的列印歷史與耗材（Filament Spool）。
 
