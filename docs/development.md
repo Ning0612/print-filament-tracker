@@ -170,6 +170,19 @@ print('OK')
 .venv/Scripts/python.exe -m src.main export --format=both --output-dir=data
 ```
 
+## CI
+
+GitHub Actions 目前提供第一版 Python smoke checks：
+
+- 安裝 `requirements.txt`
+- `python -m compileall src web scripts tray_main.py`
+- 驗證 `web/translations/*.json`
+- 建立 Flask app 並以 test client 檢查首頁不回傳 5xx
+
+CI 定義位於 `.github/workflows/ci.yml`，會在 push、pull request 與手動
+workflow dispatch 時執行。這不是 release build pipeline；Windows MSI 與
+macOS `.app` 打包仍由手動建置腳本處理。
+
 ### 自行建置執行檔
 
 ```powershell
