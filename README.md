@@ -7,6 +7,8 @@
 ![SQLite](https://img.shields.io/badge/SQLite-003B57?style=flat-square&logo=sqlite&logoColor=white)
 ![HTMX](https://img.shields.io/badge/htmx-336699?style=flat-square&logo=htmx&logoColor=white)
 ![Pico CSS](https://img.shields.io/badge/Pico_CSS-0172AD?style=flat-square&logo=css3&logoColor=white)
+[![CI](https://github.com/Ning0612/print-filament-tracker/actions/workflows/ci.yml/badge.svg)](https://github.com/Ning0612/print-filament-tracker/actions/workflows/ci.yml)
+
 ## Demo 截圖
 
 已避開設備識別資訊，只保留對外展示需要的畫面。
