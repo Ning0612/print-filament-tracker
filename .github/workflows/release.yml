@@ -1,0 +1,179 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: "Existing tag to package, for example v1.2.0"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+env:
+  RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag_name || github.ref_name }}
+
+jobs:
+  validate-tag:
+    name: Validate release tag
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      package_version: ${{ steps.validate.outputs.package_version }}
+
+    steps:
+      - name: Validate tag exists
+        id: validate
+        env:
+          TAG_NAME: ${{ env.RELEASE_TAG }}
+        run: |
+          if ! printf '%s\n' "$TAG_NAME" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+(-rc\.[0-9]+)?$'; then
+            echo "Tag must match vX.Y.Z or vX.Y.Z-rc.N, got: $TAG_NAME" >&2
+            exit 1
+          fi
+
+          matches="$(git ls-remote --tags --refs "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY.git" "refs/tags/$TAG_NAME" | wc -l)"
+          if [ "$matches" -ne 1 ]; then
+            echo "Tag does not exist on remote: $TAG_NAME" >&2
+            exit 1
+          fi
+
+          echo "package_version=${TAG_NAME#v}" >> "$GITHUB_OUTPUT"
+
+  test:
+    name: Run tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: validate-tag
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.RELEASE_TAG }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+          cache: pip
+          cache-dependency-path: |
+            requirements.txt
+            requirements-dev.txt
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements-dev.txt
+
+      - name: Compile Python sources
+        run: python -m compileall src web scripts tray_main.py
+
+      - name: Run pytest
+        run: python -m pytest
+
+  build-windows:
+    name: Build Windows package
+    runs-on: windows-latest
+    timeout-minutes: 30
+    needs:
+      - validate-tag
+      - test
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.RELEASE_TAG }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+          cache: pip
+          cache-dependency-path: requirements.txt
+
+      - name: Create virtual environment
+        shell: pwsh
+        run: |
+          python -m venv .venv
+          .\.venv\Scripts\python.exe -m pip install --upgrade pip
+          .\.venv\Scripts\python.exe -m pip install -r requirements.txt
+
+      - name: Build EXE
+        shell: pwsh
+        run: .\scripts\build_exe.ps1 -NoUpx -SkipMsi -Version "${{ needs.validate-tag.outputs.package_version }}"
+
+      - name: Upload Windows artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-package
+          path: dist/PrintFilamentTracker.exe
+          if-no-files-found: error
+
+  build-macos:
+    name: Build macOS package
+    runs-on: macos-latest
+    timeout-minutes: 30
+    needs:
+      - validate-tag
+      - test
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.RELEASE_TAG }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+          cache: pip
+          cache-dependency-path: requirements.txt
+
+      - name: Create virtual environment
+        run: |
+          python3 -m venv .venv
+          .venv/bin/python -m pip install --upgrade pip
+          .venv/bin/python -m pip install -r requirements.txt
+
+      - name: Build app bundle
+        run: bash scripts/build_exe.sh --version="${{ needs.validate-tag.outputs.package_version }}"
+
+      - name: Zip app bundle
+        run: ditto -c -k --sequesterRsrc --keepParent dist/PrintFilamentTracker.app dist/PrintFilamentTracker.app.zip
+
+      - name: Upload macOS artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-package
+          path: dist/PrintFilamentTracker.app.zip
+          if-no-files-found: error
+
+  publish-release:
+    name: Publish GitHub release
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs:
+      - build-windows
+      - build-macos
+
+    steps:
+      - name: Download package artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: release-assets
+
+      - name: Create or update release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG_NAME: ${{ env.RELEASE_TAG }}
+        run: |
+          gh release view "$TAG_NAME" >/dev/null 2>&1 || gh release create "$TAG_NAME" --generate-notes --title "$TAG_NAME"
+          gh release upload "$TAG_NAME" release-assets/windows-package/PrintFilamentTracker.exe --clobber
+          gh release upload "$TAG_NAME" release-assets/macos-package/PrintFilamentTracker.app.zip --clobber

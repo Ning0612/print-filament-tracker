@@ -10,6 +10,8 @@ __pycache__/
 *.pyc
 *.pyo
 .venv/
+.pytest_cache/
+.pytest-tmp/
 *.egg-info/
 dist/
 build/

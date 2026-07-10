@@ -8,6 +8,7 @@
 ![HTMX](https://img.shields.io/badge/htmx-336699?style=flat-square&logo=htmx&logoColor=white)
 ![Pico CSS](https://img.shields.io/badge/Pico_CSS-0172AD?style=flat-square&logo=css3&logoColor=white)
 [![CI](https://github.com/Ning0612/print-filament-tracker/actions/workflows/ci.yml/badge.svg)](https://github.com/Ning0612/print-filament-tracker/actions/workflows/ci.yml)
+[![Release](https://github.com/Ning0612/print-filament-tracker/actions/workflows/release.yml/badge.svg)](https://github.com/Ning0612/print-filament-tracker/actions/workflows/release.yml)
 
 ## Demo 截圖
 
@@ -149,7 +150,8 @@ PrintFilamentTracker/
 │   └── license.rtf # 授權條款（PolyForm Noncommercial License 1.0.0）
 ├── data/           # 資料目錄（凍結版位於系統資料目錄）
 ├── docs/           # 技術文件
-└── requirements.txt
+├── requirements.txt
+└── requirements-dev.txt
 ```
 
 ## 自行建置
