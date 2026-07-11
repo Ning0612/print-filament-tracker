@@ -1,6 +1,9 @@
 title = "print-filament-tracker gitleaks configuration"
 
+[extend]
+useDefault = true
+
 [[allowlists]]
 description = "Historical documentation placeholder; not a Bambu Cloud credential"
 regexTarget = "match"
-regexes = ["BAMBU_ACCESS_TOKEN=<your-token>"]
+regexes = ["your-token>\\s*BAMBU_REGION=global"]
