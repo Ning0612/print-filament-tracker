@@ -41,7 +41,7 @@ copy .env.example .env
 最低需求的 `.env`：
 
 ```env
-BAMBU_ACCESS_TOKEN=<your-token>
+BAMBU_ACCESS_TOKEN=<paste-bambu-cloud-token-here>
 BAMBU_REGION=global
 ```
 
