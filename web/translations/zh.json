@@ -23,7 +23,9 @@
     "group_system": "系統",
     "theme_toggle_aria": "切換深/淺色模式",
     "theme_toggle_title": "切換主題",
-    "more": "更多"
+    "more": "更多",
+    "collapse_sidebar": "收縮側邊欄",
+    "expand_sidebar": "展開側邊欄"
   },
   "footer": {
     "text": "PrintFilamentTracker — 本機耗材管理工具"

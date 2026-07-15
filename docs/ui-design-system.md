@@ -88,6 +88,8 @@ Dark 主題使用同名 token 覆蓋為：畫布 `#111917`、表面 `#1B2522`、
 
 導覽分為「總覽、材料、列印、洞察、系統」五個群組。現有 URL 與 `aria-current="page"` 判斷必須保留。
 
+桌面側欄可透過標頭收縮控制切換為 `72px` icon-only 模式，主內容 grid 會同步展開；狀態以 `print-filament-tracker-sidebar-collapsed` 保存於 `localStorage`。收縮模式下每個導覽連結必須保留 `title` 與可辨識的 icon，控制按鈕需維持鍵盤操作與 `aria-expanded` 狀態同步。導覽群組使用內容高度由上而下排列，不以 `space-between` 撐開空白。
+
 ### 4.2 Mobile
 
 寬度 `<= 820px` 時：

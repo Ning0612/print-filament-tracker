@@ -6,6 +6,7 @@
   <meta name="csrf-token" content="{{ csrf_token() }}">
   <title>{% block title %}PrintFilamentTracker{% endblock %}</title>
   <script>(function(){try{var t=localStorage.getItem('print-filament-tracker-theme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}}());</script>
+  <script>(function(){try{if(localStorage.getItem('print-filament-tracker-sidebar-collapsed')==='true')document.documentElement.setAttribute('data-sidebar-collapsed','true');}catch(e){}}());</script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&family=Noto+Serif+TC:wght@600;700&display=swap">
@@ -17,56 +18,78 @@
 <body class="app-body">
   <a class="skip-link" href="#main-content">{{ t('common.skip_to_content') }}</a>
   <div class="app-shell">
-    <aside class="app-sidebar" aria-label="{{ t('nav.sidebar_aria') }}">
-      <a class="app-brand" href="{{ url_for('dashboard.index') }}">
-        <img src="{{ url_for('static', filename='img/print-filament-tracker-icon.png') }}" alt="">
-        <span>
-          <strong>PrintFilamentTracker</strong>
-          <small>{{ t('nav.brand_subtitle') }}</small>
-        </span>
-      </a>
+    <aside id="app-sidebar" class="app-sidebar" aria-label="{{ t('nav.sidebar_aria') }}">
+      <div class="app-sidebar-head">
+        <a class="app-brand" href="{{ url_for('dashboard.index') }}"
+           aria-label="PrintFilamentTracker" title="PrintFilamentTracker">
+          <img src="{{ url_for('static', filename='img/print-filament-tracker-icon.png') }}" alt="">
+          <span>
+            <strong>PrintFilamentTracker</strong>
+            <small>{{ t('nav.brand_subtitle') }}</small>
+          </span>
+        </a>
+        <button type="button" class="sidebar-collapse-toggle" id="sidebar-collapse-toggle"
+                aria-controls="app-sidebar" aria-expanded="true"
+                aria-label="{{ t('nav.collapse_sidebar') }}"
+                title="{{ t('nav.collapse_sidebar') }}"
+                data-collapse-label="{{ t('nav.collapse_sidebar') }}"
+                data-expand-label="{{ t('nav.expand_sidebar') }}">
+          <span id="sidebar-toggle-icon" aria-hidden="true">‹</span>
+        </button>
+        <script>
+          (function () {
+            var button = document.getElementById('sidebar-collapse-toggle');
+            if (button && document.documentElement.getAttribute('data-sidebar-collapsed') === 'true') {
+              button.setAttribute('aria-expanded', 'false');
+              button.setAttribute('aria-label', button.dataset.expandLabel);
+              button.title = button.dataset.expandLabel;
+              document.getElementById('sidebar-toggle-icon').textContent = '›';
+            }
+          }());
+        </script>
+      </div>
 
       <nav class="app-nav" aria-label="{{ t('nav.primary_aria') }}">
         <div class="app-nav-group">
           <span class="app-nav-label">{{ t('nav.group_overview') }}</span>
-          <a class="app-nav-link app-nav-mobile-primary" href="{{ url_for('dashboard.index') }}" {% if request.path == '/' %}aria-current="page"{% endif %}>
+          <a class="app-nav-link app-nav-mobile-primary" href="{{ url_for('dashboard.index') }}" title="{{ t('nav.dashboard') }}" {% if request.path == '/' %}aria-current="page"{% endif %}>
             <span class="ui-icon" aria-hidden="true">⌂</span><span>{{ t('nav.dashboard') }}</span>
           </a>
         </div>
 
         <div class="app-nav-group">
           <span class="app-nav-label">{{ t('nav.group_materials') }}</span>
-          <a class="app-nav-link app-nav-mobile-primary" href="{{ url_for('spools.list_view') }}" {% if request.path.startswith('/spools') %}aria-current="page"{% endif %}>
+          <a class="app-nav-link app-nav-mobile-primary" href="{{ url_for('spools.list_view') }}" title="{{ t('nav.spools') }}" {% if request.path.startswith('/spools') %}aria-current="page"{% endif %}>
             <span class="ui-icon" aria-hidden="true">◉</span><span>{{ t('nav.spools') }}</span>
           </a>
-          <a class="app-nav-link app-nav-mobile-secondary" href="{{ url_for('mapping.list_view') }}" {% if request.path.startswith('/mapping') %}aria-current="page"{% endif %}>
+          <a class="app-nav-link app-nav-mobile-secondary" href="{{ url_for('mapping.list_view') }}" title="{{ t('nav.mapping') }}" {% if request.path.startswith('/mapping') %}aria-current="page"{% endif %}>
             <span class="ui-icon" aria-hidden="true">↔</span><span>{{ t('nav.mapping') }}</span>
           </a>
         </div>
 
         <div class="app-nav-group">
           <span class="app-nav-label">{{ t('nav.group_production') }}</span>
-          <a class="app-nav-link app-nav-mobile-primary" href="{{ url_for('tasks.list_view') }}" {% if request.path.startswith('/tasks') %}aria-current="page"{% endif %}>
+          <a class="app-nav-link app-nav-mobile-primary" href="{{ url_for('tasks.list_view') }}" title="{{ t('nav.tasks') }}" {% if request.path.startswith('/tasks') %}aria-current="page"{% endif %}>
             <span class="ui-icon" aria-hidden="true">▤</span><span>{{ t('nav.tasks') }}</span>
           </a>
-          <a class="app-nav-link app-nav-mobile-secondary" href="{{ url_for('printers.list_view') }}" {% if request.path.startswith('/printers') %}aria-current="page"{% endif %}>
+          <a class="app-nav-link app-nav-mobile-secondary" href="{{ url_for('printers.list_view') }}" title="{{ t('nav.printers') }}" {% if request.path.startswith('/printers') %}aria-current="page"{% endif %}>
             <span class="ui-icon" aria-hidden="true">▣</span><span>{{ t('nav.printers') }}</span>
           </a>
         </div>
 
         <div class="app-nav-group">
           <span class="app-nav-label">{{ t('nav.group_insights') }}</span>
-          <a class="app-nav-link app-nav-mobile-primary" href="{{ url_for('analytics.index') }}" {% if request.path.startswith('/analytics') %}aria-current="page"{% endif %}>
+          <a class="app-nav-link app-nav-mobile-primary" href="{{ url_for('analytics.index') }}" title="{{ t('nav.analytics') }}" {% if request.path.startswith('/analytics') %}aria-current="page"{% endif %}>
             <span class="ui-icon" aria-hidden="true">↗</span><span>{{ t('nav.analytics') }}</span>
           </a>
-          <a class="app-nav-link app-nav-mobile-secondary" href="{{ url_for('cost.index') }}" {% if request.path.startswith('/cost') %}aria-current="page"{% endif %}>
+          <a class="app-nav-link app-nav-mobile-secondary" href="{{ url_for('cost.index') }}" title="{{ t('nav.cost') }}" {% if request.path.startswith('/cost') %}aria-current="page"{% endif %}>
             <span class="ui-icon" aria-hidden="true">＄</span><span>{{ t('nav.cost') }}</span>
           </a>
         </div>
 
         <div class="app-nav-group">
           <span class="app-nav-label">{{ t('nav.group_system') }}</span>
-          <a class="app-nav-link app-nav-mobile-secondary" href="{{ url_for('settings.index') }}" {% if request.path.startswith('/settings') %}aria-current="page"{% endif %}>
+          <a class="app-nav-link app-nav-mobile-secondary" href="{{ url_for('settings.index') }}" title="{{ t('nav.settings') }}" {% if request.path.startswith('/settings') %}aria-current="page"{% endif %}>
             <span class="ui-icon" aria-hidden="true">⚙</span><span>{{ t('nav.settings') }}</span>
           </a>
         </div>
@@ -151,6 +174,19 @@
   }
   window.printNestApplyTheme = applyTheme;
 
+  function applySidebarState(collapsed) {
+    html.setAttribute('data-sidebar-collapsed', collapsed ? 'true' : 'false');
+    var button = document.getElementById('sidebar-collapse-toggle');
+    var icon = document.getElementById('sidebar-toggle-icon');
+    if (!button) return;
+    var label = collapsed ? button.dataset.expandLabel : button.dataset.collapseLabel;
+    button.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+    button.setAttribute('aria-label', label);
+    button.title = label;
+    if (icon) icon.textContent = collapsed ? '›' : '‹';
+  }
+  window.printNestApplySidebarState = applySidebarState;
+
   var lb    = null;
   var lbImg = null;
   var lbTrigger = null;
@@ -207,6 +243,18 @@
 
   document.addEventListener('DOMContentLoaded', function () {
     applyTheme(getTheme());
+
+    var sidebarToggle = document.getElementById('sidebar-collapse-toggle');
+    applySidebarState(html.getAttribute('data-sidebar-collapsed') === 'true');
+    if (sidebarToggle) {
+      sidebarToggle.addEventListener('click', function () {
+        var collapsed = html.getAttribute('data-sidebar-collapsed') === 'true';
+        applySidebarState(!collapsed);
+        try {
+          localStorage.setItem('print-filament-tracker-sidebar-collapsed', String(!collapsed));
+        } catch (e) {}
+      });
+    }
 
     var toggleBtn = document.getElementById('nav-theme-toggle');
     if (toggleBtn) {

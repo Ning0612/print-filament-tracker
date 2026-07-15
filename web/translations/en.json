@@ -23,7 +23,9 @@
     "group_system": "System",
     "theme_toggle_aria": "Toggle dark/light mode",
     "theme_toggle_title": "Toggle theme",
-    "more": "More"
+    "more": "More",
+    "collapse_sidebar": "Collapse sidebar",
+    "expand_sidebar": "Expand sidebar"
   },
   "footer": {
     "text": "PrintFilamentTracker — Local filament management tool"
