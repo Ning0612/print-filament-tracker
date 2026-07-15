@@ -28,9 +28,12 @@
      class="sort-btn{% if active %} sort-btn--active{% endif %}">{{ label }}{{ arrow }}</a>
 {% endmacro %}
 
-<div style="display:flex;justify-content:space-between;align-items:center;gap:0.5rem;flex-wrap:wrap;">
-  <h1 style="margin-bottom:0;">{{ t('spools.title') }}</h1>
-  <div style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap;">
+<div class="page-header">
+  <div>
+    <p class="eyebrow">{{ t('nav.group_materials') }}</p>
+    <h1>{{ t('spools.title') }}</h1>
+  </div>
+  <div class="page-actions">
     <form method="post" action="{{ url_for('spools.import_view') }}" enctype="multipart/form-data" style="margin:0;">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <input type="file" name="file" id="import-file" accept=".json,.csv" style="display:none;"
@@ -83,8 +86,10 @@
       <div class="spool-row">
 
         <div class="spool-col-color">
-          <span class="gallery-toggle-icon" onclick="toggleSpoolGallery({{ s.id }})"
-                title="{{ t('spools.expand_title') }}">▶</span>
+          <button type="button" class="gallery-toggle-icon"
+                  onclick="toggleSpoolGallery({{ s.id }}, this)"
+                  aria-expanded="false"
+                  title="{{ t('spools.expand_title') }}">▶</button>
           <a href="{{ url_for('spools.detail_view', spool_id=s.id) }}"
              class="spool-detail-link">
             {% if s.color_hex %}
@@ -173,8 +178,10 @@
 {% endfor %}
 
 <script>
-function toggleSpoolGallery(spoolId) {
-  document.getElementById('spool-' + spoolId).classList.toggle('is-expanded');
+function toggleSpoolGallery(spoolId, toggle) {
+  var item = document.getElementById('spool-' + spoolId);
+  var expanded = item.classList.toggle('is-expanded');
+  if (toggle) toggle.setAttribute('aria-expanded', expanded ? 'true' : 'false');
 }
 </script>
 {% endblock %}

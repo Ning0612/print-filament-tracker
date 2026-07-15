@@ -3,9 +3,12 @@
 {% block title %}{{ t('mapping.title') }} — PrintFilamentTracker{% endblock %}
 
 {% block content %}
-<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.5rem;">
-  <h1 style="margin-bottom:0;">{{ t('mapping.title') }}</h1>
-  <div style="display:flex;gap:0.5rem;">
+<div class="page-header">
+  <div>
+    <p class="eyebrow">{{ t('nav.group_materials') }}</p>
+    <h1>{{ t('mapping.title') }}</h1>
+  </div>
+  <div class="page-actions">
     <a href="{{ url_for('mapping.list_view', show='unmapped') }}"
        role="button" {% if show != 'unmapped' %}class="outline"{% endif %}>
       {{ t('mapping.tab_unmapped') }} ({{ unmapped|length }})
@@ -36,15 +39,15 @@
   <table id="mapping-table">
     <thead>
       <tr>
-        <th style="width:80px;">{{ t('mapping.table_image') }}</th>
-        <th>{{ t('mapping.table_task') }}</th>
-        <th>{{ t('mapping.table_date') }}</th>
-        <th>{{ t('tasks.table_status') }}</th>
-        <th>{{ t('mapping.table_material') }}</th>
-        <th>{{ t('mapping.table_color') }}</th>
-        <th>{{ t('mapping.table_usage') }}</th>
-        <th>{{ t('mapping.table_select_spool') }}</th>
-        <th>{{ t('mapping.table_action') }}</th>
+        <th scope="col" style="width:80px;">{{ t('mapping.table_image') }}</th>
+        <th scope="col">{{ t('mapping.table_task') }}</th>
+        <th scope="col">{{ t('mapping.table_date') }}</th>
+        <th scope="col">{{ t('tasks.table_status') }}</th>
+        <th scope="col">{{ t('mapping.table_material') }}</th>
+        <th scope="col">{{ t('mapping.table_color') }}</th>
+        <th scope="col">{{ t('mapping.table_usage') }}</th>
+        <th scope="col">{{ t('mapping.table_select_spool') }}</th>
+        <th scope="col">{{ t('mapping.table_action') }}</th>
       </tr>
     </thead>
     <tbody>
@@ -112,21 +115,24 @@
   <table id="mapped-table">
     <thead>
       <tr>
-        <th style="width:80px;">{{ t('mapping.table_image') }}</th>
-        <th>{{ t('mapping.table_task') }}</th>
-        <th>{{ t('mapping.table_date') }}</th>
-        <th>{{ t('tasks.table_status') }}</th>
-        <th>{{ t('mapping.table_material') }}</th>
-        <th>{{ t('mapping.table_color') }}</th>
-        <th>{{ t('mapping.table_usage') }}</th>
-        <th>{{ t('mapping.tab_mapped') }}</th>
-        <th>{{ t('mapping.table_action') }}</th>
+        <th scope="col" style="width:80px;">{{ t('mapping.table_image') }}</th>
+        <th scope="col">{{ t('mapping.table_task') }}</th>
+        <th scope="col">{{ t('mapping.table_date') }}</th>
+        <th scope="col">{{ t('tasks.table_status') }}</th>
+        <th scope="col">{{ t('mapping.table_material') }}</th>
+        <th scope="col">{{ t('mapping.table_color') }}</th>
+        <th scope="col">{{ t('mapping.table_usage') }}</th>
+        <th scope="col">{{ t('mapping.tab_mapped') }}</th>
+        <th scope="col">{{ t('mapping.table_action') }}</th>
       </tr>
     </thead>
     <tbody>
       {% for g in mapped_by_spool %}
       <tr class="spool-group-header"
+          data-spool-id="{{ g.spool_id }}"
           onclick="toggleSpoolGroup({{ g.spool_id }})"
+          onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); toggleSpoolGroup({{ g.spool_id }}); }"
+          tabindex="0" role="button" aria-expanded="false"
           style="cursor:pointer;">
         <td colspan="7">
           <span id="toggle-{{ g.spool_id }}" style="font-size:0.75rem;margin-right:0.35rem;display:inline-block;width:0.8em;">▶</span>
@@ -191,9 +197,11 @@
   function toggleSpoolGroup(spoolId) {
     const rows = document.querySelectorAll('.spool-detail-' + spoolId);
     const icon = document.getElementById('toggle-' + spoolId);
+    const group = document.querySelector('.spool-group-header[data-spool-id="' + spoolId + '"]');
     const expand = rows.length > 0 && rows[0].style.display === 'none';
     rows.forEach(r => { r.style.display = expand ? '' : 'none'; });
     if (icon) icon.textContent = expand ? '▼' : '▶';
+    if (group) group.setAttribute('aria-expanded', expand ? 'true' : 'false');
   }
   </script>
   {% else %}
@@ -207,14 +215,14 @@
   <table>
     <thead>
       <tr>
-        <th style="width:80px;">{{ t('mapping.table_image') }}</th>
-        <th>{{ t('mapping.table_task') }}</th>
-        <th>{{ t('mapping.table_date') }}</th>
-        <th>{{ t('tasks.table_status') }}</th>
-        <th>{{ t('mapping.table_material') }}</th>
-        <th>{{ t('mapping.table_color') }}</th>
-        <th>{{ t('mapping.table_usage') }}</th>
-        <th>{{ t('mapping.table_action') }}</th>
+        <th scope="col" style="width:80px;">{{ t('mapping.table_image') }}</th>
+        <th scope="col">{{ t('mapping.table_task') }}</th>
+        <th scope="col">{{ t('mapping.table_date') }}</th>
+        <th scope="col">{{ t('tasks.table_status') }}</th>
+        <th scope="col">{{ t('mapping.table_material') }}</th>
+        <th scope="col">{{ t('mapping.table_color') }}</th>
+        <th scope="col">{{ t('mapping.table_usage') }}</th>
+        <th scope="col">{{ t('mapping.table_action') }}</th>
       </tr>
     </thead>
     <tbody>

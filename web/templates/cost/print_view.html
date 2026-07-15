@@ -64,12 +64,12 @@
     <table style="width:100%;border-collapse:collapse;">
       <thead>
         <tr style="border-bottom:2px solid var(--pico-muted-border-color);">
-          <th style="text-align:left;padding:0.5rem 0.75rem;font-size:0.8rem;font-weight:600;color:var(--pico-muted-color);text-transform:uppercase;letter-spacing:0.04em;">{{ t('cost.table_task') }}</th>
-          <th style="text-align:right;padding:0.5rem 0.75rem;font-size:0.8rem;font-weight:600;color:var(--pico-muted-color);text-transform:uppercase;letter-spacing:0.04em;">{{ t('cost.table_filament_cost') }}</th>
+          <th scope="col" style="text-align:left;padding:0.5rem 0.75rem;font-size:0.8rem;font-weight:600;color:var(--pico-muted-color);text-transform:uppercase;letter-spacing:0.04em;">{{ t('cost.table_task') }}</th>
+          <th scope="col" style="text-align:right;padding:0.5rem 0.75rem;font-size:0.8rem;font-weight:600;color:var(--pico-muted-color);text-transform:uppercase;letter-spacing:0.04em;">{{ t('cost.table_filament_cost') }}</th>
           {% if hourly_rate > 0 %}
-          <th style="text-align:right;padding:0.5rem 0.75rem;font-size:0.8rem;font-weight:600;color:var(--pico-muted-color);text-transform:uppercase;letter-spacing:0.04em;">{{ t('cost.table_time_cost') }}</th>
+          <th scope="col" style="text-align:right;padding:0.5rem 0.75rem;font-size:0.8rem;font-weight:600;color:var(--pico-muted-color);text-transform:uppercase;letter-spacing:0.04em;">{{ t('cost.table_time_cost') }}</th>
           {% endif %}
-          <th style="text-align:right;padding:0.5rem 0.75rem;font-size:0.8rem;font-weight:600;color:var(--pico-muted-color);text-transform:uppercase;letter-spacing:0.04em;">{{ t('cost.table_total') }}</th>
+          <th scope="col" style="text-align:right;padding:0.5rem 0.75rem;font-size:0.8rem;font-weight:600;color:var(--pico-muted-color);text-transform:uppercase;letter-spacing:0.04em;">{{ t('cost.table_total') }}</th>
         </tr>
       </thead>
       <tbody>
@@ -124,7 +124,7 @@
               <span>{{ f.label }}</span>
               <span style="font-family:var(--pico-font-family-monospace);">{{ '%.1f'|format(f.weight_g) }}g</span>
               {% if f.cost is not none and f.weight_g > 0 %}
-              <span style="font-family:var(--pico-font-family-monospace);color:var(--pico-muted-color);font-size:0.75rem;margin-left:0.75rem;">{{ '%.4f'|format(f.cost / f.weight_g) }} 元/g</span>
+              <span style="font-family:var(--pico-font-family-monospace);color:var(--pico-muted-color);font-size:0.75rem;margin-left:0.75rem;">{{ '%.4f'|format(f.cost / f.weight_g) }} {{ t('cost.currency_unit') }}/g</span>
               {% endif %}
             </div>
           </td>

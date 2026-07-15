@@ -29,8 +29,13 @@ window._chartLabels = {
 {% endblock %}
 
 {% block content %}
-<div style="max-width:1400px;margin:0 auto;">
-  <h2 style="margin-bottom:1.5rem;">{{ t('analytics.title') }}</h2>
+<div class="analytics-page">
+  <div class="page-header">
+    <div>
+      <p class="eyebrow">{{ t('nav.group_insights') }}</p>
+      <h1>{{ t('analytics.title') }}</h1>
+    </div>
+  </div>
 
   {# ── 1. Heatmap ── #}
   <article style="margin-bottom:1.5rem;">
@@ -278,7 +283,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     Chart.defaults.color = colorMuted;
     Chart.defaults.borderColor = colorBorder;
-    Chart.defaults.font.family = "'Outfit', system-ui, sans-serif";
+    Chart.defaults.font.family = "'IBM Plex Sans', 'Noto Sans TC', sans-serif";
 
     var ctxMat = document.getElementById('chart-material');
     if (ctxMat && d.material.has_data) {

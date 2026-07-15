@@ -62,9 +62,9 @@
             <span class="cost-ptf-meta">
               <span class="cost-ptf-weight">{{ '%.1f'|format(f.used_weight_g or 0) }}g</span>
               {% if f.cost is not none %}
-              <span class="cost-ptf-cost">{{ '%.2f'|format(f.cost) }} 元</span>
+              <span class="cost-ptf-cost">{{ '%.2f'|format(f.cost) }} {{ t('cost.currency_unit') }}</span>
               {% else %}
-              <span class="cost-ptf-cost cost-ptf-no-price">— 元</span>
+              <span class="cost-ptf-cost cost-ptf-no-price">— {{ t('cost.currency_unit') }}</span>
               {% endif %}
             </span>
           </label>

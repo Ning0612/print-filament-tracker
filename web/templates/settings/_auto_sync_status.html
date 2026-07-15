@@ -5,7 +5,7 @@
      hx-target="this"
      hx-swap="outerHTML"
      {% endif %}
-     style="margin-top:0.5rem;font-size:0.88rem;color:var(--pico-muted-color);">
+     style="margin-top:0.5rem;font-size:0.88rem;color:var(--pico-muted-color);" aria-live="polite">
   {% if auto_sync_state.interval_minutes > 0 %}
     {% if auto_sync_state.next_sync_at %}
       <p style="margin:0 0 0.15rem;">{{ t('settings.next_sync') }}{{ auto_sync_state.next_sync_at.strftime('%Y-%m-%d %H:%M') }}</p>

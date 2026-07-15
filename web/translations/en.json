@@ -13,15 +13,25 @@
     "analytics": "Analytics",
     "cost": "Cost",
     "settings": "Settings",
+    "brand_subtitle": "Material ledger",
+    "sidebar_aria": "Primary navigation",
+    "primary_aria": "Application navigation",
+    "group_overview": "Overview",
+    "group_materials": "Materials",
+    "group_production": "Production",
+    "group_insights": "Insights",
+    "group_system": "System",
     "theme_toggle_aria": "Toggle dark/light mode",
-    "theme_toggle_title": "Toggle theme"
+    "theme_toggle_title": "Toggle theme",
+    "more": "More"
   },
   "footer": {
     "text": "PrintFilamentTracker — Local filament management tool"
   },
   "lightbox": {
     "title": "Cover image preview",
-    "close": "Close"
+    "close": "Close",
+    "open": "Open image preview"
   },
   "common": {
     "edit": "Edit",
@@ -33,6 +43,8 @@
     "unnamed": "(Unnamed)",
     "back": "← Back",
     "view_all": "View all →",
+    "skip_to_content": "Skip to main content",
+    "no_cover": "No cover",
     "no_data": "—",
     "confirm_delete_task": "Delete this manual task?",
     "confirm_delete_spool": "Delete this filament spool?",
@@ -52,10 +64,11 @@
   },
   "dashboard": {
     "title": "Dashboard",
+    "dashboard_hint": "See your material stock, print consumption, and the next actions that need attention.",
     "spool_status": "Filament Status",
     "print_stats": "Print Statistics",
     "total_spools": "Total Spools",
-    "unmapped_alert": "⚠ Unmapped",
+    "unmapped_alert": "Unmapped records",
     "total_tasks": "Total Tasks",
     "total_weight": "Total Weight Used",
     "total_duration": "Total Print Time",
@@ -218,7 +231,7 @@
     "tab_unmapped": "Unmapped",
     "tab_mapped": "Mapped",
     "tab_ignored": "Ignored",
-    "no_spools_warning": "⚠ No filament spools found. Please go to",
+    "no_spools_warning": "No filament spools found. Please go to",
     "no_spools_link": "Filament Management",
     "no_spools_hint": "to add spools first; or select \"Ignore\" below to skip.",
     "unmapped_total": "{n} unmapped records. Please select a spool for each.",
@@ -244,7 +257,7 @@
     "unignore_btn": "Unignore",
     "confirm_unmap": "Remove this mapping?",
     "confirm_unignore": "Unignore this record?",
-    "all_done": "✅ All filament records are mapped. Nothing left to do.",
+    "all_done": "All filament records are mapped. Nothing left to do.",
     "no_mapped": "No mapped records yet.",
     "no_ignored": "No ignored records.",
     "remaining": "{n}g left",
@@ -388,6 +401,7 @@
     "no_tasks": "No print records found.",
     "select_hint": "Select tasks on the left to calculate cost",
     "hourly_rate_label": "Time Rate (per hour)",
+    "currency_unit": "$",
     "filament_cost": "Filament Cost",
     "time_cost": "Time Cost",
     "total": "Total",

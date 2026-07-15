@@ -1,9 +1,14 @@
 {% extends "base.html" %}
 {% block title %}{{ t('printers.title') }} — PrintFilamentTracker{% endblock %}
 {% block content %}
-<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
-  <h1 style="margin:0;">{{ t('printers.title') }}</h1>
-  <a href="{{ url_for('printers.new_view') }}" role="button">{{ t('printers.add_btn') }}</a>
+<div class="page-header">
+  <div>
+    <p class="eyebrow">{{ t('nav.group_production') }}</p>
+    <h1>{{ t('printers.title') }}</h1>
+  </div>
+  <div class="page-actions">
+    <a href="{{ url_for('printers.new_view') }}" role="button">{{ t('printers.add_btn') }}</a>
+  </div>
 </div>
 <p style="color:var(--pico-muted-color);margin-bottom:1.5rem;">{{ t('printers.total', n=printers|length) }}</p>
 

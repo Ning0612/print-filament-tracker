@@ -120,6 +120,7 @@
 | [部署指南](docs/deployment.md) | 安裝、設定與進階選項 |
 | [架構說明](docs/architecture.md) | 模組設計、資料庫 Schema、API 介接 |
 | [開發指南](docs/development.md) | 開發環境、新增功能、多語言、測試 |
+| [UI 設計規範](docs/ui-design-system.md) | Material Ledger 視覺語言、元件與 WebUI 遷移規則 |
 
 ## 技術棧
 

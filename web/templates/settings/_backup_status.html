@@ -5,7 +5,7 @@
      hx-target="this"
      hx-swap="outerHTML"
      {% endif %}
-     style="margin-top:0.5rem;">
+     style="margin-top:0.5rem;" aria-live="polite">
 
   {# Scheduler next-run info #}
   {% if backup_auto_state and backup_auto_state.interval_minutes > 0 %}
@@ -38,13 +38,14 @@
     <summary style="color:var(--pico-muted-color);cursor:pointer;">
       {{ t('settings.backup_recent_list') }}（{{ backup_list | length }}）
     </summary>
+    <div class="overflow-auto">
     <table style="margin-top:0.5rem;font-size:0.85rem;">
       <thead>
         <tr>
-          <th>{{ t('settings.backup_table_name') }}</th>
-          <th>{{ t('settings.backup_table_size') }}</th>
-          <th>{{ t('settings.backup_table_time') }}</th>
-          <th>{{ t('settings.backup_table_action') }}</th>
+          <th scope="col">{{ t('settings.backup_table_name') }}</th>
+          <th scope="col">{{ t('settings.backup_table_size') }}</th>
+          <th scope="col">{{ t('settings.backup_table_time') }}</th>
+          <th scope="col">{{ t('settings.backup_table_action') }}</th>
         </tr>
       </thead>
       <tbody>
@@ -72,6 +73,7 @@
         {% endfor %}
       </tbody>
     </table>
+    </div>
   </details>
   {% else %}
   <p style="margin:0.25rem 0 0;font-size:0.88rem;color:var(--pico-muted-color);">

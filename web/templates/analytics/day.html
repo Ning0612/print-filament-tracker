@@ -9,17 +9,20 @@
 {% endblock %}
 
 {% block content %}
-<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem;margin-bottom:1.5rem;">
+<div class="page-header page-header--detail">
   <a href="{{ url_for('analytics.index') }}" onclick="history.back(); return false;">{{ t('analytics.day_back') }}</a>
 </div>
 
 <!-- Header -->
-<div style="margin-bottom:1.75rem;">
-  <h1 style="margin:0;">{{ daily.date }}</h1>
+<div class="page-header">
+  <div>
+    <p class="eyebrow">{{ t('nav.group_insights') }}</p>
+    <h1>{{ daily.date }}</h1>
+  </div>
 </div>
 
 <!-- Stats (2/4) | Filament (1/4) | Material pie (1/4) -->
-<div style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:1.5rem;margin-bottom:2rem;align-items:stretch;">
+<div class="analytics-day-grid" style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:1.5rem;margin-bottom:2rem;align-items:stretch;">
 
   <!-- Stats: one big card, 2-col grid inside -->
   <div style="background:var(--pico-card-background-color);border:1px solid var(--pico-muted-border-color);border-radius:var(--radius-md);padding:1.25rem;">

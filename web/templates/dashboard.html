@@ -3,7 +3,13 @@
 {% block title %}{{ t('dashboard.title') }} — PrintFilamentTracker{% endblock %}
 
 {% block content %}
-<h1>{{ t('dashboard.title') }}</h1>
+<div class="page-header">
+  <div>
+    <p class="eyebrow">{{ t('nav.brand_subtitle') }}</p>
+    <h1>{{ t('dashboard.title') }}</h1>
+    <p>{{ t('dashboard.dashboard_hint') }}</p>
+  </div>
+</div>
 
 <p class="dashboard-section-label">{{ t('dashboard.spool_status') }}</p>
 <div class="stats-grid">
@@ -155,13 +161,13 @@
 <table>
   <thead>
     <tr>
-      <th style="width:88px;">{{ t('dashboard.table_image') }}</th>
-      <th>{{ t('dashboard.table_name') }}</th>
-      <th>{{ t('dashboard.table_printer') }}</th>
-      <th>{{ t('dashboard.table_start_time') }}</th>
-      <th>{{ t('dashboard.table_duration') }}</th>
-      <th>{{ t('dashboard.table_usage') }}</th>
-      <th>{{ t('dashboard.table_status') }}</th>
+      <th scope="col" style="width:88px;">{{ t('dashboard.table_image') }}</th>
+      <th scope="col">{{ t('dashboard.table_name') }}</th>
+      <th scope="col">{{ t('dashboard.table_printer') }}</th>
+      <th scope="col">{{ t('dashboard.table_start_time') }}</th>
+      <th scope="col">{{ t('dashboard.table_duration') }}</th>
+      <th scope="col">{{ t('dashboard.table_usage') }}</th>
+      <th scope="col">{{ t('dashboard.table_status') }}</th>
     </tr>
   </thead>
   <tbody>

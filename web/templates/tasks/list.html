@@ -3,12 +3,17 @@
 {% block title %}{{ t('tasks.title') }} — PrintFilamentTracker{% endblock %}
 
 {% block content %}
-<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem;margin-bottom:1rem;">
-  <h1 style="margin:0;">{{ t('tasks.title') }}</h1>
-  <a href="{{ url_for('tasks.new_manual') }}" role="button" style="white-space:nowrap;">{{ t('tasks.new_manual') }}</a>
+<div class="page-header">
+  <div>
+    <p class="eyebrow">{{ t('nav.group_production') }}</p>
+    <h1>{{ t('tasks.title') }}</h1>
+  </div>
+  <div class="page-actions">
+    <a href="{{ url_for('tasks.new_manual') }}" role="button" style="white-space:nowrap;">{{ t('tasks.new_manual') }}</a>
+  </div>
 </div>
 
-<form method="get" action="{{ url_for('tasks.list_view') }}" style="display:flex;gap:0.5rem;margin-bottom:1rem;">
+<form class="toolbar-form" method="get" action="{{ url_for('tasks.list_view') }}" style="display:flex;gap:0.5rem;margin-bottom:1rem;">
   <input type="search" name="q" value="{{ search }}" placeholder="{{ t('tasks.search_placeholder') }}" style="flex:1;min-width:0;">
   <button type="submit" style="width:auto;white-space:nowrap;">{{ t('tasks.search_btn') }}</button>
   {% if search %}<a href="{{ url_for('tasks.list_view') }}" role="button" class="outline">{{ t('tasks.clear_btn') }}</a>{% endif %}
@@ -21,15 +26,15 @@
 <table>
   <thead>
     <tr>
-      <th style="width:120px;">{{ t('tasks.table_image') }}</th>
-      <th>{{ t('tasks.table_name') }}</th>
-      <th>{{ t('tasks.table_printer') }}</th>
-      <th>{{ t('tasks.table_plate') }}</th>
-      <th>{{ t('tasks.table_start_time') }}</th>
-      <th>{{ t('tasks.table_duration') }}</th>
-      <th>{{ t('tasks.table_usage') }}</th>
-      <th>{{ t('tasks.table_status') }}</th>
-      <th style="width:130px;"></th>
+      <th scope="col" style="width:120px;">{{ t('tasks.table_image') }}</th>
+      <th scope="col">{{ t('tasks.table_name') }}</th>
+      <th scope="col">{{ t('tasks.table_printer') }}</th>
+      <th scope="col">{{ t('tasks.table_plate') }}</th>
+      <th scope="col">{{ t('tasks.table_start_time') }}</th>
+      <th scope="col">{{ t('tasks.table_duration') }}</th>
+      <th scope="col">{{ t('tasks.table_usage') }}</th>
+      <th scope="col">{{ t('tasks.table_status') }}</th>
+      <th scope="col" style="width:130px;"></th>
     </tr>
   </thead>
   <tbody>

@@ -1,8 +1,13 @@
 {% extends "base.html" %}
 {% block title %}{{ t('printers.form_edit_title') if printer else t('printers.form_new_title') }} — PrintFilamentTracker{% endblock %}
 {% block content %}
-<p style="margin-bottom:0.5rem;"><a href="{{ url_for('printers.list_view') }}" onclick="history.back(); return false;">{{ t('printers.form_back') }}</a></p>
-<h1>{{ t('printers.form_edit_title') if printer else t('printers.form_new_title') }}</h1>
+<p class="back-link"><a href="{{ url_for('printers.list_view') }}" onclick="history.back(); return false;">{{ t('printers.form_back') }}</a></p>
+<div class="page-header">
+  <div>
+    <p class="eyebrow">{{ t('nav.group_production') }}</p>
+    <h1>{{ t('printers.form_edit_title') if printer else t('printers.form_new_title') }}</h1>
+  </div>
+</div>
 
 <form method="post" action="{{ action }}" enctype="multipart/form-data">
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
@@ -20,7 +25,7 @@
         </label>
         <small style="color:var(--pico-muted-color);display:block;margin-bottom:0.5rem;">{{ t('printers.form_image_replace_hint') }}</small>
       {% else %}
-        <div class="cover-thumb--form-placeholder" style="margin-bottom:0.75rem;"></div>
+        <div class="cover-thumb--form-placeholder" style="margin-bottom:0.75rem;"><span>{{ t('common.no_cover') }}</span></div>
       {% endif %}
       <input type="file" name="image" accept="image/png,image/jpeg,image/webp,image/gif" style="margin-top:0.25rem;">
       <small style="color:var(--pico-muted-color);display:block;margin-top:0.25rem;">{{ t('printers.form_image_hint') }}</small>

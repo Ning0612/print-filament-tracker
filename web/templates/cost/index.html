@@ -2,8 +2,11 @@
 {% block title %}{{ t('cost.title') }} — PrintFilamentTracker{% endblock %}
 
 {% block content %}
-<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem;margin-bottom:1.25rem;">
-  <h1 style="margin:0;">{{ t('cost.title') }}</h1>
+<div class="page-header">
+  <div>
+    <p class="eyebrow">{{ t('nav.group_insights') }}</p>
+    <h1>{{ t('cost.title') }}</h1>
+  </div>
 </div>
 
 <form id="cost-form"

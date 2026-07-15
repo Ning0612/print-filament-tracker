@@ -5,7 +5,7 @@
      hx-target="this"
      hx-swap="outerHTML"
      {% endif %}
-     style="margin-top:1rem;">
+     style="margin-top:1rem;" aria-live="polite">
   {% if sync_state.status == 'running' %}
     {% if sync_state.get('message_key') %}
       <p aria-busy="true">{{ t(sync_state.message_key, **(sync_state.get('message_params') or {})) }}</p>

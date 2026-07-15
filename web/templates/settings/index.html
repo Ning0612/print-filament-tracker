@@ -3,7 +3,12 @@
 
 {% block content %}
 <div class="settings-layout">
-<h1>{{ t('settings.title') }}</h1>
+<div class="page-header">
+  <div>
+    <p class="eyebrow">{{ t('nav.group_system') }}</p>
+    <h1>{{ t('settings.title') }}</h1>
+  </div>
+</div>
 
   <!-- ── Bambu Cloud Account ── -->
   <article>
@@ -20,7 +25,7 @@
       {% endif %}
     </p>
 
-    <div id="login-form-area">
+    <div id="login-form-area" aria-live="polite">
       {% if has_token %}
       <details>
         <summary>{{ t('settings.relogin') }}</summary>

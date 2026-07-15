@@ -2,7 +2,12 @@
 {% block title %}{{ t('spools.form_edit_title') if spool else t('spools.form_new_title') }} — PrintFilamentTracker{% endblock %}
 
 {% block content %}
-<h1>{{ t('spools.form_edit_title') if spool else t('spools.form_new_title') }}</h1>
+<div class="page-header">
+  <div>
+    <p class="eyebrow">{{ t('nav.group_materials') }}</p>
+    <h1>{{ t('spools.form_edit_title') if spool else t('spools.form_new_title') }}</h1>
+  </div>
+</div>
 
 <form method="post" action="{{ action }}">
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
@@ -57,7 +62,7 @@
     <textarea name="note" rows="2">{{ spool.note if spool else '' }}</textarea>
   </label>
 
-  <div style="display:flex;gap:1rem;margin-top:1rem;">
+  <div class="form-actions">
     <button type="submit">{{ t('spools.form_update_btn') if spool else t('spools.form_add_btn') }}</button>
     <a href="{{ url_for('spools.list_view') }}" role="button" class="outline">{{ t('common.cancel') }}</a>
   </div>

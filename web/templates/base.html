@@ -8,58 +8,112 @@
   <script>(function(){try{var t=localStorage.getItem('print-filament-tracker-theme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}}());</script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&family=Noto+Serif+TC:wght@600;700&display=swap">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
   <script src="https://unpkg.com/htmx.org@1.9.12" defer></script>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
   {% block extra_head %}{% endblock %}
 </head>
-<body>
-  <header class="container-fluid">
-    <nav>
-      <ul>
-        <li><strong><img src="{{ url_for('static', filename='img/print-filament-tracker-icon.png') }}" alt="" style="height:36px;width:36px;object-fit:contain;vertical-align:middle;margin-right:8px;flex-shrink:0;">PrintFilamentTracker</strong></li>
-      </ul>
-      <ul>
-        <li><a href="{{ url_for('dashboard.index') }}" {% if request.path == '/' %}aria-current="page"{% endif %}>{{ t('nav.dashboard') }}</a></li>
-        <li><a href="{{ url_for('spools.list_view') }}" {% if request.path.startswith('/spools') %}aria-current="page"{% endif %}>{{ t('nav.spools') }}</a></li>
-        <li><a href="{{ url_for('printers.list_view') }}" {% if request.path.startswith('/printers') %}aria-current="page"{% endif %}>{{ t('nav.printers') }}</a></li>
-        <li><a href="{{ url_for('tasks.list_view') }}" {% if request.path.startswith('/tasks') %}aria-current="page"{% endif %}>{{ t('nav.tasks') }}</a></li>
-        <li><a href="{{ url_for('mapping.list_view') }}" {% if request.path.startswith('/mapping') %}aria-current="page"{% endif %}>{{ t('nav.mapping') }}</a></li>
-        <li><a href="{{ url_for('analytics.index') }}" {% if request.path.startswith('/analytics') %}aria-current="page"{% endif %}>{{ t('nav.analytics') }}</a></li>
-        <li><a href="{{ url_for('cost.index') }}" {% if request.path.startswith('/cost') %}aria-current="page"{% endif %}>{{ t('nav.cost') }}</a></li>
-        <li><a href="{{ url_for('settings.index') }}" {% if request.path.startswith('/settings') %}aria-current="page"{% endif %}>{{ t('nav.settings') }}</a></li>
-        <li>
-          {# ── Language switcher — add a new JSON file to support more languages ── #}
-          <form method="post" action="{{ url_for('lang.set_lang') }}" style="margin:0;display:inline;">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <input type="hidden" name="next" value="{{ request.full_path.rstrip('?') }}">
-            <select name="lang" onchange="this.form.submit()"
-                    aria-label="{{ t('lang.label') }}"
-                    style="margin:0;padding:0.2rem 2rem 0.2rem 0.5rem;font-size:0.85rem;width:auto;height:auto;cursor:pointer;">
-              {% for code, name in supported_langs() %}
-              <option value="{{ code }}" {% if code == current_lang() %}selected{% endif %}>{{ name }}</option>
-              {% endfor %}
-            </select>
-          </form>
-        </li>
-        <li>
-          <button class="theme-toggle" id="nav-theme-toggle"
-                  aria-label="{{ t('nav.theme_toggle_aria') }}"
-                  title="{{ t('nav.theme_toggle_title') }}">
-            <span id="theme-toggle-icon">☾</span>
-          </button>
-        </li>
-      </ul>
-    </nav>
-  </header>
+<body class="app-body">
+  <a class="skip-link" href="#main-content">{{ t('common.skip_to_content') }}</a>
+  <div class="app-shell">
+    <aside class="app-sidebar" aria-label="{{ t('nav.sidebar_aria') }}">
+      <a class="app-brand" href="{{ url_for('dashboard.index') }}">
+        <img src="{{ url_for('static', filename='img/print-filament-tracker-icon.png') }}" alt="">
+        <span>
+          <strong>PrintFilamentTracker</strong>
+          <small>{{ t('nav.brand_subtitle') }}</small>
+        </span>
+      </a>
+
+      <nav class="app-nav" aria-label="{{ t('nav.primary_aria') }}">
+        <div class="app-nav-group">
+          <span class="app-nav-label">{{ t('nav.group_overview') }}</span>
+          <a class="app-nav-link app-nav-mobile-primary" href="{{ url_for('dashboard.index') }}" {% if request.path == '/' %}aria-current="page"{% endif %}>
+            <span class="ui-icon" aria-hidden="true">⌂</span><span>{{ t('nav.dashboard') }}</span>
+          </a>
+        </div>
+
+        <div class="app-nav-group">
+          <span class="app-nav-label">{{ t('nav.group_materials') }}</span>
+          <a class="app-nav-link app-nav-mobile-primary" href="{{ url_for('spools.list_view') }}" {% if request.path.startswith('/spools') %}aria-current="page"{% endif %}>
+            <span class="ui-icon" aria-hidden="true">◉</span><span>{{ t('nav.spools') }}</span>
+          </a>
+          <a class="app-nav-link app-nav-mobile-secondary" href="{{ url_for('mapping.list_view') }}" {% if request.path.startswith('/mapping') %}aria-current="page"{% endif %}>
+            <span class="ui-icon" aria-hidden="true">↔</span><span>{{ t('nav.mapping') }}</span>
+          </a>
+        </div>
+
+        <div class="app-nav-group">
+          <span class="app-nav-label">{{ t('nav.group_production') }}</span>
+          <a class="app-nav-link app-nav-mobile-primary" href="{{ url_for('tasks.list_view') }}" {% if request.path.startswith('/tasks') %}aria-current="page"{% endif %}>
+            <span class="ui-icon" aria-hidden="true">▤</span><span>{{ t('nav.tasks') }}</span>
+          </a>
+          <a class="app-nav-link app-nav-mobile-secondary" href="{{ url_for('printers.list_view') }}" {% if request.path.startswith('/printers') %}aria-current="page"{% endif %}>
+            <span class="ui-icon" aria-hidden="true">▣</span><span>{{ t('nav.printers') }}</span>
+          </a>
+        </div>
+
+        <div class="app-nav-group">
+          <span class="app-nav-label">{{ t('nav.group_insights') }}</span>
+          <a class="app-nav-link app-nav-mobile-primary" href="{{ url_for('analytics.index') }}" {% if request.path.startswith('/analytics') %}aria-current="page"{% endif %}>
+            <span class="ui-icon" aria-hidden="true">↗</span><span>{{ t('nav.analytics') }}</span>
+          </a>
+          <a class="app-nav-link app-nav-mobile-secondary" href="{{ url_for('cost.index') }}" {% if request.path.startswith('/cost') %}aria-current="page"{% endif %}>
+            <span class="ui-icon" aria-hidden="true">＄</span><span>{{ t('nav.cost') }}</span>
+          </a>
+        </div>
+
+        <div class="app-nav-group">
+          <span class="app-nav-label">{{ t('nav.group_system') }}</span>
+          <a class="app-nav-link app-nav-mobile-secondary" href="{{ url_for('settings.index') }}" {% if request.path.startswith('/settings') %}aria-current="page"{% endif %}>
+            <span class="ui-icon" aria-hidden="true">⚙</span><span>{{ t('nav.settings') }}</span>
+          </a>
+        </div>
+      </nav>
+
+      <div class="app-sidebar-footer">
+        <details class="app-mobile-more{% if request.path.startswith('/mapping') or request.path.startswith('/printers') or request.path.startswith('/cost') or request.path.startswith('/settings') %} is-active{% endif %}">
+          <summary aria-label="{{ t('nav.more') }}">⋯</summary>
+          <div class="app-mobile-more-menu">
+            <a href="{{ url_for('mapping.list_view') }}" {% if request.path.startswith('/mapping') %}aria-current="page"{% endif %}>{{ t('nav.mapping') }}</a>
+            <a href="{{ url_for('printers.list_view') }}" {% if request.path.startswith('/printers') %}aria-current="page"{% endif %}>{{ t('nav.printers') }}</a>
+            <a href="{{ url_for('cost.index') }}" {% if request.path.startswith('/cost') %}aria-current="page"{% endif %}>{{ t('nav.cost') }}</a>
+            <a href="{{ url_for('settings.index') }}" {% if request.path.startswith('/settings') %}aria-current="page"{% endif %}>{{ t('nav.settings') }}</a>
+          </div>
+        </details>
+        <form class="app-language-form" method="post" action="{{ url_for('lang.set_lang') }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <input type="hidden" name="next" value="{{ request.full_path.rstrip('?') }}">
+          <label for="app-language-select" class="visually-hidden">{{ t('lang.label') }}</label>
+          <select id="app-language-select" name="lang" onchange="this.form.submit()" aria-label="{{ t('lang.label') }}">
+            {% for code, name in supported_langs() %}
+            <option value="{{ code }}" {% if code == current_lang() %}selected{% endif %}>{{ name }}</option>
+            {% endfor %}
+          </select>
+        </form>
+        <button class="theme-toggle" id="nav-theme-toggle"
+                aria-label="{{ t('nav.theme_toggle_aria') }}"
+                title="{{ t('nav.theme_toggle_title') }}">
+          <span id="theme-toggle-icon">☾</span>
+        </button>
+      </div>
+    </aside>
+
+    <div class="app-main-shell">
+      <header class="app-mobile-topbar">
+        <a class="app-mobile-brand" href="{{ url_for('dashboard.index') }}">
+          <img src="{{ url_for('static', filename='img/print-filament-tracker-icon.png') }}" alt="">
+          <strong>PrintFilamentTracker</strong>
+        </a>
+      </header>
 
   <div id="cover-lightbox" role="dialog" aria-modal="true" aria-label="{{ t('lightbox.title') }}">
     <button id="cover-lightbox-close" aria-label="{{ t('lightbox.close') }}">×</button>
     <img id="cover-lightbox-img" src="" alt="">
   </div>
 
-  <main class="container-fluid" style="margin-top:1.5rem;">
+  <main id="main-content" class="app-content container-fluid">
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% for category, message in messages %}
         <div class="flash flash-{{ category }}">{{ message }}</div>
@@ -69,9 +123,11 @@
     {% block content %}{% endblock %}
   </main>
 
-  <footer class="container-fluid">
+  <footer class="app-footer container-fluid">
     {{ t('footer.text') }}
   </footer>
+    </div>
+  </div>
 
 <script>
 (function () {
@@ -97,18 +153,24 @@
 
   var lb    = null;
   var lbImg = null;
+  var lbTrigger = null;
+  var lightboxOpenLabel = {{ t('lightbox.open') | tojson }};
 
-  function openLightbox(src, alt) {
+  function openLightbox(src, alt, trigger) {
+    lbTrigger = trigger || document.activeElement;
     lbImg.src = src;
     lbImg.alt = alt || '';
     lb.classList.add('open');
     document.body.style.overflow = 'hidden';
+    document.getElementById('cover-lightbox-close').focus();
   }
 
   function closeLightbox() {
     lb.classList.remove('open');
     document.body.style.overflow = '';
     lbImg.src = '';
+    if (lbTrigger && typeof lbTrigger.focus === 'function') lbTrigger.focus();
+    lbTrigger = null;
   }
 
   function initCoverThumbs(root) {
@@ -120,8 +182,17 @@
         if (thumb && !thumb.dataset.lightboxBound) {
           thumb.dataset.lightbox = '1';
           thumb.dataset.lightboxBound = '1';
+          thumb.setAttribute('tabindex', '0');
+          thumb.setAttribute('role', 'button');
+          thumb.setAttribute('aria-label', img.alt ? lightboxOpenLabel + ': ' + img.alt : lightboxOpenLabel);
           thumb.addEventListener('click', function () {
-            if (img.classList.contains('img-loaded')) openLightbox(img.src, img.alt);
+            if (img.classList.contains('img-loaded')) openLightbox(img.src, img.alt, thumb);
+          });
+          thumb.addEventListener('keydown', function (e) {
+            if ((e.key === 'Enter' || e.key === ' ') && img.classList.contains('img-loaded')) {
+              e.preventDefault();
+              openLightbox(img.src, img.alt, thumb);
+            }
           });
         }
       }
