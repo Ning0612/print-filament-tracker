@@ -2004,6 +2004,80 @@ td, th { border-bottom-color: var(--ui-border); }
 code, .stat-number, .econ-total, .cost-value, .cost-stat-value, .spool-col-date,
 .spool-col-code, .printer-stat-value { font-family: var(--pico-font-family-monospace); }
 
+/* Mapping tables stay inside the content canvas on desktop while preserving a
+   readable, scrollable work surface on narrow screens. */
+.mapping-data-table {
+  width: 100%;
+  min-width: 0;
+  table-layout: fixed;
+}
+.mapping-data-table th,
+.mapping-data-table td {
+  overflow-wrap: anywhere;
+}
+.mapping-data-table .mapping-spool-select {
+  width: 100%;
+  min-width: 0 !important;
+  max-width: 100%;
+  padding-inline: 0.55rem;
+  font-size: 0.8rem;
+}
+.mapping-data-table--unmapped th:nth-child(1),
+.mapping-data-table--unmapped td:nth-child(1),
+.mapping-data-table--mapped th:nth-child(1),
+.mapping-data-table--mapped td:nth-child(1),
+.mapping-data-table--ignored th:nth-child(1),
+.mapping-data-table--ignored td:nth-child(1) { width: 7%; }
+.mapping-data-table--unmapped th:nth-child(2),
+.mapping-data-table--unmapped td:nth-child(2) { width: 19%; }
+.mapping-data-table--unmapped th:nth-child(3),
+.mapping-data-table--unmapped td:nth-child(3),
+.mapping-data-table--mapped th:nth-child(3),
+.mapping-data-table--mapped td:nth-child(3) { width: 8%; }
+.mapping-data-table--unmapped th:nth-child(4),
+.mapping-data-table--unmapped td:nth-child(4),
+.mapping-data-table--mapped th:nth-child(4),
+.mapping-data-table--mapped td:nth-child(4),
+.mapping-data-table--ignored th:nth-child(4),
+.mapping-data-table--ignored td:nth-child(4) { width: 8%; }
+.mapping-data-table--unmapped th:nth-child(5),
+.mapping-data-table--unmapped td:nth-child(5) { width: 12%; white-space: normal !important; }
+.mapping-data-table--unmapped th:nth-child(6),
+.mapping-data-table--unmapped td:nth-child(6),
+.mapping-data-table--mapped th:nth-child(6),
+.mapping-data-table--mapped td:nth-child(6),
+.mapping-data-table--ignored th:nth-child(6),
+.mapping-data-table--ignored td:nth-child(6) { width: 11%; }
+.mapping-data-table--unmapped th:nth-child(7),
+.mapping-data-table--unmapped td:nth-child(7),
+.mapping-data-table--mapped th:nth-child(7),
+.mapping-data-table--mapped td:nth-child(7),
+.mapping-data-table--ignored th:nth-child(7),
+.mapping-data-table--ignored td:nth-child(7) { width: 9%; }
+.mapping-data-table--unmapped th:nth-child(8),
+.mapping-data-table--unmapped td:nth-child(8) { width: 18%; }
+.mapping-data-table--unmapped th:nth-child(9),
+.mapping-data-table--unmapped td:nth-child(9) { width: 8%; }
+.mapping-data-table--unmapped td:nth-child(9) button { white-space: nowrap; }
+.mapping-data-table--mapped th:nth-child(2),
+.mapping-data-table--mapped td:nth-child(2) { width: 15%; }
+.mapping-data-table--mapped th:nth-child(5),
+.mapping-data-table--mapped td:nth-child(5) { width: 11%; }
+.mapping-data-table--mapped th:nth-child(6),
+.mapping-data-table--mapped td:nth-child(6) { width: 10%; }
+.mapping-data-table--mapped th:nth-child(8),
+.mapping-data-table--mapped td:nth-child(8) { width: 10%; }
+.mapping-data-table--mapped th:nth-child(9),
+.mapping-data-table--mapped td:nth-child(9) { width: 22%; }
+.mapping-data-table--ignored th:nth-child(2),
+.mapping-data-table--ignored td:nth-child(2) { width: 20%; }
+.mapping-data-table--ignored th:nth-child(3),
+.mapping-data-table--ignored td:nth-child(3) { width: 10%; }
+.mapping-data-table--ignored th:nth-child(5),
+.mapping-data-table--ignored td:nth-child(5) { width: 12%; }
+.mapping-data-table--ignored th:nth-child(8),
+.mapping-data-table--ignored td:nth-child(8) { width: 23%; }
+
 .spool-section { margin-bottom: 2rem; }
 .section-header { border-bottom-color: var(--ui-border); }
 .spool-row { padding: 0.75rem 0.45rem; }
@@ -2157,6 +2231,14 @@ button.gallery-toggle-icon:hover { color: var(--ui-primary); background: transpa
   .spool-row .spool-col-weight { grid-column: 1 / 2; }
   .spool-row .spool-col-actions { grid-column: 2 / 3; grid-row: 1 / span 2; flex-direction: column; }
   .analytics-two-col { grid-template-columns: 1fr; }
+  .mapping-data-table {
+    min-width: 900px;
+    table-layout: auto;
+  }
+  .mapping-data-table .mapping-spool-select {
+    width: 220px;
+    max-width: none;
+  }
 }
 
 @media (min-width: 821px) and (max-width: 1100px) {

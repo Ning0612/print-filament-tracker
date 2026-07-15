@@ -36,10 +36,10 @@
   {% if unmapped %}
   <p style="color:var(--pico-muted-color);margin-top:0.75rem;">{{ t('mapping.unmapped_total', n=unmapped|length) }}</p>
   <div class="overflow-auto">
-  <table id="mapping-table">
+  <table id="mapping-table" class="mapping-data-table mapping-data-table--unmapped">
     <thead>
       <tr>
-        <th scope="col" style="width:80px;">{{ t('mapping.table_image') }}</th>
+        <th scope="col">{{ t('mapping.table_image') }}</th>
         <th scope="col">{{ t('mapping.table_task') }}</th>
         <th scope="col">{{ t('mapping.table_date') }}</th>
         <th scope="col">{{ t('tasks.table_status') }}</th>
@@ -80,7 +80,7 @@
         </td>
         <td>{{ '%.1f' % r.used_weight_g if r.used_weight_g else '-' }}g</td>
         <td>
-          <select name="spool_id" id="spool-select-{{ r.id }}" style="min-width:200px;">
+          <select name="spool_id" id="spool-select-{{ r.id }}" class="mapping-spool-select">
             <option value="">{{ t('mapping.spool_select_placeholder') }}</option>
             {% for s in spools %}
             <option value="{{ s.id }}">
@@ -112,10 +112,10 @@
   {% if mapped_by_spool %}
   <p style="color:var(--pico-muted-color);margin-top:0.75rem;">{{ t('mapping.mapped_total', n=mapped_count, m=mapped_by_spool|length) }}</p>
   <div class="overflow-auto">
-  <table id="mapped-table">
+  <table id="mapped-table" class="mapping-data-table mapping-data-table--mapped">
     <thead>
       <tr>
-        <th scope="col" style="width:80px;">{{ t('mapping.table_image') }}</th>
+        <th scope="col">{{ t('mapping.table_image') }}</th>
         <th scope="col">{{ t('mapping.table_task') }}</th>
         <th scope="col">{{ t('mapping.table_date') }}</th>
         <th scope="col">{{ t('tasks.table_status') }}</th>
@@ -212,10 +212,10 @@
   {% if ignored %}
   <p style="color:var(--pico-muted-color);margin-top:0.75rem;">{{ t('mapping.ignored_total', n=ignored|length) }}</p>
   <div class="overflow-auto">
-  <table>
+  <table class="mapping-data-table mapping-data-table--ignored">
     <thead>
       <tr>
-        <th scope="col" style="width:80px;">{{ t('mapping.table_image') }}</th>
+        <th scope="col">{{ t('mapping.table_image') }}</th>
         <th scope="col">{{ t('mapping.table_task') }}</th>
         <th scope="col">{{ t('mapping.table_date') }}</th>
         <th scope="col">{{ t('tasks.table_status') }}</th>
