@@ -5,7 +5,8 @@ $root = Split-Path -Parent $PSScriptRoot
 $sourcePath = Join-Path $root 'web\static\img\filament-ledger-icon.png'
 $targetPath = Join-Path $root 'web\static\img\filament-ledger-icon.ico'
 $icnsPath = Join-Path $root 'web\static\img\filament-ledger-icon.icns'
-$sizes = @(16, 24, 32, 48, 64, 128, 256)
+# Keep the checked-in ICO aligned with the Windows release build output.
+$sizes = @(16, 20, 24, 32, 40, 48, 64, 96, 128, 256)
 
 $source = [Drawing.Image]::FromFile($sourcePath)
 $payloads = foreach ($size in $sizes) {
