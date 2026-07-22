@@ -2417,6 +2417,16 @@ main.app-content {
   font-size: 0.72rem;
   letter-spacing: 0.02em;
 }
+.app-footer-sep { margin: 0 0.5rem; opacity: 0.55; }
+.app-footer-link {
+  color: var(--ui-muted);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+}
+.app-footer-link:hover {
+  color: var(--ui-primary);
+  border-bottom-color: currentColor;
+}
 
 .visually-hidden {
   position: absolute !important;

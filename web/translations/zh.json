@@ -37,7 +37,8 @@
     "expand_sidebar": "展開側邊欄"
   },
   "footer": {
-    "text": "材料帳本 Filament Ledger — 本機材料管理工具"
+    "text": "材料帳本 Filament Ledger — 本機材料管理工具",
+    "source": "GitHub 原始碼"
   },
   "lightbox": {
     "title": "封面圖預覽",

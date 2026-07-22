@@ -37,7 +37,8 @@
     "expand_sidebar": "Expand sidebar"
   },
   "footer": {
-    "text": "Filament Ledger — Local filament ledger for 3D printing"
+    "text": "Filament Ledger — Local filament ledger for 3D printing",
+    "source": "Source on GitHub"
   },
   "lightbox": {
     "title": "Cover image preview",
