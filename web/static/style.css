@@ -2117,6 +2117,7 @@ code, .stat-number, .econ-total, .cost-value, .cost-stat-value, .spool-col-date,
 .mapping-data-table th,
 .mapping-data-table td {
   overflow-wrap: anywhere;
+  vertical-align: middle;
 }
 .mapping-data-table .mapping-spool-select {
   width: 100%;
@@ -2169,9 +2170,7 @@ code, .stat-number, .econ-total, .cost-value, .cost-stat-value, .spool-col-date,
 .mapping-data-table--mapped th:nth-child(6),
 .mapping-data-table--mapped td:nth-child(6) { width: 10%; }
 .mapping-data-table--mapped th:nth-child(8),
-.mapping-data-table--mapped td:nth-child(8) { width: 10%; }
-.mapping-data-table--mapped th:nth-child(9),
-.mapping-data-table--mapped td:nth-child(9) { width: 22%; }
+.mapping-data-table--mapped td:nth-child(8) { width: 32%; }
 .mapping-data-table--ignored th:nth-child(2),
 .mapping-data-table--ignored td:nth-child(2) { width: 20%; }
 .mapping-data-table--ignored th:nth-child(3),
@@ -2180,6 +2179,22 @@ code, .stat-number, .econ-total, .cost-value, .cost-stat-value, .spool-col-date,
 .mapping-data-table--ignored td:nth-child(5) { width: 12%; }
 .mapping-data-table--ignored th:nth-child(8),
 .mapping-data-table--ignored td:nth-child(8) { width: 23%; }
+
+/* Pico's [role="button"] rule sets --pico-background-color/--pico-color to
+   the primary button fill; td/th then paint themselves from those inherited
+   custom properties (`td,th{background-color:var(--pico-background-color)}`),
+   so overriding background/color on the tr alone has no visible effect.
+   Reset the custom properties instead so the collapsible spool group row
+   stays a plain, readable table row. */
+.spool-group-header,
+.spool-group-header:hover,
+.spool-group-header:focus,
+.spool-group-header:focus-visible {
+  --pico-background-color: var(--ui-surface-2);
+  --pico-color: var(--ui-ink);
+  transform: none !important;
+}
+.spool-group-header small { color: var(--ui-muted) !important; }
 
 .spool-section { margin-bottom: 2rem; }
 .section-header { border-bottom-color: var(--ui-border); }

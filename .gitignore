@@ -26,6 +26,7 @@ build/
 .claude/
 CLAUDE.md
 AGENTS.md
+.serena/
 
 # Mac
 .DS_Store
