@@ -7,7 +7,7 @@
     </div>
     {% else %}<span style="color:var(--pico-muted-color);">—</span>{% endif %}
   </td>
-  <td><a href="{{ url_for('tasks.detail_view', task_id=r.print_task_id) }}">{{ r.print_name or t('common.unnamed') }}</a></td>
+  <td class="col-align-left"><a href="{{ url_for('tasks.detail_view', task_id=r.print_task_id) }}">{{ r.print_name or t('common.unnamed') }}</a></td>
   <td style="white-space:nowrap;">{{ r.started_at | tz_date }}</td>
   <td style="white-space:nowrap;">{{ print_status_badge(r) }}</td>
   <td>{{ r.material or '-' }}</td>
@@ -19,7 +19,7 @@
   </td>
   <td>{{ '%.1f' % r.used_weight_g if r.used_weight_g else '-' }}g</td>
   <td style="white-space:nowrap;">
-    <div style="display:flex;gap:0.25rem;">
+    <div style="display:inline-flex;gap:0.25rem;">
       <button class="outline"
               hx-get="{{ url_for('mapping.remap_form', ptf_id=r.id) }}"
               hx-target="#mapped-row-{{ r.id }}"

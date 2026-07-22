@@ -27,6 +27,7 @@ build/
 CLAUDE.md
 AGENTS.md
 .serena/
+.playwright-mcp/
 
 # Mac
 .DS_Store

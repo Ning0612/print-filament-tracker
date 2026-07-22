@@ -60,7 +60,7 @@
           </div>
           {% else %}<span style="color:var(--pico-muted-color);">—</span>{% endif %}
         </td>
-        <td><a href="{{ url_for('tasks.detail_view', task_id=r.print_task_id) }}">{{ r.print_name or t('common.unnamed') }}</a></td>
+        <td class="col-align-left"><a href="{{ url_for('tasks.detail_view', task_id=r.print_task_id) }}">{{ r.print_name or t('common.unnamed') }}</a></td>
         <td style="white-space:nowrap;">{{ r.started_at | tz_date }}</td>
         <td style="white-space:nowrap;">{{ print_status_badge(r) }}</td>
         <td id="mat-{{ r.id }}" style="white-space:nowrap;">
@@ -133,7 +133,7 @@
           onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); toggleSpoolGroup({{ g.spool_id }}); }"
           tabindex="0" role="button" aria-expanded="false"
           style="cursor:pointer;">
-        <td colspan="6">
+        <td colspan="6" class="col-align-left">
           <span id="toggle-{{ g.spool_id }}" style="font-size:0.75rem;margin-right:0.35rem;display:inline-block;width:0.8em;">▶</span>
           {% if g.spool_color_hex %}
           <span class="color-swatch" style="--swatch-color:{{ g.spool_color_hex }};"></span>
@@ -153,7 +153,7 @@
           </div>
           {% else %}<span style="color:var(--pico-muted-color);">—</span>{% endif %}
         </td>
-        <td><a href="{{ url_for('tasks.detail_view', task_id=r.print_task_id) }}">{{ r.print_name or t('common.unnamed') }}</a></td>
+        <td class="col-align-left"><a href="{{ url_for('tasks.detail_view', task_id=r.print_task_id) }}">{{ r.print_name or t('common.unnamed') }}</a></td>
         <td style="white-space:nowrap;">{{ r.started_at | tz_date }}</td>
         <td style="white-space:nowrap;">{{ print_status_badge(r) }}</td>
         <td>{{ r.material or '-' }}</td>
@@ -165,7 +165,7 @@
         </td>
         <td>{{ '%.1f' % r.used_weight_g if r.used_weight_g else '-' }}g</td>
         <td style="white-space:nowrap;">
-          <div style="display:flex;gap:0.25rem;">
+          <div style="display:inline-flex;gap:0.25rem;">
             <button class="outline"
                     hx-get="{{ url_for('mapping.remap_form', ptf_id=r.id) }}"
                     hx-target="#mapped-row-{{ r.id }}"
@@ -227,7 +227,7 @@
           </div>
           {% else %}<span style="color:var(--pico-muted-color);">—</span>{% endif %}
         </td>
-        <td><a href="{{ url_for('tasks.detail_view', task_id=r.print_task_id) }}">{{ r.print_name or t('common.unnamed') }}</a></td>
+        <td class="col-align-left"><a href="{{ url_for('tasks.detail_view', task_id=r.print_task_id) }}">{{ r.print_name or t('common.unnamed') }}</a></td>
         <td style="white-space:nowrap;">{{ r.started_at | tz_date }}</td>
         <td style="white-space:nowrap;">{{ print_status_badge(r) }}</td>
         <td>{{ r.material or '-' }}</td>
@@ -238,13 +238,13 @@
           <code>{{ r.color_hex or '-' }}</code>
         </td>
         <td>{{ '%.1f' % r.used_weight_g if r.used_weight_g else '-' }}g</td>
-        <td>
+        <td style="white-space:nowrap;">
           <button class="outline"
                   hx-post="{{ url_for('mapping.unignore_view', ptf_id=r.id) }}"
                   hx-target="#ignored-row-{{ r.id }}"
                   hx-swap="outerHTML"
                   hx-confirm="{{ t('mapping.confirm_unignore') }}"
-                  style="padding:0.3rem 0.75rem;font-size:0.875rem;margin:0;line-height:1.4;">{{ t('mapping.unignore_btn') }}</button>
+                  style="padding:0.3rem 0.75rem;font-size:0.875rem;margin:0;line-height:1.4;white-space:nowrap;">{{ t('mapping.unignore_btn') }}</button>
         </td>
       </tr>
       {% endfor %}

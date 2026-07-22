@@ -445,6 +445,7 @@ thead th {
   text-transform: uppercase;
   letter-spacing: 0.07em;
   color: var(--pico-muted-color);
+  text-align: center;
 }
 tbody tr { transition: background-color 0.1s; }
 td { hyphens: none; word-break: normal; }
@@ -2118,6 +2119,15 @@ code, .stat-number, .econ-total, .cost-value, .cost-stat-value, .spool-col-date,
 .mapping-data-table td {
   overflow-wrap: anywhere;
   vertical-align: middle;
+  text-align: center;
+}
+/* Print-task-name column (and other row-label cells like the collapsible
+   spool group header, and the remap form's select row) stay left-aligned —
+   variable-length text reads ragged-left better than centered. Marked with
+   an explicit class rather than :nth-child() because colspan usage shifts
+   the DOM child index for these cells between row types. */
+.mapping-data-table td.col-align-left {
+  text-align: left;
 }
 .mapping-data-table .mapping-spool-select {
   width: 100%;
@@ -2125,6 +2135,12 @@ code, .stat-number, .econ-total, .cost-value, .cost-stat-value, .spool-col-date,
   max-width: 100%;
   padding-inline: 0.55rem;
   font-size: 0.8rem;
+}
+/* .cover-thumb is a fixed-width block box, so a centered td doesn't center
+   it on its own — give it auto side margins where it sits in these tables. */
+.mapping-data-table td .cover-thumb,
+.tasks-list-table td .cover-thumb {
+  margin: 0 auto;
 }
 .mapping-data-table--unmapped th:nth-child(1),
 .mapping-data-table--unmapped td:nth-child(1),
@@ -2164,21 +2180,67 @@ code, .stat-number, .econ-total, .cost-value, .cost-stat-value, .spool-col-date,
 .mapping-data-table--unmapped td:nth-child(9) { width: 8%; }
 .mapping-data-table--unmapped td:nth-child(9) button { white-space: nowrap; }
 .mapping-data-table--mapped th:nth-child(2),
-.mapping-data-table--mapped td:nth-child(2) { width: 15%; }
+.mapping-data-table--mapped td:nth-child(2) { width: 29%; }
 .mapping-data-table--mapped th:nth-child(5),
 .mapping-data-table--mapped td:nth-child(5) { width: 11%; }
 .mapping-data-table--mapped th:nth-child(6),
 .mapping-data-table--mapped td:nth-child(6) { width: 10%; }
 .mapping-data-table--mapped th:nth-child(8),
-.mapping-data-table--mapped td:nth-child(8) { width: 32%; }
+.mapping-data-table--mapped td:nth-child(8) { width: 18%; }
 .mapping-data-table--ignored th:nth-child(2),
-.mapping-data-table--ignored td:nth-child(2) { width: 20%; }
+.mapping-data-table--ignored td:nth-child(2) { width: 28%; }
 .mapping-data-table--ignored th:nth-child(3),
 .mapping-data-table--ignored td:nth-child(3) { width: 10%; }
 .mapping-data-table--ignored th:nth-child(5),
 .mapping-data-table--ignored td:nth-child(5) { width: 12%; }
 .mapping-data-table--ignored th:nth-child(8),
-.mapping-data-table--ignored td:nth-child(8) { width: 23%; }
+.mapping-data-table--ignored td:nth-child(8) { width: 15%; }
+
+/* Print history table: give the (variable-length) print name column most of
+   the freed width instead of leaving it evenly split with short fixed-content
+   columns (plate/duration/status), which read as empty space on the right. */
+.tasks-list-table {
+  width: 100%;
+  min-width: 0;
+  table-layout: fixed;
+}
+.tasks-list-table td {
+  overflow-wrap: anywhere;
+  vertical-align: middle;
+  text-align: center;
+}
+.tasks-list-table td:nth-child(2) {
+  text-align: left;
+}
+.tasks-list-table th {
+  white-space: nowrap;
+  vertical-align: middle;
+}
+.tasks-list-table th:nth-child(1),
+.tasks-list-table td:nth-child(1) { width: 10%; }
+.tasks-list-table th:nth-child(2),
+.tasks-list-table td:nth-child(2) { width: 31%; }
+.tasks-list-table th:nth-child(3),
+.tasks-list-table td:nth-child(3) { width: 10%; }
+.tasks-list-table th:nth-child(4),
+.tasks-list-table td:nth-child(4) { width: 6%; }
+.tasks-list-table th:nth-child(5),
+.tasks-list-table td:nth-child(5) { width: 14%; }
+.tasks-list-table th:nth-child(6),
+.tasks-list-table td:nth-child(6) { width: 7%; }
+.tasks-list-table th:nth-child(7),
+.tasks-list-table td:nth-child(7) { width: 7%; }
+.tasks-list-table th:nth-child(8),
+.tasks-list-table td:nth-child(8) { width: 7%; }
+.tasks-list-table th:nth-child(9),
+.tasks-list-table td:nth-child(9) { width: 8%; }
+/* Only manual tasks show edit/delete buttons here (rare vs. the bulk of
+   cloud-synced rows), so stack them instead of side-by-side to fit the
+   narrower column without reserving wide, mostly-empty space on every row. */
+.tasks-list-table td:nth-child(9) .row-actions {
+  flex-direction: column;
+  align-items: stretch;
+}
 
 /* Pico's [role="button"] rule sets --pico-background-color/--pico-color to
    the primary button fill; td/th then paint themselves from those inherited

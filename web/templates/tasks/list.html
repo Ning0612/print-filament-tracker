@@ -23,10 +23,10 @@
 
 {% if tasks %}
 <div class="overflow-auto">
-<table>
+<table class="tasks-list-table">
   <thead>
     <tr>
-      <th scope="col" style="width:120px;">{{ t('tasks.table_image') }}</th>
+      <th scope="col">{{ t('tasks.table_image') }}</th>
       <th scope="col">{{ t('tasks.table_name') }}</th>
       <th scope="col">{{ t('tasks.table_printer') }}</th>
       <th scope="col" style="white-space:nowrap;">{{ t('tasks.table_plate') }}</th>
@@ -34,7 +34,7 @@
       <th scope="col">{{ t('tasks.table_duration') }}</th>
       <th scope="col">{{ t('tasks.table_usage') }}</th>
       <th scope="col">{{ t('tasks.table_status') }}</th>
-      <th scope="col" style="width:130px;"></th>
+      <th scope="col"></th>
     </tr>
   </thead>
   <tbody>
@@ -65,7 +65,7 @@
       <td style="white-space:nowrap;">{{ print_status_badge(task) }}</td>
       <td>
         {% if task.is_manual %}
-        <div style="display:flex;gap:0.4rem;align-items:center;">
+        <div class="row-actions" style="display:inline-flex;gap:0.3rem;">
           <a href="{{ url_for('tasks.edit_manual', task_id=task.id) }}"
              role="button" class="outline"
              style="padding:0.25rem 0.6rem;font-size:0.8rem;margin:0;white-space:nowrap;">{{ t('common.edit') }}</a>

@@ -1,5 +1,5 @@
 <tr id="mapped-row-{{ r.id }}">
-  <td colspan="7">
+  <td colspan="7" class="col-align-left">
     <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
       <span style="color:var(--pico-muted-color);font-size:0.85rem;">{{ t('mapping.remap_label') }}</span>
       <select name="spool_id" id="remap-spool-{{ r.id }}" style="min-width:200px;margin:0;">
@@ -13,7 +13,7 @@
     </div>
   </td>
   <td style="white-space:nowrap;">
-    <div style="display:flex;gap:0.25rem;">
+    <div style="display:inline-flex;gap:0.25rem;">
       <button hx-post="{{ url_for('mapping.remap_view', ptf_id=r.id) }}"
               hx-include="#remap-spool-{{ r.id }}"
               hx-target="#mapped-row-{{ r.id }}"
