@@ -417,6 +417,7 @@
     "panel_title": "成本試算",
     "voucher_title": "計價傳票",
     "voucher_no": "No.{no}",
+    "included_stamp": "計入",
     "col_item": "項目",
     "col_usage": "用量",
     "col_amount": "金額",

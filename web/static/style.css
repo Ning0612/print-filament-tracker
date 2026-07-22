@@ -1481,8 +1481,57 @@ a.heatmap-cell:hover { opacity: 0.75; outline: 2px solid var(--pico-primary); ou
   z-index: 3;
   margin: 0;
   cursor: pointer;
-  accent-color: var(--pico-primary);
+  /* 自訂 checkbox：Pico 的 appearance:none 讓 accent-color 失效，且預設 checked
+     底色為 surface＋白勾＝淺色主題看不見。改用主色底＋主題感知的勾色 SVG。 */
+  appearance: none;
+  -webkit-appearance: none;
+  background-color: var(--ui-surface);
+  border: 1.5px solid var(--ui-border);
+  border-radius: 3px;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 0.85rem;
 }
+.cost-task-cb:checked {
+  background-color: var(--ui-primary);
+  border-color: var(--ui-primary);
+  background-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2016%2016'%3E%3Cpath%20fill='none'%20stroke='%23FBFAF4'%20stroke-width='2.6'%20stroke-linecap='round'%20stroke-linejoin='round'%20d='M3.5%208.4l3%203%206-6'/%3E%3C/svg%3E");
+}
+[data-theme="dark"] .cost-task-cb:checked {
+  background-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2016%2016'%3E%3Cpath%20fill='none'%20stroke='%2310201A'%20stroke-width='2.6'%20stroke-linecap='round'%20stroke-linejoin='round'%20d='M3.5%208.4l3%203%206-6'/%3E%3C/svg%3E");
+}
+.cost-task-cb:focus-visible {
+  outline: 2px solid var(--ui-primary);
+  outline-offset: 2px;
+}
+
+/* 選取卡片：「計入」印章（微斜章戳） */
+.cost-card-stamp {
+  display: none;
+  position: absolute;
+  top: 0.45rem;
+  right: 0.45rem;
+  z-index: 3;
+  padding: 0.1rem 0.42rem;
+  font-family: var(--pico-font-family-monospace);
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+  color: var(--ui-primary);
+  background: color-mix(in srgb, var(--ui-primary) 12%, var(--ui-surface));
+  border: 1px solid color-mix(in srgb, var(--ui-primary) 55%, var(--ui-border));
+  border-radius: 2px;
+  transform: rotate(-6deg);
+}
+.cost-task-card:has(.cost-task-cb:checked) .cost-card-stamp { display: inline-block; }
+
+/* 卡片材料金額（出帳） */
+.cost-card-amount {
+  margin-top: 0.3rem;
+  font-family: var(--pico-font-family-monospace);
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+.cost-card-amount-none { color: var(--ui-muted); font-weight: 400; }
 
 .cost-task-thumb-label {
   display: block;
@@ -1518,9 +1567,26 @@ a.heatmap-cell:hover { opacity: 0.75; outline: 2px solid var(--pico-primary); ou
 
 .cost-filament-row input[type="checkbox"] {
   flex-shrink: 0;
+  width: 1rem;
+  height: 1rem;
   margin: 0;
   cursor: pointer;
-  accent-color: var(--pico-primary);
+  appearance: none;
+  -webkit-appearance: none;
+  background-color: var(--ui-surface);
+  border: 1.5px solid var(--ui-border);
+  border-radius: 3px;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 0.72rem;
+}
+.cost-filament-row input[type="checkbox"]:checked {
+  background-color: var(--ui-primary);
+  border-color: var(--ui-primary);
+  background-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2016%2016'%3E%3Cpath%20fill='none'%20stroke='%23FBFAF4'%20stroke-width='2.6'%20stroke-linecap='round'%20stroke-linejoin='round'%20d='M3.5%208.4l3%203%206-6'/%3E%3C/svg%3E");
+}
+[data-theme="dark"] .cost-filament-row input[type="checkbox"]:checked {
+  background-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2016%2016'%3E%3Cpath%20fill='none'%20stroke='%2310201A'%20stroke-width='2.6'%20stroke-linecap='round'%20stroke-linejoin='round'%20d='M3.5%208.4l3%203%206-6'/%3E%3C/svg%3E");
 }
 
 .cost-ptf-label {

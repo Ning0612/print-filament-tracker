@@ -16,6 +16,7 @@
                  name="task_ids[]"
                  value="{{ task.id }}"
                  class="cost-task-cb">
+          <span class="cost-card-stamp" aria-hidden="true">{{ t('cost.included_stamp') }}</span>
           <label for="cb-task-{{ task.id }}" class="cost-task-thumb-label">
             <div class="task-gallery-thumb">
               {% if task.cover_url %}
@@ -42,6 +43,10 @@
             ⏱ {{ task.duration_seconds | fmt_duration }}
           </div>
           {% endif %}
+          {% set mat_cost = (task.filaments | selectattr('cost') | map(attribute='cost') | sum) if task.filaments else 0 %}
+          <div class="cost-card-amount">
+            {% if mat_cost %}<span class="amount--debit">{{ mat_cost | fmt_money }}</span>{% else %}<span class="cost-card-amount-none">—</span>{% endif %}
+          </div>
         </div>
 
         {# Filament rows — visible only when task is checked (via CSS :has) #}

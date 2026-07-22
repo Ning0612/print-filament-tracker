@@ -417,6 +417,7 @@
     "panel_title": "Cost Summary",
     "voucher_title": "Costing Slip",
     "voucher_no": "No.{no}",
+    "included_stamp": "Billed",
     "col_item": "Item",
     "col_usage": "Usage",
     "col_amount": "Amount",
