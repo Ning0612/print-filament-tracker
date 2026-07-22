@@ -102,6 +102,42 @@ def test_month_to_date_equals_sum_of_daily(conn: sqlite3.Connection) -> None:
     assert summary["total_cost"] == cost
 
 
+def test_month_to_date_matches_daily_under_weight_rounding(conn: sqlite3.Connection) -> None:
+    # 兩天各 0.04g：每日各 round→0.0g，月摘要須為 Σ 逐日 round = 0.0g（非原始 0.08→0.1）
+    _add_task(conn, 1, "2026-03-03T10:00:00Z", 0.04)
+    _add_task(conn, 2, "2026-03-04T10:00:00Z", 0.04)
+    summary = get_month_to_date_summary(conn, "2026-03-10", 0)
+    tc, wt, _ = _sum_daily(conn, 2026, 3, 10)
+    assert summary["total_weight_g"] == wt == 0.0
+    assert summary["task_count"] == tc == 2
+
+
+def test_month_to_date_matches_daily_under_cost_rounding(conn: sqlite3.Connection) -> None:
+    # price*ratio = 8 * (0.5/1000) = 0.004；每日各 round(2)→0.00，月成本須為 Σ 逐日 = 0.00
+    spool_id = insert_spool(conn, _spool(price=8.0, initial_weight_g=1000.0))
+    _add_task(conn, 1, "2026-03-03T10:00:00Z", 0.5, spool_id, 0.5)
+    _add_task(conn, 2, "2026-03-04T10:00:00Z", 0.5, spool_id, 0.5)
+    summary = get_month_to_date_summary(conn, "2026-03-10", 0)
+    _, _, cost = _sum_daily(conn, 2026, 3, 10)
+    assert summary["total_cost"] == cost == 0.0
+
+
+def test_month_to_date_cost_caps_at_initial_weight(conn: sqlite3.Connection) -> None:
+    # used > initial：ratio 上限 1.0，成本 = 整捲價
+    spool_id = insert_spool(conn, _spool(price=20.0, initial_weight_g=1000.0))
+    _add_task(conn, 1, "2026-03-03T10:00:00Z", 1500.0, spool_id, 1500.0)
+    summary = get_month_to_date_summary(conn, "2026-03-10", 0)
+    assert summary["total_cost"] == 20.0
+
+
+def test_month_to_date_negative_tz_excludes_prev_month(conn: sqlite3.Connection) -> None:
+    # UTC 03-01 01:00，tz=-120 → local 02-28 23:00，屬 2 月，不計入 3 月至今
+    _add_task(conn, 1, "2026-03-01T01:00:00Z", 50.0)
+    summary = get_month_to_date_summary(conn, "2026-03-05", -120)
+    assert summary["task_count"] == 0
+    assert summary["total_weight_g"] == 0.0
+
+
 def test_month_to_date_stats_month_start_inclusive(conn: sqlite3.Connection) -> None:
     _add_task(conn, 1, "2026-03-01T00:30:00Z", 10.0)
     stats = get_month_to_date_stats(conn, "2026-03-01", 0)

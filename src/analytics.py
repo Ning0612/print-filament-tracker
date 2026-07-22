@@ -515,15 +515,19 @@ def get_month_to_date_summary(
     """
     stats = get_month_to_date_stats(conn, date_str, tz_offset_minutes)
     rows = get_month_to_date_filament_rows(conn, date_str, tz_offset_minutes)
-    total_cost: float | None = None
+    # 成本以「Σ 逐日 round(2)」計算，與每日 total_cost_day（逐日四捨五入）一致，
+    # 故月成本嚴格等於各日顯示成本之和。
+    per_day_cost: dict = {}
     for r in rows:
         price = r.get("price")
         init_g = r.get("init_g")
         used_g = r.get("used_g") or 0
         if price and init_g and init_g > 0 and used_g > 0:
-            total_cost = (total_cost or 0.0) + price * min(used_g / init_g, 1.0)
-    if total_cost is not None:
-        total_cost = round(total_cost, 2)
+            day = r["d"]
+            per_day_cost[day] = per_day_cost.get(day, 0.0) + price * min(used_g / init_g, 1.0)
+    total_cost: float | None = None
+    if per_day_cost:
+        total_cost = round(sum(round(v, 2) for v in per_day_cost.values()), 2)
     return {
         "year_month": date_str[:7],
         "total_weight_g": round(stats["total_weight_g"] or 0, 1),

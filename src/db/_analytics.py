@@ -434,20 +434,38 @@ def get_month_to_date_stats(
 ) -> dict:
     """月初至 date_str（含）started-date tasks 的 task_count 與 total_weight_g。
 
-    口徑與每日卡片一致（started-date only），故月摘要 = Σ 每日卡片。
+    口徑與每日卡片一致（started-date only）。total_weight_g 以「Σ 逐日 round(0.1g)」
+    計算——每日卡片顯示的正是逐日四捨五入值，故月摘要嚴格等於各日顯示值之和
+    （帳本語意：月結＝各日已記帳值之和，而非原始值一次加總後才進位）。
     """
     tz = _tz_mod("started_at", tz_offset_minutes)
-    row = conn.execute(
+    ms = _month_start(date_str)
+    count_row = conn.execute(
         f"""
-        SELECT COUNT(*) AS task_count,
-               COALESCE(SUM(total_weight_g), 0.0) AS total_weight_g
+        SELECT COUNT(*) AS task_count
         FROM print_task
         WHERE started_at IS NOT NULL
           AND DATE({tz}) >= ? AND DATE({tz}) <= ?
         """,
-        (_month_start(date_str), date_str),
+        (ms, date_str),
     ).fetchone()
-    return {"task_count": row["task_count"], "total_weight_g": row["total_weight_g"]}
+    weight_row = conn.execute(
+        f"""
+        SELECT COALESCE(SUM(day_weight), 0.0) AS total_weight_g
+        FROM (
+            SELECT ROUND(SUM(total_weight_g), 1) AS day_weight
+            FROM print_task
+            WHERE started_at IS NOT NULL
+              AND DATE({tz}) >= ? AND DATE({tz}) <= ?
+            GROUP BY DATE({tz})
+        )
+        """,
+        (ms, date_str),
+    ).fetchone()
+    return {
+        "task_count": count_row["task_count"],
+        "total_weight_g": weight_row["total_weight_g"],
+    }
 
 
 def get_month_to_date_filament_rows(
