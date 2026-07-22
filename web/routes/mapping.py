@@ -216,7 +216,7 @@ def _row_error(ptf_id: int, msg: str) -> str:
 def _mapped_row_error(ptf_id: int, msg: str) -> str:
     safe_msg = escape(msg)
     safe_prefix = escape(t("common.error_prefix"))
-    return f'<tr id="mapped-row-{ptf_id}"><td colspan="9" style="color:var(--pico-del-color);">⚠ {safe_prefix}{safe_msg}</td></tr>'
+    return f'<tr id="mapped-row-{ptf_id}"><td colspan="8" style="color:var(--pico-del-color);">⚠ {safe_prefix}{safe_msg}</td></tr>'
 
 
 def _detail_row_error(ptf_id: int, msg: str) -> str:
