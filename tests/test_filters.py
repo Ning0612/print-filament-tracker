@@ -53,13 +53,16 @@ class TestFmtMoney:
 
 class TestFmtDuration:
     def test_hours_and_minutes(self):
-        assert fmt_duration(3 * 3600 + 12 * 60) == "3 h 12 m"
+        assert fmt_duration(3 * 3600 + 12 * 60) == "3h 12m"
+
+    def test_minutes_pad(self):
+        assert fmt_duration(3600 + 5 * 60) == "1h 05m"
 
     def test_minutes_only(self):
-        assert fmt_duration(59 * 60) == "59 m"
+        assert fmt_duration(59 * 60) == "59m"
 
     def test_zero(self):
-        assert fmt_duration(0) == "0 m"
+        assert fmt_duration(0) == "0m"
 
     def test_none(self):
         assert fmt_duration(None) == "-"

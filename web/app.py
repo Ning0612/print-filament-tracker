@@ -75,13 +75,13 @@ def fmt_money(v, digits: int = 2) -> str:
 
 
 def fmt_duration(seconds) -> str:
-    """秒數轉 '3 h 12 m'（不足 1 小時只顯示分鐘）；無效值回 '-'。"""
+    """秒數轉 '3h 12m'（不足 1 小時只顯示分鐘）；無效值回 '-'。"""
     f = _to_float(seconds)
     if f is None:
         return "-"
     total = int(f)
     h, m = total // 3600, (total % 3600) // 60
-    return f"{h} h {m} m" if h else f"{m} m"
+    return f"{h}h {m:02d}m" if h else f"{m}m"
 
 
 def ledger_amount(text, kind: str = "neutral"):

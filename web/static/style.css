@@ -335,24 +335,7 @@ h2 {
 [data-theme="dark"] .status-empty  { color: #F87171; }
 [data-theme="dark"] .status-sealed { color: #94A3B8; }
 
-.status-badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 0.2rem 0.65rem;
-  border-radius: var(--radius-pill);
-  font-size: 0.72rem;
-  font-weight: 600;
-  letter-spacing: 0.03em;
-}
-.status-badge.status-active { background: #DCFCE7; color: #14532D; }
-.status-badge.status-low    { background: #FEF9C3; color: #713F12; }
-.status-badge.status-empty  { background: #FEE2E2; color: #7F1D1D; }
-.status-badge.status-sealed { background: #F1F5F9; color: #334155; }
-
-[data-theme="dark"] .status-badge.status-active { background: rgba(74,222,128,0.12);  color: #86EFAC; }
-[data-theme="dark"] .status-badge.status-low    { background: rgba(252,211,77,0.12);  color: #FDE68A; }
-[data-theme="dark"] .status-badge.status-empty  { background: rgba(248,113,113,0.12); color: #FCA5A5; }
-[data-theme="dark"] .status-badge.status-sealed { background: rgba(148,163,184,0.12); color: #94A3B8; }
+/* .status-badge 樣式統一定義於 Material Ledger v1.1 stamp badges 區塊 */
 
 /* === 8. PROGRESS BAR === */
 .progress-bar-container {
@@ -390,58 +373,8 @@ h2 {
 }
 
 /* === 10. BADGES === */
-.manual-badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 0.15rem 0.5rem;
-  border-radius: var(--radius-pill);
-  font-size: 0.68rem;
-  font-weight: 600;
-  background: rgba(99, 102, 241, 0.10);
-  color: #4F46E5;
-  vertical-align: middle;
-  margin-left: 0.35rem;
-  letter-spacing: 0.02em;
-}
-[data-theme="dark"] .manual-badge {
-  background: rgba(165, 180, 252, 0.15);
-  color: #A5B4FC;
-}
-.print-status-badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 0.15rem 0.5rem;
-  border-radius: var(--radius-pill);
-  font-size: 0.68rem;
-  font-weight: 600;
-  vertical-align: middle;
-  margin-left: 0.35rem;
-  letter-spacing: 0.02em;
-}
-.print-status-badge.status-completed {
-  background: rgba(34, 197, 94, 0.12);
-  color: #15803D;
-}
-[data-theme="dark"] .print-status-badge.status-completed {
-  background: rgba(74, 222, 128, 0.15);
-  color: #86EFAC;
-}
-.print-status-badge.status-failed {
-  background: rgba(239, 68, 68, 0.10);
-  color: #DC2626;
-}
-[data-theme="dark"] .print-status-badge.status-failed {
-  background: rgba(248, 113, 113, 0.15);
-  color: #FCA5A5;
-}
-.print-status-badge.status-in-progress {
-  background: rgba(59, 130, 246, 0.12);
-  color: #1D4ED8;
-}
-[data-theme="dark"] .print-status-badge.status-in-progress {
-  background: rgba(96, 165, 250, 0.15);
-  color: #93C5FD;
-}
+/* .manual-badge / .print-status-badge 統一定義於 Material Ledger v1.1
+   stamp badges 區塊 */
 
 /* === 11. MAPPED ROW === */
 .mapped-row { opacity: 0.55; }
@@ -1664,6 +1597,8 @@ body.app-body::before {
   background-image: radial-gradient(circle at 1px 1px, var(--ui-border) 0.7px, transparent 0.8px);
   background-size: 24px 24px;
 }
+/* dark 主題降低網點強度，避免噪點過重 */
+[data-theme="dark"] body.app-body::before { opacity: 0.12; }
 
 html[data-sidebar-collapsed="true"] .app-shell {
   --app-sidebar-width: 72px;
@@ -1927,10 +1862,23 @@ html[data-sidebar-collapsed="true"] .app-sidebar-footer {
 }
 
 .app-main-shell {
+  position: relative;
   min-width: 0;
   display: flex;
   flex-direction: column;
   background-color: var(--ui-canvas);
+}
+/* 帳本裝訂紅邊線（v1.1）：主內容左緣的細直線，純裝飾 */
+.app-main-shell::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0.9rem;
+  width: 1px;
+  background: var(--ui-paper-margin);
+  opacity: 0.45;
+  pointer-events: none;
 }
 .app-mobile-topbar { display: none; }
 
@@ -1941,6 +1889,14 @@ main.app-content {
   margin: 0 auto;
   padding: 2.6rem clamp(1.2rem, 3vw, 3.5rem) 3rem;
   background-color: var(--ui-canvas);
+  /* 帳本橫規線（v1.1）：32px 行距的極淡規線，疊在畫布之上、卡片之下 */
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent 31px,
+    var(--ui-paper-line) 31px,
+    var(--ui-paper-line) 32px
+  );
 }
 
 .app-footer {
@@ -2063,35 +2019,37 @@ input:focus, select:focus, textarea:focus {
 .status-empty { color: var(--ui-danger); }
 .status-sealed { color: var(--ui-muted); }
 
-.status-badge {
-  gap: 0.35rem;
-  padding: 0.25rem 0.52rem;
-  border-radius: var(--ui-radius-sm);
-  font-size: 0.68rem;
-  letter-spacing: 0.04em;
-}
-.status-badge::before {
-  content: '';
-  width: 0.38rem;
-  height: 0.38rem;
-  border-radius: 50%;
-  background: currentColor;
-}
-.status-badge.status-active { background: rgba(44,122,93,0.12); color: var(--ui-success); }
-.status-badge.status-low { background: rgba(166,106,44,0.14); color: var(--ui-warning); }
-.status-badge.status-empty { background: rgba(168,67,67,0.13); color: var(--ui-danger); }
-.status-badge.status-sealed { background: rgba(104,115,109,0.12); color: var(--ui-muted); }
-
+/* Stamp badges (v1.1) — 方框細邊框印章風，取代 pill 造型。
+   邊框用 color-mix 將語意色摻入 --ui-border，深淺主題隨 token 自動轉譯。 */
+.status-badge,
 .manual-badge,
 .print-status-badge {
-  border-radius: var(--ui-radius-sm);
-  border: 1px solid currentColor;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.16rem 0.5rem;
+  border-radius: 2px;
+  border: 1px solid var(--ui-stamp-border);
   background: transparent;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  vertical-align: middle;
 }
+.manual-badge,
+.print-status-badge {
+  font-size: 0.66rem;
+  margin-left: 0.35rem;
+}
+.status-badge.status-active { color: var(--ui-success); border-color: color-mix(in srgb, var(--ui-success) 55%, var(--ui-border)); }
+.status-badge.status-low { color: var(--ui-warning); border-color: color-mix(in srgb, var(--ui-warning) 55%, var(--ui-border)); }
+.status-badge.status-empty { color: var(--ui-danger); border-color: color-mix(in srgb, var(--ui-danger) 55%, var(--ui-border)); }
+.status-badge.status-sealed { color: var(--ui-muted); }
 
-.print-status-badge.status-completed { color: var(--ui-success); background: rgba(44,122,93,0.1); }
-.print-status-badge.status-failed { color: var(--ui-danger); background: rgba(168,67,67,0.1); }
-.print-status-badge.status-in-progress { color: var(--ui-primary); background: rgba(var(--ui-primary-rgb),0.1); }
+.manual-badge { color: var(--ui-primary); border-color: color-mix(in srgb, var(--ui-primary) 45%, var(--ui-border)); }
+.print-status-badge.status-completed { color: var(--ui-success); border-color: color-mix(in srgb, var(--ui-success) 55%, var(--ui-border)); }
+.print-status-badge.status-failed { color: var(--ui-danger); border-color: color-mix(in srgb, var(--ui-danger) 55%, var(--ui-border)); }
+.print-status-badge.status-in-progress { color: var(--ui-primary); border-color: color-mix(in srgb, var(--ui-primary) 55%, var(--ui-border)); }
 
 .progress-bar-container {
   height: 0.48rem;
@@ -2237,17 +2195,17 @@ code, .stat-number, .econ-total, .cost-value, .cost-stat-value, .spool-col-date,
 .tasks-list-table th:nth-child(2),
 .tasks-list-table td:nth-child(2) { width: 9%; }
 .tasks-list-table th:nth-child(3),
-.tasks-list-table td:nth-child(3) { width: 28%; }
+.tasks-list-table td:nth-child(3) { width: 25%; }
 .tasks-list-table th:nth-child(4),
-.tasks-list-table td:nth-child(4) { width: 10%; }
+.tasks-list-table td:nth-child(4) { width: 9%; }
 .tasks-list-table th:nth-child(5),
-.tasks-list-table td:nth-child(5) { width: 6%; }
+.tasks-list-table td:nth-child(5) { width: 5%; }
 .tasks-list-table th:nth-child(6),
 .tasks-list-table td:nth-child(6) { width: 14%; }
 .tasks-list-table th:nth-child(7),
-.tasks-list-table td:nth-child(7) { width: 7%; }
+.tasks-list-table td:nth-child(7) { width: 9%; }
 .tasks-list-table th:nth-child(8),
-.tasks-list-table td:nth-child(8) { width: 8%; }
+.tasks-list-table td:nth-child(8) { width: 10%; }
 .tasks-list-table th:nth-child(9),
 .tasks-list-table td:nth-child(9) { width: 7%; }
 .tasks-list-table th:nth-child(10),
@@ -2368,6 +2326,7 @@ button.gallery-toggle-icon:hover { color: var(--ui-primary); background: transpa
 @media (max-width: 820px) {
   .app-shell { display: block; }
   .app-main-shell { padding-bottom: 4.75rem; }
+  .app-main-shell::before { display: none; }
   .app-sidebar {
     position: fixed;
     inset: auto 0 0;
@@ -2533,11 +2492,12 @@ button.gallery-toggle-icon:hover { color: var(--ui-primary); background: transpa
 
 @media print {
   body.app-body::before,
+  .app-main-shell::before,
   .app-sidebar,
   .app-mobile-topbar,
   .app-footer { display: none !important; }
   .app-shell, .app-main-shell { display: block; }
-  main.app-content { max-width: none; padding: 0.5rem !important; }
+  main.app-content { max-width: none; padding: 0.5rem !important; background-image: none; }
 }
 
 /* Dark-theme semantic overrides must follow the legacy Pico compatibility rules. */
@@ -2545,13 +2505,6 @@ button.gallery-toggle-icon:hover { color: var(--ui-primary); background: transpa
 [data-theme="dark"] .status-low { color: var(--ui-warning); }
 [data-theme="dark"] .status-empty { color: var(--ui-danger); }
 [data-theme="dark"] .status-sealed { color: var(--ui-muted); }
-[data-theme="dark"] .status-badge.status-active { background: rgba(121,199,161,0.14); color: var(--ui-success); }
-[data-theme="dark"] .status-badge.status-low { background: rgba(215,168,101,0.15); color: var(--ui-warning); }
-[data-theme="dark"] .status-badge.status-empty { background: rgba(223,139,139,0.15); color: var(--ui-danger); }
-[data-theme="dark"] .status-badge.status-sealed { background: rgba(154,168,160,0.13); color: var(--ui-muted); }
 [data-theme="dark"] .flash-success { background: rgba(121,199,161,0.12); color: var(--ui-success); }
 [data-theme="dark"] .flash-error { background: rgba(223,139,139,0.12); color: var(--ui-danger); }
-[data-theme="dark"] .print-status-badge.status-completed { color: var(--ui-success); background: rgba(121,199,161,0.13); }
-[data-theme="dark"] .print-status-badge.status-failed { color: var(--ui-danger); background: rgba(223,139,139,0.13); }
-[data-theme="dark"] .print-status-badge.status-in-progress { color: var(--ui-primary); background: rgba(var(--ui-primary-rgb),0.13); }
-[data-theme="dark"] .manual-badge { color: var(--ui-primary); background: rgba(var(--ui-primary-rgb),0.13); }
+/* stamp badges 透明底＋token 邊框，dark 由 token 覆寫自動轉譯，無需另行覆寫 */

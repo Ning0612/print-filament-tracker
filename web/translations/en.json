@@ -7,6 +7,10 @@
   "brand": {
     "name": "Filament Ledger"
   },
+  "ledger": {
+    "page_of": "Page {page} · {total} entries",
+    "entry_count": "{n} entries"
+  },
   "nav": {
     "dashboard": "Dashboard",
     "spools": "Filaments",

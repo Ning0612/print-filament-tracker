@@ -7,6 +7,10 @@
   "brand": {
     "name": "材料帳本"
   },
+  "ledger": {
+    "page_of": "第 {page} 頁・共 {total} 筆",
+    "entry_count": "共 {n} 筆"
+  },
   "nav": {
     "dashboard": "儀表板",
     "spools": "耗材管理",
