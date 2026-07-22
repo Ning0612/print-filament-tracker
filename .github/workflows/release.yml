@@ -104,15 +104,21 @@ jobs:
           .\.venv\Scripts\python.exe -m pip install --upgrade pip
           .\.venv\Scripts\python.exe -m pip install -r requirements.txt
 
+      - name: Install WiX Toolset
+        shell: pwsh
+        run: dotnet tool install --global wix --version 4.0.5
+
       - name: Build EXE
         shell: pwsh
-        run: .\scripts\build_exe.ps1 -NoUpx -SkipMsi -Version "${{ needs.validate-tag.outputs.package_version }}"
+        run: .\scripts\build_exe.ps1 -NoUpx -Version "${{ needs.validate-tag.outputs.package_version }}"
 
       - name: Upload Windows artifact
         uses: actions/upload-artifact@v4
         with:
           name: windows-package
-          path: dist/FilamentLedger.exe
+          path: |
+            dist/FilamentLedger.exe
+            dist/FilamentLedger-${{ needs.validate-tag.outputs.package_version }}.msi
           if-no-files-found: error
 
   build-macos:
@@ -176,4 +182,5 @@ jobs:
         run: |
           gh release view "$TAG_NAME" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1 || gh release create "$TAG_NAME" --repo "$GITHUB_REPOSITORY" --generate-notes --title "$TAG_NAME"
           gh release upload "$TAG_NAME" --repo "$GITHUB_REPOSITORY" release-assets/windows-package/FilamentLedger.exe --clobber
+          gh release upload "$TAG_NAME" --repo "$GITHUB_REPOSITORY" release-assets/windows-package/FilamentLedger-*.msi --clobber
           gh release upload "$TAG_NAME" --repo "$GITHUB_REPOSITORY" release-assets/macos-package/FilamentLedger.app.zip --clobber
