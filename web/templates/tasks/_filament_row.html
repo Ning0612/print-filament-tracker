@@ -7,7 +7,7 @@
     {% endif %}
     {{ f.color_hex or '-' }}
   </td>
-  <td>{{ '%.2f' % f.used_weight_g if f.used_weight_g else '-' }}g</td>
+  <td class="num">{% if f.used_weight_g %}{{ f.used_weight_g | fmt_weight('g', 2) | ledger_amount('debit') }}{% else %}-{% endif %}</td>
   <td>
     {% if f.filament_spool_id %}
     <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;">

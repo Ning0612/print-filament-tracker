@@ -47,6 +47,7 @@ def list_view():
         page=clamped,
         total_pages=total_pages,
         total=total,
+        per_page=PER_PAGE,
         search=search,
     )
 
@@ -58,7 +59,7 @@ def detail_view(task_id: int):
         task = get_task_with_filaments(conn, task_id)
 
     if task is None:
-        return render_template("tasks/list.html", tasks=[], page=1, total_pages=1, total=0, search=""), 404
+        return render_template("tasks/list.html", tasks=[], page=1, total_pages=1, total=0, per_page=PER_PAGE, search=""), 404
 
     return render_template("tasks/detail.html", task=task)
 

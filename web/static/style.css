@@ -2225,40 +2225,84 @@ code, .stat-number, .econ-total, .cost-value, .cost-stat-value, .spool-col-date,
 .tasks-list-table td {
   overflow-wrap: anywhere;
   vertical-align: middle;
-  text-align: center;
-}
-.tasks-list-table td:nth-child(2) {
-  text-align: left;
 }
 .tasks-list-table th {
   white-space: nowrap;
   vertical-align: middle;
 }
+/* Column order: seq, image, name, printer, plate, start, duration, usage,
+   status, actions. */
 .tasks-list-table th:nth-child(1),
-.tasks-list-table td:nth-child(1) { width: 10%; }
+.tasks-list-table td:nth-child(1) { width: 4%; }
 .tasks-list-table th:nth-child(2),
-.tasks-list-table td:nth-child(2) { width: 31%; }
+.tasks-list-table td:nth-child(2) { width: 9%; }
 .tasks-list-table th:nth-child(3),
-.tasks-list-table td:nth-child(3) { width: 10%; }
+.tasks-list-table td:nth-child(3) { width: 28%; }
 .tasks-list-table th:nth-child(4),
-.tasks-list-table td:nth-child(4) { width: 6%; }
+.tasks-list-table td:nth-child(4) { width: 10%; }
 .tasks-list-table th:nth-child(5),
-.tasks-list-table td:nth-child(5) { width: 14%; }
+.tasks-list-table td:nth-child(5) { width: 6%; }
 .tasks-list-table th:nth-child(6),
-.tasks-list-table td:nth-child(6) { width: 7%; }
+.tasks-list-table td:nth-child(6) { width: 14%; }
 .tasks-list-table th:nth-child(7),
 .tasks-list-table td:nth-child(7) { width: 7%; }
 .tasks-list-table th:nth-child(8),
-.tasks-list-table td:nth-child(8) { width: 7%; }
+.tasks-list-table td:nth-child(8) { width: 8%; }
 .tasks-list-table th:nth-child(9),
-.tasks-list-table td:nth-child(9) { width: 8%; }
+.tasks-list-table td:nth-child(9) { width: 7%; }
+.tasks-list-table th:nth-child(10),
+.tasks-list-table td:nth-child(10) { width: 7%; }
 /* Only manual tasks show edit/delete buttons here (rare vs. the bulk of
    cloud-synced rows), so stack them instead of side-by-side to fit the
    narrower column without reserving wide, mostly-empty space on every row. */
-.tasks-list-table td:nth-child(9) .row-actions {
+.tasks-list-table td:nth-child(10) .row-actions {
   flex-direction: column;
   align-items: stretch;
 }
+
+/* Ledger table (v1.1) — opt-in 帳目式表格：文字左對齊、數值右對齊等寬、
+   細橫規線。只加在 <table>/<th>/<td> 上，不動 <tr>/<tbody>（HTMX fragment
+   根節點是 UI API）。mapping 工作台表格刻意不套用。 */
+.ledger-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-variant-numeric: tabular-nums;
+  background: var(--ui-surface);
+}
+.ledger-table thead th {
+  background: var(--ui-surface-2);
+  color: var(--ui-muted);
+  text-align: left;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 0.7rem;
+  border-bottom: 1px solid var(--ui-ledger-rule-strong);
+}
+.ledger-table tbody td {
+  text-align: left;
+  vertical-align: middle;
+  border-bottom: 1px solid var(--ui-ledger-rule);
+}
+.ledger-table tbody tr:hover { background: rgba(var(--ui-primary-rgb), 0.055); }
+.ledger-table th.num,
+.ledger-table td.num {
+  text-align: right;
+  font-family: var(--pico-font-family-monospace);
+}
+.ledger-table th.seq,
+.ledger-table td.seq {
+  text-align: right;
+  width: 2.5rem;
+  color: var(--ui-muted);
+  font-family: var(--pico-font-family-monospace);
+  font-size: 0.75rem;
+}
+.ledger-table th.cell-center,
+.ledger-table td.cell-center { text-align: center; }
+.amount { font-family: var(--pico-font-family-monospace); font-variant-numeric: tabular-nums; }
+.amount--debit { color: var(--ui-debit); }
+.amount--credit { color: var(--ui-credit); }
 
 /* Pico's [role="button"] rule sets --pico-background-color/--pico-color to
    the primary button fill; td/th then paint themselves from those inherited

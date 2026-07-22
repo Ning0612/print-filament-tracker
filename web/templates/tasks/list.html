@@ -23,16 +23,17 @@
 
 {% if tasks %}
 <div class="overflow-auto">
-<table class="tasks-list-table">
+<table class="tasks-list-table ledger-table">
   <thead>
     <tr>
+      <th scope="col" class="seq">#</th>
       <th scope="col">{{ t('tasks.table_image') }}</th>
       <th scope="col">{{ t('tasks.table_name') }}</th>
       <th scope="col">{{ t('tasks.table_printer') }}</th>
       <th scope="col" style="white-space:nowrap;">{{ t('tasks.table_plate') }}</th>
       <th scope="col">{{ t('tasks.table_start_time') }}</th>
-      <th scope="col">{{ t('tasks.table_duration') }}</th>
-      <th scope="col">{{ t('tasks.table_usage') }}</th>
+      <th scope="col" class="num">{{ t('tasks.table_duration') }}</th>
+      <th scope="col" class="num">{{ t('tasks.table_usage') }}</th>
       <th scope="col">{{ t('tasks.table_status') }}</th>
       <th scope="col"></th>
     </tr>
@@ -40,6 +41,7 @@
   <tbody>
     {% for task in tasks %}
     <tr>
+      <td class="seq">{{ (page - 1) * per_page + loop.index }}</td>
       <td>
         {% if task.cover_url %}
         <div class="cover-thumb cover-thumb--md">
@@ -56,12 +58,10 @@
       <td style="white-space:nowrap;">{{ task.printer_name or '-' }}</td>
       <td style="white-space:nowrap;">{{ task.plate_name or task.plate_index if (task.plate_name or task.plate_index is not none) else '-' }}</td>
       <td style="white-space:nowrap;">{{ task.started_at | tz_format }}</td>
-      <td style="white-space:nowrap;">
-        {% if task.duration_seconds %}
-          {{ task.duration_seconds // 3600 }}h {{ (task.duration_seconds % 3600) // 60 }}m
-        {% else %}-{% endif %}
+      <td class="num" style="white-space:nowrap;">{{ task.duration_seconds | fmt_duration if task.duration_seconds else '-' }}</td>
+      <td class="num" style="white-space:nowrap;">
+        {% if task.total_weight_g %}{{ task.total_weight_g | fmt_weight('g', 2) | ledger_amount('debit') }}{% else %}-{% endif %}
       </td>
-      <td style="white-space:nowrap;">{{ '%.2f' % task.total_weight_g if task.total_weight_g else '-' }}g</td>
       <td style="white-space:nowrap;">{{ print_status_badge(task) }}</td>
       <td>
         {% if task.is_manual %}

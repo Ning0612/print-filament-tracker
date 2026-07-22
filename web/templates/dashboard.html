@@ -158,15 +158,15 @@
 </h2>
 {% if recent_tasks %}
 <div class="overflow-auto">
-<table>
+<table class="ledger-table">
   <thead>
     <tr>
       <th scope="col" style="width:88px;">{{ t('dashboard.table_image') }}</th>
       <th scope="col">{{ t('dashboard.table_name') }}</th>
       <th scope="col">{{ t('dashboard.table_printer') }}</th>
       <th scope="col">{{ t('dashboard.table_start_time') }}</th>
-      <th scope="col">{{ t('dashboard.table_duration') }}</th>
-      <th scope="col">{{ t('dashboard.table_usage') }}</th>
+      <th scope="col" class="num">{{ t('dashboard.table_duration') }}</th>
+      <th scope="col" class="num">{{ t('dashboard.table_usage') }}</th>
       <th scope="col">{{ t('dashboard.table_status') }}</th>
     </tr>
   </thead>
@@ -183,8 +183,10 @@
       <td><a href="{{ url_for('tasks.detail_view', task_id=task.id) }}">{{ task.print_name or t('common.unnamed') }}</a></td>
       <td style="white-space:nowrap;">{{ task.printer_name or '-' }}</td>
       <td style="white-space:nowrap;">{{ task.started_at | tz_format }}</td>
-      <td style="white-space:nowrap;">{{ (task.duration_seconds // 3600) if task.duration_seconds else 0 }}h {{ ((task.duration_seconds % 3600) // 60) if task.duration_seconds else 0 }}m</td>
-      <td style="white-space:nowrap;">{{ '%.1f' % task.total_weight_g if task.total_weight_g else '-' }}g</td>
+      <td class="num" style="white-space:nowrap;">{{ task.duration_seconds | fmt_duration if task.duration_seconds else '0 m' }}</td>
+      <td class="num" style="white-space:nowrap;">
+        {% if task.total_weight_g %}{{ task.total_weight_g | fmt_weight | ledger_amount('debit') }}{% else %}-{% endif %}
+      </td>
       <td style="white-space:nowrap;">{{ print_status_badge(task) }}</td>
     </tr>
     {% endfor %}

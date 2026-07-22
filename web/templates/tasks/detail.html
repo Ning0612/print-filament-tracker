@@ -49,10 +49,10 @@
       <div><small style="color:var(--pico-muted-color);">{{ t('tasks.detail_end_time') }}</small><br><strong>{{ task.ended_at | tz_format }}</strong></div>
     </div>
     <div class="detail-meta-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
-      <div><small style="color:var(--pico-muted-color);">{{ t('tasks.detail_duration') }}</small><br><strong>{% if task.duration_seconds %}{{ task.duration_seconds // 3600 }}h {{ (task.duration_seconds % 3600) // 60 }}m{% else %}-{% endif %}</strong></div>
+      <div><small style="color:var(--pico-muted-color);">{{ t('tasks.detail_duration') }}</small><br><strong>{{ task.duration_seconds | fmt_duration if task.duration_seconds else '-' }}</strong></div>
       <div>
         <small style="color:var(--pico-muted-color);">{{ t('tasks.detail_total_usage') }}</small><br>
-        <strong>{{ '%.2f' % task.total_weight_g if task.total_weight_g else '-' }}g</strong>
+        <strong>{% if task.total_weight_g %}{{ task.total_weight_g | fmt_weight('g', 2) }}{% else %}-{% endif %}</strong>
         {{ print_status_badge(task) }}
       </div>
     </div>
@@ -60,13 +60,13 @@
       <small style="color:var(--pico-muted-color);font-weight:600;text-transform:uppercase;letter-spacing:0.04em;">{{ t('tasks.detail_filament_section') }}</small>
       {% if task.filaments %}
       <div class="overflow-auto" style="margin-top:0.5rem;">
-      <table style="font-size:0.9rem;">
+      <table class="ledger-table" style="font-size:0.9rem;">
         <thead>
           <tr>
             <th scope="col">{{ t('tasks.detail_table_slot') }}</th>
             <th scope="col">{{ t('tasks.detail_table_material') }}</th>
             <th scope="col">{{ t('tasks.detail_table_color') }}</th>
-            <th scope="col">{{ t('tasks.detail_table_usage') }}</th>
+            <th scope="col" class="num">{{ t('tasks.detail_table_usage') }}</th>
             <th scope="col">{{ t('tasks.detail_table_spool') }}</th>
           </tr>
         </thead>
