@@ -7,12 +7,12 @@
 <Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
      xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">
 
+  <!-- UpgradeCode 沿用舊值：Windows 以此判定「同一產品升級」，改動會被視為
+       全新產品而無法自動移除/覆蓋舊版。改名後仍須保留以支援無痛升級。 -->
   <Package
     Name="Filament Ledger"
     Manufacturer="Ning0612"
     Version="$(var.Version).0"
-    <!-- UpgradeCode 沿用舊值：Windows 以此判定「同一產品升級」，改動會被視為
-         全新產品而無法自動移除/覆蓋舊版。改名後仍須保留以支援無痛升級。 -->
     UpgradeCode="F7A2B3C4-E5D6-4870-9192-A3B4C5D6E7F8"
     Codepage="950"
     Scope="perMachine">
