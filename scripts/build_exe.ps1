@@ -71,27 +71,8 @@ if (-not $SkipInstall) {
 
 # ── STEP 2：PNG → ICO（多解析度） ─────────────────────────────────────────────
 Write-Step "轉換圖示 PNG → ICO"
-# 使用暫存 .py 檔避免 PowerShell 5.1 在 -c 參數中吞掉 Python 字串的雙引號
-$tmpPy = [System.IO.Path]::ChangeExtension([System.IO.Path]::GetTempFileName(), '.py')
-Set-Content -Path $tmpPy -Encoding UTF8 -Value @'
-from PIL import Image
-import sys, os
-img = Image.open(sys.argv[1]).convert("RGBA")
-# sizes= 是 Pillow ICO 多尺寸寫法的正確做法。
-# 舊寫法從 16×16 base image 呼叫 append_images，Pillow 會忽略比 base 大的尺寸，
-# 結果只寫入 16×16。
-# 涵蓋 Windows 100%/125%/150%/200% DPI 所需的所有標準尺寸；
-# 不包含 512（ICO 規格上限 256，Pillow 與 Windows 均不期望 512）。
-# 先刪除舊檔：Windows Explorer 圖示快取可能對舊 .ico 保留共用鎖，
-# Pillow 的 w+b open 會得到 ERROR_SHARING_VIOLATION → errno 22。
-if os.path.exists(sys.argv[2]):
-    os.remove(sys.argv[2])
-sizes = [(16,16),(20,20),(24,24),(32,32),(40,40),(48,48),(64,64),(96,96),(128,128),(256,256)]
-img.save(sys.argv[2], format='ICO', sizes=sizes)
-print("ICO saved:", sys.argv[2])
-'@
-& $VenvPython $tmpPy $PngIcon $IcoIcon
-Remove-Item $tmpPy -ErrorAction SilentlyContinue
+$IconBuilder = Join-Path $PSScriptRoot "build_icon_ico.ps1"
+& powershell.exe -NoProfile -ExecutionPolicy Bypass -File $IconBuilder
 if ($LASTEXITCODE -ne 0) { Write-Fail "ICO 轉換失敗" }
 Write-OK "ICO 圖示建立：$IcoIcon"
 

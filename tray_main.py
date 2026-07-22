@@ -148,7 +148,7 @@ class _TrayApp:
                 notice = f"無法啟動伺服器，請確認 port {PORT} 未被其他程式佔用。"
             if getattr(icon, "HAS_NOTIFICATION", False):
                 try:
-                    icon.notify(notice, "材料帳本")
+                    icon.notify(notice, "Filament Ledger")
                 except Exception:
                     pass
             return
@@ -179,14 +179,14 @@ class _TrayApp:
         image = Image.open(str(icon_path)).convert("RGBA").resize((256, 256), Image.LANCZOS)
 
         menu = pystray.Menu(
-            pystray.MenuItem("開啟材料帳本", self._on_open, default=True),
+            pystray.MenuItem("Open Filament Ledger", self._on_open, default=True),
             pystray.Menu.SEPARATOR,
-            pystray.MenuItem("結束", self._on_quit),
+            pystray.MenuItem("Quit", self._on_quit),
         )
         icon = pystray.Icon(
             name  = "FilamentLedger",
             icon  = image,
-            title = "材料帳本 Filament Ledger",
+            title = "Filament Ledger",
             menu  = menu,
         )
 

@@ -17,7 +17,7 @@
     Codepage="950"
     Scope="perMachine">
 
-    <MajorUpgrade DowngradeErrorMessage="已安裝較新版本，無法降版。" />
+    <MajorUpgrade DowngradeErrorMessage="A newer version is already installed." />
     <MediaTemplate EmbedCab="yes" />
 
     <!-- 程式圖示：顯示於「程式和功能」清單及安裝精靈 -->
@@ -30,7 +30,7 @@
     <ui:WixUI Id="WixUI_FeatureTree" />
 
     <!-- 完成畫面：立即啟動選項（預設勾選） -->
-    <Property Id="WIXUI_EXITDIALOGOPTIONALCHECKBOXTEXT" Value="立即啟動材料帳本" />
+    <Property Id="WIXUI_EXITDIALOGOPTIONALCHECKBOXTEXT" Value="Launch Filament Ledger" />
     <Property Id="WIXUI_EXITDIALOGOPTIONALCHECKBOX" Value="1" />
 
     <!-- 安裝完成後啟動應用程式 -->
@@ -41,14 +41,14 @@
                   Return="asyncNoWait" />
 
     <!-- 功能清單 -->
-    <Feature Id="Main" Title="主程式" Level="1">
+    <Feature Id="Main" Title="Main application" Level="1">
       <ComponentGroupRef Id="AppFiles" />
       <ComponentRef Id="StartMenuShortcut" />
     </Feature>
 
     <Feature Id="DesktopShortcutFeature"
-             Title="桌面捷徑"
-             Description="在桌面建立材料帳本的快捷方式"
+             Title="Desktop shortcut"
+             Description="Create a Filament Ledger shortcut on the desktop"
              Level="1">
       <ComponentRef Id="DesktopShortcutComp" />
     </Feature>
@@ -75,8 +75,8 @@
 
     <Component Id="StartMenuShortcut" Directory="AppMenuFolder" Guid="*">
       <Shortcut Id="AppShortcut"
-                Name="材料帳本"
-                Description="列印材料管理工具"
+                Name="Filament Ledger"
+                Description="Filament management tool"
                 Target="[INSTALLFOLDER]FilamentLedger.exe"
                 WorkingDirectory="INSTALLFOLDER" />
       <RemoveFolder Id="CleanupMenu" Directory="AppMenuFolder" On="uninstall" />
@@ -88,8 +88,8 @@
 
     <Component Id="DesktopShortcutComp" Directory="DesktopFolder" Guid="*">
       <Shortcut Id="DesktopShortcut"
-                Name="材料帳本"
-                Description="列印材料管理工具"
+                Name="Filament Ledger"
+                Description="Filament management tool"
                 Target="[INSTALLFOLDER]FilamentLedger.exe"
                 WorkingDirectory="INSTALLFOLDER" />
       <RegistryValue Root="HKLM"
