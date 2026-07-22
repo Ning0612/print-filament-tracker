@@ -1437,6 +1437,128 @@ a.heatmap-cell:hover { opacity: 0.75; outline: 2px solid var(--pico-primary); ou
 }
 .voucher-warning .stamp { border: 0; padding: 0; }
 
+/* ── 列印成本報表：帳表／結算單 (v1.2) ── */
+.report-masthead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-bottom: 0.9rem;
+  margin-bottom: 1.4rem;
+  border-bottom: 2px solid var(--ui-ledger-rule-strong);
+}
+.report-masthead h2 {
+  font-family: 'Noto Serif TC', serif;
+  margin: 0.15rem 0 0.35rem;
+  font-size: 1.5rem;
+}
+.report-sub { color: var(--ui-muted); font-size: 0.85rem; margin: 0; }
+.report-meta {
+  text-align: right;
+  font-family: var(--pico-font-family-monospace);
+  font-size: 0.76rem;
+  color: var(--ui-muted);
+  white-space: nowrap;
+  line-height: 1.55;
+}
+.report-meta .report-no { color: var(--ui-ink); font-size: 0.92rem; font-weight: 600; }
+
+.report-warning {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1.4rem;
+  padding: 0.55rem 0.75rem;
+  font-size: 0.83rem;
+  color: var(--ui-warning);
+  border: 1px solid color-mix(in srgb, var(--ui-warning) 45%, var(--ui-border));
+  border-radius: var(--ui-radius-sm);
+  background: color-mix(in srgb, var(--ui-warning) 8%, var(--ui-surface));
+}
+.report-warning .stamp { border: 0; padding: 0; }
+
+/* 報表帳本表：任務列與縮排的耗材明細列 */
+.report-ledger .report-task-link {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  text-decoration: none;
+  color: inherit;
+}
+.report-ledger .report-task-link img,
+.report-ledger .report-task-thumb {
+  width: 2.3rem;
+  height: 2.3rem;
+  object-fit: cover;
+  border-radius: var(--ui-radius-sm);
+  flex-shrink: 0;
+  background: var(--ui-surface-2);
+  display: inline-block;
+}
+.report-task-name { display: block; font-weight: 500; font-size: 0.88rem; }
+.report-task-sub {
+  display: block;
+  color: var(--ui-muted);
+  font-size: 0.74rem;
+  font-family: var(--pico-font-family-monospace);
+}
+.report-task-total { font-weight: 700; }
+.report-filament-cell { padding-left: 3rem !important; }
+.report-filament-detail {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.78rem;
+  color: var(--ui-muted);
+}
+.report-filament-detail .mono,
+.report-filament-unit { font-family: var(--pico-font-family-monospace); }
+.report-filament-unit { font-size: 0.72rem; margin-left: 0.5rem; }
+.report-ledger td.report-filament-cost {
+  color: var(--ui-muted);
+  font-size: 0.8rem;
+}
+
+/* 合計：會計式雙下劃線 */
+.report-total {
+  display: flex;
+  align-items: baseline;
+  justify-content: flex-end;
+  gap: 1.8rem;
+  flex-wrap: wrap;
+  padding: 0.7rem 0.75rem;
+  border-top: 3px double var(--ui-ledger-rule-strong);
+  page-break-inside: avoid;
+}
+.report-total .rt-label-main {
+  font-family: 'Noto Serif TC', serif;
+  font-weight: 700;
+  font-size: 1rem;
+  margin-right: auto;
+}
+.report-total .rt-item {
+  font-size: 0.76rem;
+  color: var(--ui-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.report-total .rt-item .val {
+  font-family: var(--pico-font-family-monospace);
+  color: var(--ui-ink);
+  font-size: 1rem;
+  margin-left: 0.4rem;
+}
+.report-total .rt-grand .val { font-size: 1.2rem; font-weight: 700; }
+
+.report-stamp {
+  margin-top: 1.4rem;
+  font-family: var(--pico-font-family-monospace);
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  color: var(--ui-muted);
+  text-align: right;
+}
+
 /* Date group */
 .cost-date-group {
   margin-bottom: 1.75rem;

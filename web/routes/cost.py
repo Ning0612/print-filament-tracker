@@ -106,10 +106,13 @@ def print_view():
         tasks = get_tasks_for_cost_by_ids(conn, selected_task_ids, tz_offset_minutes=tz)
 
     report = compute_cost_report(tasks, selected_task_ids, included_ptf_ids, hourly_rate)
-    generated_on = (_datetime.now(_tz.utc) + _td(minutes=tz)).date().isoformat()
+    _local_today = (_datetime.now(_tz.utc) + _td(minutes=tz)).date()
+    generated_on = _local_today.isoformat()
+    voucher_no = _local_today.strftime("%Y%m%d")
     return render_template(
         "cost/print_view.html",
         report=report,
         hourly_rate=hourly_rate,
         generated_on=generated_on,
+        voucher_no=voucher_no,
     )
