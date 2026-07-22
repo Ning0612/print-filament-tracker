@@ -74,6 +74,7 @@
   --ui-book-ribbon-2:   #8E3636;
   --ui-book-thread:     #B7AF9E;  /* 裝訂針腳 */
   --ui-book-spine-w:    44px;
+  --ui-on-primary:      #FBFAF4;  /* 主色按鈕上的文字（淺主題：奶油白） */
 }
 
 [data-theme="dark"] {
@@ -107,6 +108,7 @@
   --ui-book-ribbon:     #B5595A;
   --ui-book-ribbon-2:   #8E3E3F;
   --ui-book-thread:     #43514A;
+  --ui-on-primary:      #10201A;  /* 深主題：主色為淺綠，文字改深墨 */
 
   --ui-shadow:        0 16px 38px rgba(0,0,0,0.20);
   --ui-shadow-sm:     0 4px 14px rgba(0,0,0,0.18);
@@ -1737,20 +1739,21 @@ html[data-sidebar-collapsed="true"] .app-spine-foot { display: none; }
   text-transform: uppercase;
 }
 
-/* 索引書籤（thumb-index tab）：書口凸出的分頁標籤 */
+/* 索引書籤（thumb-index tab）：書口凸出的分頁標籤，左緣索引色條＋紙面立體感 */
 .app-nav-link {
   position: relative;
   display: flex;
   align-items: center;
-  gap: 0.65rem;
-  min-height: 2.25rem;
-  margin-right: 0.35rem;
-  padding: 0.4rem 0.6rem;
+  gap: 0.6rem;
+  min-height: 2.3rem;
+  margin-right: 0.5rem;
+  padding: 0.42rem 0.7rem;
   color: var(--ui-muted);
-  background: var(--ui-book-tab-face);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--ui-book-tab-face) 90%, #ffffff), var(--ui-book-tab-face));
   border: 1px solid var(--ui-border);
-  border-radius: 7px 0 0 7px;
-  box-shadow: 1px 1px 3px -1px var(--ui-book-page-shadow);
+  border-left: 4px solid var(--ui-book-thread);
+  border-radius: 9px 0 0 9px;
+  box-shadow: 2px 2px 4px -2px var(--ui-book-page-shadow);
   font-size: 0.84rem;
   font-weight: 500;
   text-decoration: none;
@@ -1760,20 +1763,23 @@ html[data-sidebar-collapsed="true"] .app-spine-foot { display: none; }
 .app-nav-link:hover {
   color: var(--ui-ink);
   background: var(--ui-surface-2);
+  border-left-color: var(--ui-primary);
   text-decoration: none;
-  transform: translateX(1px);
+  transform: translateX(2px);
 }
 
-/* active 書籤：抽出並以書頁紙色齊右緣併入 leaf（不溢出側欄，避開 overflow-x:hidden 裁切） */
+/* active 書籤：整片抽出、左緣主色索引條、以書頁紙色齊右緣併入 leaf
+   （不溢出側欄，避開 overflow-x:hidden 裁切） */
 .app-nav-link[aria-current="page"] {
   color: var(--ui-primary);
   background: var(--ui-surface);
   border-color: var(--ui-ledger-rule-strong);
+  border-left: 4px solid var(--ui-primary);
   border-right-color: var(--ui-surface);
   margin-right: -0.9rem;
   padding-right: 1.1rem;
   font-weight: 700;
-  box-shadow: 2px 2px 4px -2px var(--ui-book-page-shadow);
+  box-shadow: 3px 2px 7px -2px var(--ui-book-page-shadow);
   z-index: 2;
 }
 
@@ -2004,6 +2010,81 @@ main.app-content {
 .month-summary-item small { color: var(--ui-muted); font-size: 0.72rem; }
 .month-summary-item strong { font-family: var(--pico-font-family-monospace); font-size: 1rem; }
 
+/* ====================================================
+   Ledger form controls (v1.2) — 帳本式按鈕／輸入框／下拉選單
+   按鈕上色限縮在 .app-content，避免動到側欄圖示按鈕（各有專屬樣式）。
+   顯式規則以蓋過 Pico 的 :root:not([data-theme=dark]) 主色變數（否則按鈕呈 Pico 藍）。
+   ==================================================== */
+/* 主要按鈕：礦物綠實心、低圓角、細邊、紙感陰影 */
+.app-content button,
+.app-content input[type="submit"],
+.app-content a[role="button"] {
+  background: var(--ui-primary);
+  border: 1px solid var(--ui-primary-hover);
+  color: var(--ui-on-primary);
+  border-radius: var(--ui-radius);
+  box-shadow: var(--ui-shadow-sm);
+  font-weight: 600;
+}
+.app-content button:hover,
+.app-content input[type="submit"]:hover,
+.app-content a[role="button"]:hover {
+  background: var(--ui-primary-hover);
+  border-color: var(--ui-primary-hover);
+  color: var(--ui-on-primary);
+}
+/* 次要／outline：紙面、細邊、主色字 */
+.app-content button.outline,
+.app-content button.secondary,
+.app-content a[role="button"].outline,
+.app-content a[role="button"].secondary {
+  background: var(--ui-surface);
+  border: 1px solid var(--ui-border);
+  color: var(--ui-primary);
+  box-shadow: none;
+  font-weight: 500;
+}
+.app-content button.outline:hover,
+.app-content button.secondary:hover,
+.app-content a[role="button"].outline:hover,
+.app-content a[role="button"].secondary:hover {
+  background: var(--ui-surface-2);
+  border-color: var(--ui-primary);
+  color: var(--ui-primary);
+}
+/* 危險動作 */
+.app-content button.danger {
+  background: var(--ui-danger);
+  border-color: var(--ui-danger);
+  color: var(--ui-on-primary);
+}
+.app-content button.danger.outline,
+.app-content a[role="button"].danger.outline {
+  background: transparent;
+  border-color: color-mix(in srgb, var(--ui-danger) 50%, var(--ui-border));
+  color: var(--ui-danger);
+}
+.app-content button.danger.outline:hover {
+  background: color-mix(in srgb, var(--ui-danger) 12%, var(--ui-surface));
+  border-color: var(--ui-danger);
+  color: var(--ui-danger);
+}
+/* 輸入框、下拉、textarea：紙面、細邊、低圓角、主色 focus ring（全域，含側欄語言選單） */
+.app-body input:not([type="submit"]):not([type="button"]):not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+.app-body select,
+.app-body textarea {
+  background: var(--ui-surface);
+  border: 1px solid var(--ui-border);
+  border-radius: var(--ui-radius-sm);
+  color: var(--ui-ink);
+}
+.app-body input:not([type="submit"]):not([type="button"]):focus,
+.app-body select:focus,
+.app-body textarea:focus {
+  border-color: var(--ui-primary);
+  box-shadow: 0 0 0 0.15rem rgba(var(--ui-primary-rgb), 0.16);
+}
+
 .app-footer {
   max-width: 1440px;
   width: 100%;
@@ -2221,6 +2302,7 @@ code, .stat-number, .econ-total, .cost-value, .cost-stat-value, .spool-col-date,
   width: 100%;
   min-width: 0 !important;
   max-width: 100%;
+  margin: 0;  /* 消除 Pico select 預設 margin-bottom，於 vertical-align:middle 儲存格真正垂直置中 */
   padding-inline: 0.55rem;
   font-size: 0.8rem;
 }
@@ -2301,13 +2383,13 @@ code, .stat-number, .econ-total, .cost-value, .cost-stat-value, .spool-col-date,
   vertical-align: middle;
 }
 /* Column order: seq, image, name, printer, plate, start, duration, usage,
-   status, actions. */
+   status(+manual actions). 狀態欄併入手動任務的編輯/刪除，取消獨立空欄。 */
 .tasks-list-table th:nth-child(1),
 .tasks-list-table td:nth-child(1) { width: 4%; }
 .tasks-list-table th:nth-child(2),
 .tasks-list-table td:nth-child(2) { width: 9%; }
 .tasks-list-table th:nth-child(3),
-.tasks-list-table td:nth-child(3) { width: 25%; }
+.tasks-list-table td:nth-child(3) { width: 27%; }
 .tasks-list-table th:nth-child(4),
 .tasks-list-table td:nth-child(4) { width: 9%; }
 .tasks-list-table th:nth-child(5),
@@ -2319,15 +2401,18 @@ code, .stat-number, .econ-total, .cost-value, .cost-stat-value, .spool-col-date,
 .tasks-list-table th:nth-child(8),
 .tasks-list-table td:nth-child(8) { width: 10%; }
 .tasks-list-table th:nth-child(9),
-.tasks-list-table td:nth-child(9) { width: 7%; }
-.tasks-list-table th:nth-child(10),
-.tasks-list-table td:nth-child(10) { width: 7%; }
-/* Only manual tasks show edit/delete buttons here (rare vs. the bulk of
-   cloud-synced rows), so stack them instead of side-by-side to fit the
-   narrower column without reserving wide, mostly-empty space on every row. */
-.tasks-list-table td:nth-child(10) .row-actions {
+.tasks-list-table td:nth-child(9) { width: 13%; }
+/* 狀態欄：徽章置中；手動任務的編輯/刪除堆疊於徽章下方（雲端任務僅顯示徽章） */
+.tasks-list-table td.cell-status {
+  text-align: center;
+  white-space: nowrap;
+}
+.tasks-list-table td.cell-status .row-actions {
+  display: flex;
   flex-direction: column;
-  align-items: stretch;
+  align-items: center;
+  gap: 0.3rem;
+  margin-top: 0.4rem;
 }
 
 /* Ledger table (v1.1) — opt-in 帳目式表格：暖紙面、外框、欄位直線分隔、

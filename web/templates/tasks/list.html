@@ -35,7 +35,6 @@
       <th scope="col" class="num">{{ t('tasks.table_duration') }}</th>
       <th scope="col" class="num">{{ t('tasks.table_usage') }}</th>
       <th scope="col">{{ t('tasks.table_status') }}</th>
-      <th scope="col"></th>
     </tr>
   </thead>
   <tbody>
@@ -62,10 +61,10 @@
       <td class="num" style="white-space:nowrap;">
         {% if task.total_weight_g %}{{ task.total_weight_g | fmt_weight('g', 2) | ledger_amount('debit') }}{% else %}-{% endif %}
       </td>
-      <td style="white-space:nowrap;">{{ print_status_badge(task) }}</td>
-      <td>
+      <td class="cell-status">
+        {{ print_status_badge(task) }}
         {% if task.is_manual %}
-        <div class="row-actions" style="display:inline-flex;gap:0.3rem;">
+        <div class="row-actions">
           <a href="{{ url_for('tasks.edit_manual', task_id=task.id) }}"
              role="button" class="outline"
              style="padding:0.25rem 0.6rem;font-size:0.8rem;margin:0;white-space:nowrap;">{{ t('common.edit') }}</a>
@@ -87,7 +86,7 @@
     <tr class="ledger-total">
       <td class="cell-left" colspan="7">{{ t('ledger.page_subtotal') }}</td>
       <td class="num">{{ page_weight | fmt_weight('g', 2) | ledger_amount('debit') }}</td>
-      <td colspan="2"></td>
+      <td></td>
     </tr>
   </tfoot>
 </table>
