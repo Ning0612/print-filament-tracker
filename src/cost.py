@@ -205,6 +205,7 @@ def compute_cost_report(
             "duration_seconds": task.get("duration_seconds"),
             "printer_name": task.get("printer_name"),
             "cover_url": task.get("cover_url"),
+            "weight_g": sum(fd["weight_g"] or 0 for fd in task_filament_details),
             "filament_cost": task_filament_cost,
             "time_cost": task_time_cost,
             "total": task_filament_cost + task_time_cost,

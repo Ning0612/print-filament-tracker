@@ -32,10 +32,12 @@ def index():
     with get_connection(db_path) as conn:
         tasks = get_all_tasks_for_cost(conn, search=search, tz_offset_minutes=tz)
     date_groups = group_tasks_by_date(tasks, tz_offset_minutes=tz)
+    voucher_no = (_datetime.now(_tz.utc) + _td(minutes=tz)).date().strftime("%Y%m%d")
     return render_template(
         "cost/index.html",
         date_groups=date_groups,
         search=search or "",
+        voucher_no=voucher_no,
     )
 
 

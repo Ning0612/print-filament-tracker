@@ -37,8 +37,11 @@
 
     {# ── Right column: sticky cost panel ── #}
     <div class="cost-right">
-      <div class="cost-panel">
-        <h3 style="margin:0 0 1rem;font-size:1rem;">{{ t('cost.panel_title') }}</h3>
+      <div class="cost-panel cost-voucher">
+        <div class="voucher-head">
+          <span class="voucher-title">{{ t('cost.voucher_title') }}</span>
+          <span class="voucher-no">{{ t('cost.voucher_no', no=voucher_no) }}</span>
+        </div>
 
         <div id="cost-summary">
           {% include "cost/_cost_summary.html" with context %}

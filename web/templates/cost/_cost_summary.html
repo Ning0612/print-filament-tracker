@@ -1,16 +1,25 @@
 {% set has_data = report is defined and report is not none and report.has_data %}
 
-{# 1. 任務明細 #}
+{# 1. 計價明細（傳票 line items：項目 · 用量 · 金額／出帳） #}
 {% if has_data and report.per_task %}
-<div class="cost-per-task-list" style="margin-bottom:1rem;">
-  <div class="cost-per-task-header">{{ t('cost.per_task_title') }}</div>
-  {% for task in report.per_task %}
-  <div class="cost-per-task-item">
-    <span class="cost-per-task-name" title="{{ task.print_name }}">{{ task.print_name }}</span>
-    <span class="cost-per-task-total">{{ '%.2f'|format(task.total) }}</span>
-  </div>
-  {% endfor %}
-</div>
+<table class="voucher-lines">
+  <thead>
+    <tr>
+      <th scope="col" class="cell-left">{{ t('cost.col_item') }}</th>
+      <th scope="col" class="num">{{ t('cost.col_usage') }}</th>
+      <th scope="col" class="num">{{ t('cost.col_amount') }}</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for task in report.per_task %}
+    <tr>
+      <td class="cell-left" title="{{ task.print_name }}">{{ task.print_name }}</td>
+      <td class="num">{{ task.weight_g | fmt_weight('g', 1) }}</td>
+      <td class="num amount--debit">{{ '%.2f'|format(task.total) }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
 {% elif not has_data %}
 <div class="cost-summary-empty">
   <p style="color:var(--pico-muted-color);font-size:0.88rem;text-align:center;margin:0.5rem 0 0.75rem;">
@@ -19,45 +28,41 @@
 </div>
 {% endif %}
 
-{# 2. 時間費率（hx-preserve 保留使用者輸入值） #}
-<div id="hourly-rate-wrap" hx-preserve style="margin-bottom:0.75rem;">
-  <label style="display:block;">
-    <small style="color:var(--pico-muted-color);font-weight:600;text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:0.35rem;">{{ t('cost.hourly_rate_label') }}</small>
-    <input type="number"
-           id="hourly-rate"
-           name="hourly_rate"
-           value="0"
-           min="0"
-           step="0.5"
-           style="margin:0;">
-  </label>
+{# 2. 時間費率（帳本欄位；hx-preserve 保留使用者輸入值，#hourly-rate 為 JS/HTMX 契約） #}
+<div id="hourly-rate-wrap" hx-preserve class="voucher-field">
+  <label for="hourly-rate">{{ t('cost.hourly_rate_label') }}</label>
+  <input type="number"
+         id="hourly-rate"
+         name="hourly_rate"
+         value="0"
+         min="0"
+         step="0.5">
 </div>
 
-{# 3. 時間成本  4. 耗材成本  5. 總成本 #}
+{# 3. 分項小計與合計（會計式雙下劃線；成本皆為出帳） #}
 {% if has_data %}
-<div class="cost-summary-stats">
+<div class="voucher-totals">
   {% if report.hourly_rate > 0 %}
-  <div class="cost-summary-stat">
-    <span class="cost-stat-label">{{ t('cost.time_cost') }}</span>
-    <span class="cost-stat-value">{{ '%.2f'|format(report.time_cost) }}</span>
+  <div class="voucher-row">
+    <span class="voucher-row-label">{{ t('cost.time_cost') }}</span>
+    <span class="voucher-row-amount amount--debit">{{ '%.2f'|format(report.time_cost) }}</span>
   </div>
   {% endif %}
-  <div class="cost-summary-stat">
-    <span class="cost-stat-label">{{ t('cost.filament_cost') }}</span>
-    <span class="cost-stat-value">{{ '%.2f'|format(report.filament_cost) }}</span>
+  <div class="voucher-row">
+    <span class="voucher-row-label">{{ t('cost.filament_cost') }}</span>
+    <span class="voucher-row-amount amount--debit">{{ '%.2f'|format(report.filament_cost) }}</span>
   </div>
-  <div class="cost-summary-total">
-    <span>{{ t('cost.total') }}</span>
-    <span>{{ '%.2f'|format(report.total) }}</span>
+  <div class="voucher-total">
+    <span class="voucher-total-label">{{ t('cost.total') }}</span>
+    <span class="voucher-total-amount">{{ report.total | fmt_money }}</span>
   </div>
-  <div style="font-size:0.75rem;color:var(--pico-muted-color);margin-top:0.25rem;">
-    {{ t('cost.task_count_label', n=report.task_count) }}
-  </div>
+  <p class="voucher-note">{{ t('cost.task_count_label', n=report.task_count) }}</p>
 </div>
 
 {% if report.unpriced_count > 0 %}
-<div class="cost-summary-warning">
-  ⚠ {{ t('cost.unpriced_hint', n=report.unpriced_count, g='%.1f'|format(report.unpriced_weight_g)) }}
+<div class="voucher-warning">
+  <span class="stamp">⚠</span>
+  {{ t('cost.unpriced_hint', n=report.unpriced_count, g='%.1f'|format(report.unpriced_weight_g)) }}
 </div>
 {% endif %}
 {% endif %}
