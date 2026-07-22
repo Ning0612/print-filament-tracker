@@ -49,7 +49,7 @@
         </div>
         {% else %}<span style="color:var(--pico-muted-color);">—</span>{% endif %}
       </td>
-      <td>
+      <td class="cell-left">
         <a href="{{ url_for('tasks.detail_view', task_id=task.id) }}">{{ task.print_name or t('common.unnamed') }}</a>
         {% if task.is_manual %}
           <span class="manual-badge">{{ t('status.manual') }}</span>

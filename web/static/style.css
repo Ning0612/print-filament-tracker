@@ -1990,6 +1990,7 @@ code, .stat-number, .econ-total, .cost-value, .cost-stat-value, .spool-col-date,
   width: 100%;
   min-width: 0;
   table-layout: fixed;
+  border: 1px solid var(--ui-ledger-rule-strong);
 }
 .mapping-data-table th,
 .mapping-data-table td {
@@ -1997,6 +1998,9 @@ code, .stat-number, .econ-total, .cost-value, .cost-stat-value, .spool-col-date,
   vertical-align: middle;
   text-align: center;
 }
+/* 欄位垂直格線，與帳目式表格一致的格網（v1.1） */
+.mapping-data-table th + th,
+.mapping-data-table td + td { border-left: 1px solid var(--ui-ledger-rule); }
 /* Print-task-name column (and other row-label cells like the collapsible
    spool group header, and the remap form's select row) stay left-aligned —
    variable-length text reads ragged-left better than centered. Marked with
@@ -2133,41 +2137,41 @@ code, .stat-number, .econ-total, .cost-value, .cost-stat-value, .spool-col-date,
 .ledger-table thead th {
   background: var(--ui-surface-2);
   color: var(--ui-muted);
-  text-align: left;
+  text-align: center;
   text-transform: uppercase;
   letter-spacing: 0.06em;
   font-size: 0.7rem;
   border-bottom: 1px solid var(--ui-ledger-rule-strong);
 }
+/* 內容預設置中；僅列印任務名稱等 label 欄以 .cell-left 靠左 */
 .ledger-table tbody td {
-  text-align: left;
+  text-align: center;
   vertical-align: middle;
   border-bottom: 1px solid var(--ui-ledger-rule);
 }
+.ledger-table td.cell-left { text-align: left; }
 .ledger-table tbody tr:last-child td { border-bottom: 0; }
 /* 欄位直線分隔（每個非首欄的左緣細直線），構成帳簿格線 */
 .ledger-table th + th,
 .ledger-table tbody td + td { border-left: 1px solid var(--ui-ledger-rule); }
 .ledger-table tbody tr:hover { background: rgba(var(--ui-primary-rgb), 0.055); }
+/* 數值欄置中但保留等寬字體，數值不與單位斷行 */
 .ledger-table th.num,
 .ledger-table td.num {
-  text-align: right;
   white-space: nowrap;
   font-family: var(--pico-font-family-monospace);
 }
 .ledger-table th.seq,
 .ledger-table td.seq {
-  text-align: right;
   width: 2.5rem;
   color: var(--ui-muted);
   font-family: var(--pico-font-family-monospace);
   font-size: 0.75rem;
 }
-.ledger-table th.cell-center,
-.ledger-table td.cell-center { text-align: center; }
-/* 合計列：會計式雙下劃線（3px double 呈現兩條細線），數值加重 */
+/* 合計列：會計式雙下劃線（3px double 呈現兩條細線），數值加重、內容置中 */
 .ledger-table tfoot td,
 .ledger-table tr.ledger-total td {
+  text-align: center;
   border-top: 3px double var(--ui-ledger-rule-strong);
   border-bottom: 0;
   background: var(--ui-surface-2);

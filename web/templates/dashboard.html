@@ -180,7 +180,7 @@
         </div>
         {% else %}<span style="color:var(--pico-muted-color);">—</span>{% endif %}
       </td>
-      <td><a href="{{ url_for('tasks.detail_view', task_id=task.id) }}">{{ task.print_name or t('common.unnamed') }}</a></td>
+      <td class="cell-left"><a href="{{ url_for('tasks.detail_view', task_id=task.id) }}">{{ task.print_name or t('common.unnamed') }}</a></td>
       <td style="white-space:nowrap;">{{ task.printer_name or '-' }}</td>
       <td style="white-space:nowrap;">{{ task.started_at | tz_format }}</td>
       <td class="num" style="white-space:nowrap;">{{ task.duration_seconds | fmt_duration if task.duration_seconds else '0 m' }}</td>
