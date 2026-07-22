@@ -75,6 +75,15 @@
           {% include 'tasks/_filament_row.html' %}
           {% endfor %}
         </tbody>
+        {% if task.total_weight_g %}
+        <tfoot>
+          <tr class="ledger-total">
+            <td colspan="3">{{ t('ledger.total') }}</td>
+            <td class="num">{{ task.total_weight_g | fmt_weight('g', 2) | ledger_amount('debit') }}</td>
+            <td></td>
+          </tr>
+        </tfoot>
+        {% endif %}
       </table>
       </div>
       {% else %}

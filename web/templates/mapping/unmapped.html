@@ -78,7 +78,7 @@
           {% endif %}
           <code>{{ r.color_hex or '-' }}</code>
         </td>
-        <td>{{ '%.1f' % r.used_weight_g if r.used_weight_g else '-' }}g</td>
+        <td>{{ r.used_weight_g | fmt_weight if r.used_weight_g else '-' }}</td>
         <td>
           <select name="spool_id" id="spool-select-{{ r.id }}" class="mapping-spool-select">
             <option value="">{{ t('mapping.spool_select_placeholder') }}</option>
@@ -163,7 +163,7 @@
           {% endif %}
           <code>{{ r.color_hex or '-' }}</code>
         </td>
-        <td>{{ '%.1f' % r.used_weight_g if r.used_weight_g else '-' }}g</td>
+        <td>{{ r.used_weight_g | fmt_weight if r.used_weight_g else '-' }}</td>
         <td style="white-space:nowrap;">
           <div style="display:inline-flex;gap:0.25rem;">
             <button class="outline"
@@ -237,7 +237,7 @@
           {% endif %}
           <code>{{ r.color_hex or '-' }}</code>
         </td>
-        <td>{{ '%.1f' % r.used_weight_g if r.used_weight_g else '-' }}g</td>
+        <td>{{ r.used_weight_g | fmt_weight if r.used_weight_g else '-' }}</td>
         <td style="white-space:nowrap;">
           <button class="outline"
                   hx-post="{{ url_for('mapping.unignore_view', ptf_id=r.id) }}"

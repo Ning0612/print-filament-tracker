@@ -36,12 +36,10 @@
           <div style="font-size:0.72rem;color:var(--pico-muted-color);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:0.1rem;"
                title="{{ task.printer_name }}">{{ task.printer_name }}</div>
           {% endif %}
-          <div class="task-gallery-weight">{{ '%.1f'|format(task.total_weight_g or 0) }}g</div>
+          <div class="task-gallery-weight">{{ (task.total_weight_g or 0) | fmt_weight }}</div>
           {% if task.duration_seconds %}
-          {% set th = task.duration_seconds // 3600 %}
-          {% set tm = (task.duration_seconds % 3600) // 60 %}
           <div style="color:var(--pico-muted-color);font-size:0.75rem;font-family:var(--pico-font-family-monospace);">
-            ⏱{%- if th > 0 %} {{ th }}h{{ '%02d'|format(tm) }}m{%- else %} {{ tm }}m{%- endif %}
+            ⏱ {{ task.duration_seconds | fmt_duration }}
           </div>
           {% endif %}
         </div>
@@ -60,9 +58,9 @@
                   style="--swatch-color:{{ f.ptf_display_color }};width:0.8rem;height:0.8rem;border-radius:50%;flex-shrink:0;"></span>
             <span class="cost-ptf-label">{{ f.ptf_label }}</span>
             <span class="cost-ptf-meta">
-              <span class="cost-ptf-weight">{{ '%.1f'|format(f.used_weight_g or 0) }}g</span>
+              <span class="cost-ptf-weight">{{ (f.used_weight_g or 0) | fmt_weight }}</span>
               {% if f.cost is not none %}
-              <span class="cost-ptf-cost">{{ '%.2f'|format(f.cost) }} {{ t('cost.currency_unit') }}</span>
+              <span class="cost-ptf-cost">{{ f.cost | fmt_money }}</span>
               {% else %}
               <span class="cost-ptf-cost cost-ptf-no-price">— {{ t('cost.currency_unit') }}</span>
               {% endif %}

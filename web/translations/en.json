@@ -9,7 +9,8 @@
   },
   "ledger": {
     "page_of": "Page {page} · {total} entries",
-    "entry_count": "{n} entries"
+    "entry_count": "{n} entries",
+    "total": "Total"
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -75,7 +76,7 @@
     "title": "Dashboard",
     "dashboard_hint": "See your material stock, print consumption, and the next actions that need attention.",
     "spool_status": "Filament Status",
-    "print_stats": "Print Statistics",
+    "print_stats": "Print Ledger",
     "total_spools": "Total Spools",
     "unmapped_alert": "Unmapped records",
     "total_tasks": "Total Tasks",
@@ -85,7 +86,7 @@
     "weight_panel": "Usage",
     "cost_panel": "Cost",
     "total_initial": "Total Filament",
-    "total_remaining": "Remaining Stock",
+    "total_remaining": "Stock Balance",
     "consumed_weight": "Consumed Weight",
     "remaining_cost": "Remaining Cost",
     "consumed_cost": "Consumed Cost",

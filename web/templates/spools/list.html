@@ -120,7 +120,7 @@
           <div class="progress-bar-container" title="{{ t('spools.remaining', n='%.1f'|format(s.remaining_weight_g)) }}">
             <div class="progress-bar {{ bar_cls }}" style="width:{{ pct }}%"></div>
           </div>
-          <small>{{ '%.1f'|format(s.remaining_weight_g) }}g
+          <small>{{ s.remaining_weight_g | fmt_weight }}
             <span style="color:var(--pico-muted-color);">({{ '%.0f'|format(s.usage_ratio * 100) }}%)</span>
           </small>
         </div>
@@ -155,7 +155,7 @@
             </div>
             <div class="task-gallery-info">
               <div class="task-gallery-date">{{ task.started_at | tz_date }}</div>
-              <div class="task-gallery-weight">{{ '%.1f'|format(task.used_weight_g or 0) }}g</div>
+              <div class="task-gallery-weight">{{ (task.used_weight_g or 0) | fmt_weight }}</div>
               <div>{{ print_status_badge(task) }}</div>
             </div>
           </a>

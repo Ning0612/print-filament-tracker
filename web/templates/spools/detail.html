@@ -51,11 +51,11 @@
       </div>
       <div>
         <small style="color:var(--pico-muted-color);">{{ t('spools.form_initial_weight') }}</small><br>
-        <strong>{{ '%.0f'|format(spool.initial_weight_g) }}g</strong>
+        <strong>{{ spool.initial_weight_g | fmt_weight('g', 0) }}</strong>
       </div>
       <div>
         <small style="color:var(--pico-muted-color);">{{ t('spools.form_price') }}</small><br>
-        <strong>{% if spool.price %}{{ '%.2f'|format(spool.price) }}{% else %}-{% endif %}</strong>
+        <strong>{% if spool.price %}{{ spool.price | fmt_money }}{% else %}-{% endif %}</strong>
       </div>
       <div>
         <small style="color:var(--pico-muted-color);">{{ t('spools.form_purchased_at') }}</small><br>
@@ -95,7 +95,7 @@
             <div class="progress-bar {{ bar_cls }}" style="width:{{ pct }}%"></div>
           </div>
           <div>
-            <strong>{{ '%.1f'|format(spool.remaining_weight_g) }}g</strong>
+            <strong>{{ spool.remaining_weight_g | fmt_weight | ledger_amount('credit') }}</strong>
             <span style="color:var(--pico-muted-color);font-size:0.88rem;margin-left:0.25rem;">({{ '%.0f'|format(pct) }}%)</span>
           </div>
         </div>
@@ -107,13 +107,13 @@
         <!-- Row 2 左：已消耗重量 -->
         <div>
           <small style="color:var(--pico-muted-color);">{{ t('spools.detail_used_weight') }}</small><br>
-          <strong>{{ '%.1f'|format(spool.used_weight_g) }}g</strong>
+          <strong>{{ spool.used_weight_g | fmt_weight | ledger_amount('debit') }}</strong>
         </div>
         <!-- Row 2 右（3/4 處）：已消耗成本 -->
         <div>
           {% if cost_consumed is not none %}
           <small style="color:var(--pico-muted-color);">{{ t('spools.detail_cost_consumed') }}</small><br>
-          <strong>{{ '%.2f'|format(cost_consumed) }}</strong>
+          <strong>{{ cost_consumed | fmt_money }}</strong>
           {% endif %}
         </div>
       </div>
@@ -141,7 +141,7 @@
       </div>
       <div class="task-gallery-info">
         <div class="task-gallery-date">{{ task.started_at | tz_date }}</div>
-        <div class="task-gallery-weight">{{ '%.1f'|format(task.used_weight_g or 0) }}g</div>
+        <div class="task-gallery-weight">{{ (task.used_weight_g or 0) | fmt_weight }}</div>
         <div>{{ print_status_badge(task) }}</div>
       </div>
     </a>

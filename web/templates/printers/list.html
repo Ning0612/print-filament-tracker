@@ -49,13 +49,11 @@
         <span class="printer-stat-label">{{ t('printers.task_count_label') }}</span>
       </div>
       <div class="printer-stat">
-        {% set h = p.total_duration_seconds // 3600 %}
-        {% set m = (p.total_duration_seconds % 3600) // 60 %}
-        <span class="printer-stat-value">{{ h }}h {{ '%02d' % m }}m</span>
+        <span class="printer-stat-value">{{ p.total_duration_seconds | fmt_duration }}</span>
         <span class="printer-stat-label">{{ t('printers.total_duration_label') }}</span>
       </div>
       <div class="printer-stat">
-        <span class="printer-stat-value">{{ '%.0f' % p.total_weight_g }}g</span>
+        <span class="printer-stat-value">{{ p.total_weight_g | fmt_weight('g', 0) }}</span>
         <span class="printer-stat-label">{{ t('printers.total_weight_label') }}</span>
       </div>
       <div class="printer-card-actions">

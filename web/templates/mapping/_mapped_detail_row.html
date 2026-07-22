@@ -17,7 +17,7 @@
     {% endif %}
     <code>{{ r.color_hex or '-' }}</code>
   </td>
-  <td>{{ '%.1f' % r.used_weight_g if r.used_weight_g else '-' }}g</td>
+  <td>{{ r.used_weight_g | fmt_weight if r.used_weight_g else '-' }}</td>
   <td style="white-space:nowrap;">
     <div style="display:inline-flex;gap:0.25rem;">
       <button class="outline"
