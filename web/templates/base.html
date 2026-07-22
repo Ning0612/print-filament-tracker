@@ -18,6 +18,11 @@
 <body class="app-body">
   <a class="skip-link" href="#main-content">{{ t('common.skip_to_content') }}</a>
   <div class="app-shell">
+    <div class="app-spine" aria-hidden="true">
+      <span class="app-spine-emblem">❋</span>
+      <span class="app-spine-title">{{ t('brand.name') }}</span>
+      <span class="app-spine-foot">FL</span>
+    </div>
     <aside id="app-sidebar" class="app-sidebar" aria-label="{{ t('nav.sidebar_aria') }}">
       <div class="app-sidebar-head">
         <a class="app-brand" href="{{ url_for('dashboard.index') }}"
@@ -124,6 +129,8 @@
     </aside>
 
     <div class="app-main-shell">
+      <span class="leaf-ribbon" aria-hidden="true"></span>
+      <div class="leaf-edge" aria-hidden="true"></div>
       <header class="app-mobile-topbar">
         <a class="app-mobile-brand" href="{{ url_for('dashboard.index') }}">
           <img src="{{ url_for('static', filename='img/filament-ledger-icon.png') }}" alt="">
