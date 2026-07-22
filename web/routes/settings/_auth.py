@@ -11,7 +11,7 @@ _SEND_CODE_PATH = "/v1/user-service/user/sendemail/code"
 _TFA_PATH = "/api/sign-in/tfa"
 _HEADERS = {
     "Content-Type": "application/json",
-    "User-Agent": "PrintFilamentTracker/1.0 (community; unofficial Bambu Lab integration)",
+    "User-Agent": "FilamentLedger/1.0 (community; unofficial Bambu Lab integration)",
 }
 _TIMEOUT = 20
 

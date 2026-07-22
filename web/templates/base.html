@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="csrf-token" content="{{ csrf_token() }}">
   <title>{% block title %}{% endblock %}{% if self.title() | trim %} — {% endif %}{{ t('brand.name') }}</title>
-  <script>(function(){try{var t=localStorage.getItem('print-filament-tracker-theme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}}());</script>
-  <script>(function(){try{if(localStorage.getItem('print-filament-tracker-sidebar-collapsed')==='true')document.documentElement.setAttribute('data-sidebar-collapsed','true');}catch(e){}}());</script>
+  <script>(function(){try{var t=localStorage.getItem('filament-ledger-theme')||localStorage.getItem('print-filament-tracker-theme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}}());</script>
+  <script>(function(){try{var s=localStorage.getItem('filament-ledger-sidebar-collapsed');if(s===null)s=localStorage.getItem('print-filament-tracker-sidebar-collapsed');if(s==='true')document.documentElement.setAttribute('data-sidebar-collapsed','true');}catch(e){}}());</script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&family=Noto+Serif+TC:wght@600;700&display=swap">
@@ -159,7 +159,7 @@
     if (meta) evt.detail.headers['X-CSRFToken'] = meta.getAttribute('content');
   });
 
-  var THEME_KEY = 'print-filament-tracker-theme';
+  var THEME_KEY = 'filament-ledger-theme';
   var html = document.documentElement;
 
   function getTheme() { return html.getAttribute('data-theme') || 'light'; }
@@ -251,7 +251,7 @@
         var collapsed = html.getAttribute('data-sidebar-collapsed') === 'true';
         applySidebarState(!collapsed);
         try {
-          localStorage.setItem('print-filament-tracker-sidebar-collapsed', String(!collapsed));
+          localStorage.setItem('filament-ledger-sidebar-collapsed', String(!collapsed));
         } catch (e) {}
       });
     }

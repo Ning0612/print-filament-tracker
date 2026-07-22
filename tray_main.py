@@ -1,5 +1,5 @@
 """
-tray_main.py — PrintFilamentTracker System Tray 入口點
+tray_main.py — 材料帳本 Filament Ledger System Tray 入口點
 
 執行緒模型：
   主執行緒：pystray icon.run() event loop（pystray 要求在主執行緒）
@@ -148,7 +148,7 @@ class _TrayApp:
                 notice = f"無法啟動伺服器，請確認 port {PORT} 未被其他程式佔用。"
             if getattr(icon, "HAS_NOTIFICATION", False):
                 try:
-                    icon.notify(notice, "PrintFilamentTracker")
+                    icon.notify(notice, "材料帳本")
                 except Exception:
                     pass
             return
@@ -179,14 +179,14 @@ class _TrayApp:
         image = Image.open(str(icon_path)).convert("RGBA").resize((256, 256), Image.LANCZOS)
 
         menu = pystray.Menu(
-            pystray.MenuItem("開啟 PrintFilamentTracker", self._on_open, default=True),
+            pystray.MenuItem("開啟材料帳本", self._on_open, default=True),
             pystray.Menu.SEPARATOR,
             pystray.MenuItem("結束", self._on_quit),
         )
         icon = pystray.Icon(
-            name  = "PrintFilamentTracker",
+            name  = "FilamentLedger",
             icon  = image,
-            title = "PrintFilamentTracker",
+            title = "材料帳本 Filament Ledger",
             menu  = menu,
         )
 
@@ -204,7 +204,7 @@ def _check_single_instance() -> object:
     """確保程式只有單一實例執行。回傳一個 lock 物件；若已在執行則回傳 None。"""
     if sys.platform == "win32":
         import ctypes
-        mutex_name = "PrintFilamentTracker_Mutex_9e3c5"
+        mutex_name = "FilamentLedger_Mutex_9e3c5"
         mutex = ctypes.windll.kernel32.CreateMutexW(None, False, mutex_name)
         if not mutex:
             return None
@@ -214,7 +214,7 @@ def _check_single_instance() -> object:
     else:
         import fcntl
         import tempfile
-        lock_file = Path(tempfile.gettempdir()) / "printfilamenttracker.lock"
+        lock_file = Path(tempfile.gettempdir()) / "filamentledger.lock"
         fp = open(lock_file, "w")
         try:
             fcntl.lockf(fp, fcntl.LOCK_EX | fcntl.LOCK_NB)
