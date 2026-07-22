@@ -1997,6 +1997,9 @@ code, .stat-number, .econ-total, .cost-value, .cost-stat-value, .spool-col-date,
   overflow-wrap: anywhere;
   vertical-align: middle;
   text-align: center;
+  /* 收窄水平 padding：fixed-layout 下欄位窄，Pico 預設 20px padding 會把
+     圖片/日期/色號等內容擠到溢出並撞上垂直格線。 */
+  padding-inline: 0.5rem;
 }
 /* 欄位垂直格線，與帳目式表格一致的格網（v1.1） */
 .mapping-data-table th + th,
@@ -2029,11 +2032,11 @@ code, .stat-number, .econ-total, .cost-value, .cost-stat-value, .spool-col-date,
 .mapping-data-table--ignored th:nth-child(1),
 .mapping-data-table--ignored td:nth-child(1) { width: 7%; }
 .mapping-data-table--unmapped th:nth-child(2),
-.mapping-data-table--unmapped td:nth-child(2) { width: 19%; }
+.mapping-data-table--unmapped td:nth-child(2) { width: 17%; }
 .mapping-data-table--unmapped th:nth-child(3),
 .mapping-data-table--unmapped td:nth-child(3),
 .mapping-data-table--mapped th:nth-child(3),
-.mapping-data-table--mapped td:nth-child(3) { width: 8%; }
+.mapping-data-table--mapped td:nth-child(3) { width: 10%; }
 .mapping-data-table--unmapped th:nth-child(4),
 .mapping-data-table--unmapped td:nth-child(4),
 .mapping-data-table--mapped th:nth-child(4),
@@ -2060,7 +2063,7 @@ code, .stat-number, .econ-total, .cost-value, .cost-stat-value, .spool-col-date,
 .mapping-data-table--unmapped td:nth-child(9) { width: 8%; }
 .mapping-data-table--unmapped td:nth-child(9) button { white-space: nowrap; }
 .mapping-data-table--mapped th:nth-child(2),
-.mapping-data-table--mapped td:nth-child(2) { width: 29%; }
+.mapping-data-table--mapped td:nth-child(2) { width: 27%; }
 .mapping-data-table--mapped th:nth-child(5),
 .mapping-data-table--mapped td:nth-child(5) { width: 11%; }
 .mapping-data-table--mapped th:nth-child(6),
