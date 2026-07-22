@@ -1,5 +1,5 @@
 /* ====================================================
-   PrintFilamentTracker — Design System
+   Filament Ledger（材料帳本）— Design System
    Custom styles layered on top of Pico CSS v2
    ==================================================== */
 
@@ -19,6 +19,16 @@
   --ui-warning:       #A66A2C;
   --ui-danger:        #A84343;
   --ui-lime:          #DDE8C4;
+
+  /* Ledger tokens (v1.1) — 帳目規線、出入帳色語、印章與紙本裝飾 */
+  --ui-ledger-rule:        #E0DDD2;
+  --ui-ledger-rule-strong: #C9CDBF;
+  --ui-debit:              var(--ui-danger);
+  --ui-credit:             var(--ui-success);
+  --ui-stamp-border:       #9AA093;
+  --ui-paper-line:         rgba(46, 111, 99, 0.05);
+  --ui-paper-margin:       #C8552E;
+
   --ui-shadow:        0 12px 30px rgba(32, 43, 41, 0.06);
   --ui-shadow-sm:     0 3px 12px rgba(32, 43, 41, 0.05);
   --ui-radius:        6px;
@@ -69,6 +79,14 @@
   --ui-warning:       #D7A865;
   --ui-danger:        #DF8B8B;
   --ui-lime:          #34452F;
+
+  /* Ledger tokens (v1.1) — dark 轉譯；debit/credit 隨 danger/success 自動跟隨 */
+  --ui-ledger-rule:        #2C3833;
+  --ui-ledger-rule-strong: #3D4B44;
+  --ui-stamp-border:       #4E5C54;
+  --ui-paper-line:         rgba(134, 190, 176, 0.05);
+  --ui-paper-margin:       #B9603E;
+
   --ui-shadow:        0 16px 38px rgba(0,0,0,0.20);
   --ui-shadow-sm:     0 4px 14px rgba(0,0,0,0.18);
   --app-accent:       var(--ui-primary);
