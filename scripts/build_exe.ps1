@@ -1,7 +1,7 @@
 ﻿#Requires -Version 5.1
 <#
 .SYNOPSIS
-    PrintFilamentTracker Windows 建置腳本 — 打包成單一 .exe
+    Filament Ledger Windows 建置腳本 — 打包成單一 .exe
 
 .DESCRIPTION
     步驟：
@@ -42,10 +42,10 @@ $OutputEncoding           = [System.Text.Encoding]::UTF8
 
 $RepoRoot   = Split-Path -Parent $PSScriptRoot
 $VenvPython = Join-Path $RepoRoot ".venv\Scripts\python.exe"
-$PngIcon    = Join-Path $RepoRoot "web\static\img\print-filament-tracker-icon.png"
-$IcoIcon    = Join-Path $RepoRoot "web\static\img\print-filament-tracker-icon.ico"
-$SpecFile   = Join-Path $RepoRoot "PrintFilamentTracker.spec"
-$OutputExe  = Join-Path $RepoRoot "dist\PrintFilamentTracker.exe"
+$PngIcon    = Join-Path $RepoRoot "web\static\img\filament-ledger-icon.png"
+$IcoIcon    = Join-Path $RepoRoot "web\static\img\filament-ledger-icon.ico"
+$SpecFile   = Join-Path $RepoRoot "FilamentLedger.spec"
+$OutputExe  = Join-Path $RepoRoot "dist\FilamentLedger.exe"
 
 function Write-Step([string]$msg) { Write-Host "`n[STEP] $msg" -ForegroundColor Cyan }
 function Write-OK([string]$msg)   { Write-Host "  [OK]   $msg" -ForegroundColor Green }
@@ -101,7 +101,7 @@ $distPath  = Join-Path $RepoRoot "dist"
 $buildPath = Join-Path $RepoRoot "build"
 
 # 若舊版 .exe 仍在執行（系統托盤常駐），先強制結束以釋放檔案鎖
-$running = Get-Process -Name "PrintFilamentTracker" -ErrorAction SilentlyContinue
+$running = Get-Process -Name "FilamentLedger" -ErrorAction SilentlyContinue
 if ($running) {
     Write-Host "  [INFO] 偵測到程式執行中，正在終止舊版本..." -ForegroundColor Yellow
     $running | Stop-Process -Force
@@ -134,7 +134,7 @@ $sizeMB = [math]::Round((Get-Item $OutputExe).Length / 1MB, 1)
 Write-OK "輸出：$OutputExe（$sizeMB MB）"
 
 # ── STEP 5：打包 MSI（需要 wix CLI 已安裝） ──────────────────────────────────
-$MsiOut = Join-Path $distPath "PrintFilamentTracker-$Version.msi"
+$MsiOut = Join-Path $distPath "FilamentLedger-$Version.msi"
 if ($SkipMsi) {
     Write-Host "  [SKIP] -SkipMsi 已指定，略過 MSI 打包" -ForegroundColor Yellow
 } elseif (-not (Get-Command wix -ErrorAction SilentlyContinue)) {
@@ -168,12 +168,12 @@ Write-Host "  建置完成！v$Version" -ForegroundColor Cyan
 Write-Host ("=" * 60) -ForegroundColor Cyan
 Write-Host ""
 Write-Host "  輸出檔案：" -ForegroundColor White
-Write-Host "    dist\PrintFilamentTracker.exe          （免安裝，直接執行）"
+Write-Host "    dist\FilamentLedger.exe          （免安裝，直接執行）"
 if (-not $SkipMsi -and (Test-Path $MsiOut)) {
-    Write-Host "    dist\PrintFilamentTracker-$Version.msi  （安裝程式，含開始選單）"
+    Write-Host "    dist\FilamentLedger-$Version.msi  （安裝程式，含開始選單）"
 }
 Write-Host ""
 Write-Host "  資料庫與設定自動儲存於：" -ForegroundColor White
-Write-Host '    %LOCALAPPDATA%\PrintFilamentTracker\' -ForegroundColor Yellow
+Write-Host '    %LOCALAPPDATA%\FilamentLedger\' -ForegroundColor Yellow
 Write-Host ""
 Write-Host "  遇到防毒誤判時，嘗試：.\scripts\build_exe.ps1 -NoUpx" -ForegroundColor Yellow

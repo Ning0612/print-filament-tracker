@@ -112,7 +112,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: windows-package
-          path: dist/PrintFilamentTracker.exe
+          path: dist/FilamentLedger.exe
           if-no-files-found: error
 
   build-macos:
@@ -146,13 +146,13 @@ jobs:
         run: bash scripts/build_exe.sh --version="${{ needs.validate-tag.outputs.package_version }}"
 
       - name: Zip app bundle
-        run: ditto -c -k --sequesterRsrc --keepParent dist/PrintFilamentTracker.app dist/PrintFilamentTracker.app.zip
+        run: ditto -c -k --sequesterRsrc --keepParent dist/FilamentLedger.app dist/FilamentLedger.app.zip
 
       - name: Upload macOS artifact
         uses: actions/upload-artifact@v4
         with:
           name: macos-package
-          path: dist/PrintFilamentTracker.app.zip
+          path: dist/FilamentLedger.app.zip
           if-no-files-found: error
 
   publish-release:
@@ -175,5 +175,5 @@ jobs:
           TAG_NAME: ${{ env.RELEASE_TAG }}
         run: |
           gh release view "$TAG_NAME" >/dev/null 2>&1 || gh release create "$TAG_NAME" --generate-notes --title "$TAG_NAME"
-          gh release upload "$TAG_NAME" release-assets/windows-package/PrintFilamentTracker.exe --clobber
-          gh release upload "$TAG_NAME" release-assets/macos-package/PrintFilamentTracker.app.zip --clobber
+          gh release upload "$TAG_NAME" release-assets/windows-package/FilamentLedger.exe --clobber
+          gh release upload "$TAG_NAME" release-assets/macos-package/FilamentLedger.app.zip --clobber

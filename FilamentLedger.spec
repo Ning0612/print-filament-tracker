@@ -1,9 +1,9 @@
 # -*- mode: python ; coding: utf-8 -*-
-# PrintFilamentTracker.spec — Windows 打包規格（--onefile --windowed）
+# FilamentLedger.spec — Windows 打包規格（--onefile --windowed）
 #
 # 使用方式：
 #   .\scripts\build_exe.ps1
-#   或手動：.venv\Scripts\python.exe -m PyInstaller PrintFilamentTracker.spec --clean
+#   或手動：.venv\Scripts\python.exe -m PyInstaller FilamentLedger.spec --clean
 
 import os
 from pathlib import Path
@@ -84,7 +84,7 @@ exe = EXE(
     a.zipfiles,
     a.datas,
     [],
-    name    = "PrintFilamentTracker",
+    name    = "FilamentLedger",
     debug   = False,
     bootloader_ignore_signals = False,
     strip   = False,
@@ -98,5 +98,5 @@ exe = EXE(
     codesign_identity = None,
     entitlements_file = None,
     version = str(project_root / "file_version_info.txt"),
-    icon    = str(project_root / "web" / "static" / "img" / "print-filament-tracker-icon.ico"),
+    icon    = str(project_root / "web" / "static" / "img" / "filament-ledger-icon.ico"),
 )

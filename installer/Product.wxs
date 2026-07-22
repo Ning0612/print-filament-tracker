@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  WiX v4 安裝程式定義 - PrintFilamentTracker
+  WiX v4 安裝程式定義 - Filament Ledger（材料帳本）
   建置由 scripts\build_exe.ps1 自動呼叫
   外部變數：Version, ExeSource, IconSource
 -->
@@ -8,9 +8,11 @@
      xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">
 
   <Package
-    Name="PrintFilamentTracker"
+    Name="Filament Ledger"
     Manufacturer="Ning0612"
     Version="$(var.Version).0"
+    <!-- UpgradeCode 沿用舊值：Windows 以此判定「同一產品升級」，改動會被視為
+         全新產品而無法自動移除/覆蓋舊版。改名後仍須保留以支援無痛升級。 -->
     UpgradeCode="F7A2B3C4-E5D6-4870-9192-A3B4C5D6E7F8"
     Codepage="950"
     Scope="perMachine">
@@ -21,14 +23,14 @@
     <!-- 程式圖示：顯示於「程式和功能」清單及安裝精靈 -->
     <Icon Id="AppIcon" SourceFile="$(var.IconSource)" />
     <Property Id="ARPPRODUCTICON" Value="AppIcon" />
-    <Property Id="ARPHELPLINK" Value="https://github.com/Ning0612/print-filament-tracker" />
+    <Property Id="ARPHELPLINK" Value="https://github.com/Ning0612/filament-ledger" />
 
     <!-- 安裝精靈使用者介面 -->
     <WixVariable Id="WixUILicenseRtf" Value="$(sys.SOURCEFILEDIR)license.rtf" />
     <ui:WixUI Id="WixUI_FeatureTree" />
 
     <!-- 完成畫面：立即啟動選項（預設勾選） -->
-    <Property Id="WIXUI_EXITDIALOGOPTIONALCHECKBOXTEXT" Value="立即啟動 PrintFilamentTracker" />
+    <Property Id="WIXUI_EXITDIALOGOPTIONALCHECKBOXTEXT" Value="立即啟動材料帳本" />
     <Property Id="WIXUI_EXITDIALOGOPTIONALCHECKBOX" Value="1" />
 
     <!-- 安裝完成後啟動應用程式 -->
@@ -46,7 +48,7 @@
 
     <Feature Id="DesktopShortcutFeature"
              Title="桌面捷徑"
-             Description="在桌面建立 PrintFilamentTracker 的快捷方式"
+             Description="在桌面建立材料帳本的快捷方式"
              Level="1">
       <ComponentRef Id="DesktopShortcutComp" />
     </Feature>
@@ -55,10 +57,10 @@
   <!-- 目錄結構 -->
   <Fragment>
     <StandardDirectory Id="ProgramFiles64Folder">
-      <Directory Id="INSTALLFOLDER" Name="PrintFilamentTracker" />
+      <Directory Id="INSTALLFOLDER" Name="Filament Ledger" />
     </StandardDirectory>
     <StandardDirectory Id="ProgramMenuFolder">
-      <Directory Id="AppMenuFolder" Name="PrintFilamentTracker" />
+      <Directory Id="AppMenuFolder" Name="Filament Ledger" />
     </StandardDirectory>
     <StandardDirectory Id="DesktopFolder" />
   </Fragment>
@@ -73,9 +75,9 @@
 
     <Component Id="StartMenuShortcut" Directory="AppMenuFolder" Guid="*">
       <Shortcut Id="AppShortcut"
-                Name="PrintFilamentTracker"
-                Description="列印耗材管理工具"
-                Target="[INSTALLFOLDER]PrintFilamentTracker.exe"
+                Name="材料帳本"
+                Description="列印材料管理工具"
+                Target="[INSTALLFOLDER]FilamentLedger.exe"
                 WorkingDirectory="INSTALLFOLDER" />
       <RemoveFolder Id="CleanupMenu" Directory="AppMenuFolder" On="uninstall" />
       <RegistryValue Root="HKLM"
@@ -86,9 +88,9 @@
 
     <Component Id="DesktopShortcutComp" Directory="DesktopFolder" Guid="*">
       <Shortcut Id="DesktopShortcut"
-                Name="PrintFilamentTracker"
-                Description="列印耗材管理工具"
-                Target="[INSTALLFOLDER]PrintFilamentTracker.exe"
+                Name="材料帳本"
+                Description="列印材料管理工具"
+                Target="[INSTALLFOLDER]FilamentLedger.exe"
                 WorkingDirectory="INSTALLFOLDER" />
       <RegistryValue Root="HKLM"
                      Key="Software\Ning0612\PrintFilamentTracker"

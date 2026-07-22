@@ -20,12 +20,12 @@ VSVersionInfo(
       StringTable(
         '040904b0',
         [StringStruct('CompanyName', 'Ning0612'),
-        StringStruct('FileDescription', 'PrintFilamentTracker'),
+        StringStruct('FileDescription', 'Filament Ledger'),
         StringStruct('FileVersion', '1.1.0'),
-        StringStruct('InternalName', 'PrintFilamentTracker'),
+        StringStruct('InternalName', 'FilamentLedger'),
         StringStruct('LegalCopyright', 'Copyright © 2026 Ning0612'),
-        StringStruct('OriginalFilename', 'PrintFilamentTracker.exe'),
-        StringStruct('ProductName', 'PrintFilamentTracker'),
+        StringStruct('OriginalFilename', 'FilamentLedger.exe'),
+        StringStruct('ProductName', 'Filament Ledger'),
         StringStruct('ProductVersion', '1.1.0')])
       ]), 
     VarFileInfo([VarStruct('Translation', [1033, 1200])])

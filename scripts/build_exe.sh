@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# build_exe.sh — PrintFilamentTracker macOS 建置腳本（生成 .app bundle）
+# build_exe.sh — Filament Ledger macOS 建置腳本（生成 .app bundle）
 #
 # 使用方式：
 #   bash scripts/build_exe.sh
@@ -9,10 +9,10 @@ set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 VENV_PYTHON="$REPO_ROOT/.venv/bin/python"
-PNG_ICON="$REPO_ROOT/web/static/img/print-filament-tracker-icon.png"
-ICNS_ICON="$REPO_ROOT/web/static/img/print-filament-tracker-icon.icns"
-SPEC_FILE="$REPO_ROOT/PrintFilamentTracker-mac.spec"
-OUTPUT_APP="$REPO_ROOT/dist/PrintFilamentTracker.app"
+PNG_ICON="$REPO_ROOT/web/static/img/filament-ledger-icon.png"
+ICNS_ICON="$REPO_ROOT/web/static/img/filament-ledger-icon.icns"
+SPEC_FILE="$REPO_ROOT/FilamentLedger-mac.spec"
+OUTPUT_APP="$REPO_ROOT/dist/FilamentLedger.app"
 
 SKIP_INSTALL=false
 VERSION="1.1.0"
@@ -107,9 +107,9 @@ echo "  建置完成！v${VERSION}"
 echo "================================================================"
 echo ""
 echo "  使用方式："
-echo "    1. 將 dist/PrintFilamentTracker.app 拖入 /Applications"
+echo "    1. 將 dist/FilamentLedger.app 拖入 /Applications"
 echo "    2. 首次啟動：右鍵 → 開啟（允許 Gatekeeper）"
-echo "    3. 點選 Menu Bar 圖示「開啟 PrintFilamentTracker」"
+echo "    3. 點選 Menu Bar 圖示「開啟材料帳本」"
 echo "    4. 資料庫與設定自動儲存於："
-echo "       ~/Library/Application Support/PrintFilamentTracker/"
+echo "       ~/Library/Application Support/FilamentLedger/"
 echo ""

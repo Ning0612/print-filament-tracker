@@ -1,9 +1,9 @@
 # -*- mode: python ; coding: utf-8 -*-
-# PrintFilamentTracker-mac.spec — macOS 打包規格（生成 .app bundle）
+# FilamentLedger-mac.spec — macOS 打包規格（生成 .app bundle）
 #
 # 使用方式：
 #   bash scripts/build_exe.sh --version=1.2.0
-#   或手動：PYINSTALLER_APP_VERSION=1.2.0 .venv/bin/python -m PyInstaller PrintFilamentTracker-mac.spec --clean
+#   或手動：PYINSTALLER_APP_VERSION=1.2.0 .venv/bin/python -m PyInstaller FilamentLedger-mac.spec --clean
 
 import os
 from pathlib import Path
@@ -83,7 +83,7 @@ exe = EXE(
     a.scripts,
     [],
     exclude_binaries = True,
-    name    = "PrintFilamentTracker",
+    name    = "FilamentLedger",
     debug   = False,
     strip   = False,
     upx     = False,
@@ -101,16 +101,18 @@ coll = COLLECT(
     a.datas,
     strip = False,
     upx   = False,
-    name  = "PrintFilamentTracker",
+    name  = "FilamentLedger",
 )
 
 app = BUNDLE(
     coll,
-    name              = "PrintFilamentTracker.app",
-    icon              = str(project_root / "web" / "static" / "img" / "print-filament-tracker-icon.icns"),
+    name              = "FilamentLedger.app",
+    icon              = str(project_root / "web" / "static" / "img" / "filament-ledger-icon.icns"),
+    # bundle_identifier 保留舊值：macOS 以此識別 App 身份（Gatekeeper 核准、
+    # LaunchServices 關聯、未來簽章/公證），改動會被視為全新 App。
     bundle_identifier = "com.printfilamenttracker.app",
     info_plist        = {
-        "CFBundleDisplayName":        "PrintFilamentTracker",
+        "CFBundleDisplayName":        "Filament Ledger",
         "CFBundleShortVersionString": app_version,
         "NSHighResolutionCapable":    True,
         "LSUIElement":                True,

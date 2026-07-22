@@ -172,7 +172,7 @@ class _TrayApp:
         icon_path = (
             _get_resource_dir()
             / "web" / "static" / "img"
-            / "print-filament-tracker-icon.png"
+            / "filament-ledger-icon.png"
         )
         # 預先縮至 256×256 LANCZOS：pystray 內部會建立臨時 ICO，
         # 較大的 base image 可讓 Pillow 嵌入更多尺寸（至 256），高 DPI 顯示更清晰。
