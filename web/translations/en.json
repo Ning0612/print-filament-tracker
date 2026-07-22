@@ -407,6 +407,7 @@
     "select_hint": "Select tasks on the left to calculate cost",
     "hourly_rate_label": "Time Rate (per hour)",
     "currency_unit": "$",
+    "money_format": "${amount}",
     "filament_cost": "Filament Cost",
     "time_cost": "Time Cost",
     "total": "Total",

@@ -407,6 +407,7 @@
     "select_hint": "勾選左欄任務即可試算成本",
     "hourly_rate_label": "時間費率（元/小時）",
     "currency_unit": "元",
+    "money_format": "{amount} 元",
     "filament_cost": "耗材成本",
     "time_cost": "時間成本",
     "total": "總計",

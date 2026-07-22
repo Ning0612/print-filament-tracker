@@ -46,6 +46,65 @@ def _make_tz_filters(tz_minutes: int):
     return tz_format, tz_date
 
 
+def _to_float(v) -> float | None:
+    try:
+        return float(v)
+    except (TypeError, ValueError):
+        return None
+
+
+def fmt_int(v) -> str:
+    """千分位整數；無效值回 '-'。"""
+    f = _to_float(v)
+    return "-" if f is None else f"{int(round(f)):,}"
+
+
+def fmt_weight(v, unit: str = "g", digits: int = 1) -> str:
+    """重量格式化：千分位＋固定小數＋單位，如 '3,200.0 g'。"""
+    f = _to_float(v)
+    return "-" if f is None else f"{f:,.{digits}f} {unit}"
+
+
+def fmt_money(v, digits: int = 2) -> str:
+    """金額格式化，貨幣符號位置由 i18n key cost.money_format 決定。"""
+    f = _to_float(v)
+    if f is None:
+        return "-"
+    from web.i18n import t
+    return t("cost.money_format", amount=f"{f:,.{digits}f}")
+
+
+def fmt_duration(seconds) -> str:
+    """秒數轉 '3 h 12 m'（不足 1 小時只顯示分鐘）；無效值回 '-'。"""
+    f = _to_float(seconds)
+    if f is None:
+        return "-"
+    total = int(f)
+    h, m = total // 3600, (total % 3600) // 60
+    return f"{h} h {m} m" if h else f"{m} m"
+
+
+def ledger_amount(text, kind: str = "neutral"):
+    """把已格式化的數值字串包成帳目金額 span（.amount--debit / .amount--credit）。
+
+    用法：{{ used_g | fmt_weight | ledger_amount('debit') }}
+    """
+    from markupsafe import Markup, escape
+    cls = {
+        "debit": "amount amount--debit",
+        "credit": "amount amount--credit",
+    }.get(kind, "amount")
+    return Markup(f'<span class="{cls}">{escape(text)}</span>')
+
+
+def _register_number_filters(app: Flask) -> None:
+    app.jinja_env.filters["fmt_int"] = fmt_int
+    app.jinja_env.filters["fmt_weight"] = fmt_weight
+    app.jinja_env.filters["fmt_money"] = fmt_money
+    app.jinja_env.filters["fmt_duration"] = fmt_duration
+    app.jinja_env.filters["ledger_amount"] = ledger_amount
+
+
 def _get_resource_dir() -> Path:
     """捆綁資源根目錄（templates / static / translations 的父目錄 web/）。
     凍結時：sys._MEIPASS/web/。開發時：web/ 目錄。
@@ -150,6 +209,7 @@ def create_app(db_path: Path | None = None) -> Flask:
     tz_fmt, tz_d = _make_tz_filters(tz_offset_minutes)
     app.jinja_env.filters["tz_format"] = tz_fmt
     app.jinja_env.filters["tz_date"] = tz_d
+    _register_number_filters(app)
 
     # SECRET_KEY: read from env, generate and persist to .env if absent.
     _secret_key = os.getenv("SECRET_KEY", "").strip()
