@@ -4,6 +4,9 @@
     "en": "English",
     "label": "語言"
   },
+  "brand": {
+    "name": "材料帳本"
+  },
   "nav": {
     "dashboard": "儀表板",
     "spools": "耗材管理",
@@ -13,7 +16,7 @@
     "analytics": "分析",
     "cost": "成本計算",
     "settings": "設定",
-    "brand_subtitle": "材料帳本",
+    "brand_subtitle": "Filament Ledger",
     "sidebar_aria": "主要導覽",
     "primary_aria": "應用程式導覽",
     "group_overview": "總覽",
@@ -28,7 +31,7 @@
     "expand_sidebar": "展開側邊欄"
   },
   "footer": {
-    "text": "PrintFilamentTracker — 本機耗材管理工具"
+    "text": "材料帳本 Filament Ledger — 本機材料管理工具"
   },
   "lightbox": {
     "title": "封面圖預覽",

@@ -4,6 +4,9 @@
     "en": "English",
     "label": "Language"
   },
+  "brand": {
+    "name": "Filament Ledger"
+  },
   "nav": {
     "dashboard": "Dashboard",
     "spools": "Filaments",
@@ -13,7 +16,7 @@
     "analytics": "Analytics",
     "cost": "Cost",
     "settings": "Settings",
-    "brand_subtitle": "Material ledger",
+    "brand_subtitle": "材料帳本",
     "sidebar_aria": "Primary navigation",
     "primary_aria": "Application navigation",
     "group_overview": "Overview",
@@ -28,7 +31,7 @@
     "expand_sidebar": "Expand sidebar"
   },
   "footer": {
-    "text": "PrintFilamentTracker — Local filament management tool"
+    "text": "Filament Ledger — Local filament ledger for 3D printing"
   },
   "lightbox": {
     "title": "Cover image preview",

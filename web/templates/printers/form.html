@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}{{ t('printers.form_edit_title') if printer else t('printers.form_new_title') }} — PrintFilamentTracker{% endblock %}
+{% block title %}{{ t('printers.form_edit_title') if printer else t('printers.form_new_title') }}{% endblock %}
 {% block content %}
 <p class="back-link"><a href="{{ url_for('printers.list_view') }}" onclick="history.back(); return false;">{{ t('printers.form_back') }}</a></p>
 <div class="page-header">
