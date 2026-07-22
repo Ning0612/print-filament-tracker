@@ -22,9 +22,9 @@
 |---|---|
 | ![History](docs/demo/history.png) | ![Materials](docs/demo/materials-crop.png) |
 
-### 成本計算
-
-![Cost](docs/demo/cost.png)
+| 成本計算 | 成本報表預覽 |
+|---|---|
+| ![Cost](docs/demo/cost.png) | ![Cost report](docs/demo/cost-report.png) |
 
 **個人本機工具**，專為單一用戶在自己的電腦上管理 Bambu Lab 3D 列印機的列印歷史與耗材（Filament Spool）。
 
