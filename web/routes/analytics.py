@@ -11,12 +11,13 @@ from src.analytics import (
     get_heatmap_payload,
     get_heatmap_year_payload,
     get_material_chart_payload,
+    get_month_to_date_summary,
     get_monthly_trend_payload,
     get_printer_chart_payload,
     get_spool_cost_ranking_payload,
     get_weekday_stats_payload,
 )
-from src.db import get_connection
+from src.db import get_adjacent_task_dates, get_connection
 
 bp = Blueprint("analytics", __name__)
 
@@ -67,11 +68,20 @@ def day_view(date_str: str):
     db_path = current_app.config["DB_PATH"]
     with get_connection(db_path) as conn:
         daily = get_daily_detail_payload(conn, date_str, tz)
+        if not daily["tasks"] and not daily["timeline"]:
+            abort(404)
+        prev_date, next_date = get_adjacent_task_dates(
+            conn, date_str, tz_offset_minutes=tz, max_date=local_today.isoformat()
+        )
+        month_summary = get_month_to_date_summary(conn, date_str, tz)
 
-    if not daily["tasks"] and not daily["timeline"]:
-        abort(404)
-
-    return render_template("analytics/day.html", daily=daily)
+    return render_template(
+        "analytics/day.html",
+        daily=daily,
+        prev_date=prev_date,
+        next_date=next_date,
+        month_summary=month_summary,
+    )
 
 
 @bp.route("/heatmap")

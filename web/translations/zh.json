@@ -10,7 +10,8 @@
   "ledger": {
     "page_of": "第 {page} 頁・共 {total} 筆",
     "entry_count": "共 {n} 筆",
-    "total": "合計"
+    "total": "合計",
+    "page_subtotal": "本頁小計"
   },
   "nav": {
     "dashboard": "儀表板",
@@ -401,10 +402,18 @@
     "day_duration_label": "耗時",
     "day_total_cost": "當日消耗成本",
     "day_material_section": "材料類型分布",
-    "day_timeline_section": "列印時間軸"
+    "day_timeline_section": "列印時間軸",
+    "day_nav_aria": "前後日切換",
+    "prev_day": "前一日",
+    "next_day": "後一日",
+    "month_to_date": "本月至今",
+    "month_to_date_weight": "累計用量",
+    "month_to_date_task_count": "累計次數",
+    "month_to_date_cost": "累計花費"
   },
   "cost": {
     "title": "成本計算",
+    "generated_on": "本表由系統於 {date} 產生",
     "panel_title": "成本試算",
     "search_placeholder": "搜尋任務名稱…",
     "tasks_unit": "個任務",

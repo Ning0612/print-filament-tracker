@@ -1,3 +1,14 @@
+{# 共用帳本書眉：群組標籤 + 選用的「第 N 頁・共 M 筆」或「共 N 筆」計數 #}
+{% macro ledger_eyebrow(group, page=None, total=None, count=None) -%}
+  {%- if page is not none and total is not none -%}
+    {{ group }} · {{ t('ledger.page_of', page=page, total=total) }}
+  {%- elif count is not none -%}
+    {{ group }} · {{ t('ledger.entry_count', n=count) }}
+  {%- else -%}
+    {{ group }}
+  {%- endif -%}
+{%- endmacro %}
+
 {% macro print_status_badge(task) %}
 {% if not task.is_manual and task.status is not none %}
   {% if task.status == 2 %}

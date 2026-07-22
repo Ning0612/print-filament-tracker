@@ -382,3 +382,100 @@ def get_daily_filament_summary(conn: sqlite3.Connection, date_str: str, tz_offse
         (date_str,),
     ).fetchall()
     return [dict(r) for r in rows]
+
+
+def _month_start(date_str: str) -> str:
+    """'YYYY-MM-DD' -> 'YYYY-MM-01' (該日所屬月份的第一天)。"""
+    return date_str[:7] + "-01"
+
+
+def get_adjacent_task_dates(
+    conn: sqlite3.Connection,
+    date_str: str,
+    tz_offset_minutes: int = 0,
+    max_date: str | None = None,
+) -> tuple:
+    """Return (prev_date, next_date) — 最近一個「有任務於當日開始」的相鄰日期。
+
+    以 started-date 為錨點：這些日期一定含 tasks，day_view 永不 404。
+    只有跨日 timeline 覆蓋（當日無任務開始）的日期不納入前後翻頁，
+    但仍可從熱力圖進入（day_view 的 404 predicate 為 tasks 與 timeline 皆空）。
+    next_date 以 max_date（本地今天）為上限；無相鄰日回 None。
+    """
+    tz = _tz_mod("started_at", tz_offset_minutes)
+    prev_row = conn.execute(
+        f"""
+        SELECT MAX(DATE({tz})) AS d FROM print_task
+        WHERE started_at IS NOT NULL AND DATE({tz}) < ?
+        """,
+        (date_str,),
+    ).fetchone()
+    if max_date is not None:
+        next_row = conn.execute(
+            f"""
+            SELECT MIN(DATE({tz})) AS d FROM print_task
+            WHERE started_at IS NOT NULL AND DATE({tz}) > ? AND DATE({tz}) <= ?
+            """,
+            (date_str, max_date),
+        ).fetchone()
+    else:
+        next_row = conn.execute(
+            f"""
+            SELECT MIN(DATE({tz})) AS d FROM print_task
+            WHERE started_at IS NOT NULL AND DATE({tz}) > ?
+            """,
+            (date_str,),
+        ).fetchone()
+    return (prev_row["d"], next_row["d"])
+
+
+def get_month_to_date_stats(
+    conn: sqlite3.Connection, date_str: str, tz_offset_minutes: int = 0
+) -> dict:
+    """月初至 date_str（含）started-date tasks 的 task_count 與 total_weight_g。
+
+    口徑與每日卡片一致（started-date only），故月摘要 = Σ 每日卡片。
+    """
+    tz = _tz_mod("started_at", tz_offset_minutes)
+    row = conn.execute(
+        f"""
+        SELECT COUNT(*) AS task_count,
+               COALESCE(SUM(total_weight_g), 0.0) AS total_weight_g
+        FROM print_task
+        WHERE started_at IS NOT NULL
+          AND DATE({tz}) >= ? AND DATE({tz}) <= ?
+        """,
+        (_month_start(date_str), date_str),
+    ).fetchone()
+    return {"task_count": row["task_count"], "total_weight_g": row["total_weight_g"]}
+
+
+def get_month_to_date_filament_rows(
+    conn: sqlite3.Connection, date_str: str, tz_offset_minutes: int = 0
+) -> list:
+    """月初至 date_str（含）逐 (日, spool) 的 used_g / price / initial_weight。
+
+    分組粒度與每日 filament summary 相同（day × spool × color × material），
+    payload 層對每組套用相同 capped price*min(used/init,1) 再加總，
+    結果等於「Σ 每日成本」。
+    """
+    tz = _tz_mod("pt.started_at", tz_offset_minutes)
+    rows = conn.execute(
+        f"""
+        SELECT DATE({tz}) AS d,
+               ptf.filament_spool_id AS spool_id,
+               SUM(ptf.used_weight_g) AS used_g,
+               fs.price AS price,
+               fs.initial_weight_g AS init_g
+        FROM print_task_filament ptf
+        JOIN print_task pt ON pt.id = ptf.print_task_id
+        LEFT JOIN filament_spool fs ON fs.id = ptf.filament_spool_id
+        WHERE ptf.is_ignored = 0
+          AND DATE({tz}) >= ? AND DATE({tz}) <= ?
+        GROUP BY DATE({tz}), ptf.filament_spool_id,
+                 COALESCE(fs.color_hex, ptf.color_hex),
+                 COALESCE(fs.material, ptf.material)
+        """,
+        (_month_start(date_str), date_str),
+    ).fetchall()
+    return [dict(r) for r in rows]

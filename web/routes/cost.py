@@ -1,3 +1,5 @@
+from datetime import datetime as _datetime, timedelta as _td, timezone as _tz
+
 from flask import Blueprint, current_app, render_template, request
 
 from src.cost import (
@@ -102,8 +104,10 @@ def print_view():
         tasks = get_tasks_for_cost_by_ids(conn, selected_task_ids, tz_offset_minutes=tz)
 
     report = compute_cost_report(tasks, selected_task_ids, included_ptf_ids, hourly_rate)
+    generated_on = (_datetime.now(_tz.utc) + _td(minutes=tz)).date().isoformat()
     return render_template(
         "cost/print_view.html",
         report=report,
         hourly_rate=hourly_rate,
+        generated_on=generated_on,
     )

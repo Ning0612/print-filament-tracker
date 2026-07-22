@@ -1908,9 +1908,9 @@ html[data-sidebar-collapsed="true"] .app-sidebar-footer {
 .leaf-ribbon {
   position: absolute;
   top: -5px;
-  right: 42px;
-  width: 20px;
-  height: 88px;
+  right: 14px;
+  width: 18px;
+  height: 84px;
   z-index: 3;
   pointer-events: none;
   background: linear-gradient(180deg, var(--ui-book-ribbon), var(--ui-book-ribbon-2));
@@ -1964,6 +1964,45 @@ main.app-content {
   padding: 2.6rem clamp(1.2rem, 3vw, 3.5rem) 3rem;
   background-color: transparent;
 }
+
+/* 每日頁：書本式前後日翻頁 */
+.day-pager { display: flex; gap: 0.4rem; align-items: center; }
+.day-turn {
+  padding: 0.4rem 0.8rem;
+  color: var(--ui-ink);
+  background: var(--ui-book-tab-face);
+  border: 1px solid var(--ui-border);
+  border-radius: var(--ui-radius-sm);
+  font-family: var(--pico-font-family-monospace);
+  font-size: 0.8rem;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.day-turn:hover { color: var(--ui-primary); border-color: var(--ui-primary); background: var(--ui-surface); text-decoration: none; }
+.day-turn.is-disabled { color: var(--ui-muted); opacity: 0.5; cursor: default; }
+
+/* 每日頁：本月至今 日結摘要條 */
+.month-summary {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.6rem;
+  margin: -0.6rem 0 1.6rem;
+  padding: 0.7rem 1rem;
+  background: var(--ui-surface);
+  border: 1px solid var(--ui-ledger-rule-strong);
+  border-radius: var(--ui-radius-sm);
+}
+.month-summary-label {
+  font-family: var(--pico-font-family-monospace);
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ui-muted);
+}
+.month-summary-item { display: inline-flex; align-items: baseline; gap: 0.45rem; }
+.month-summary-item small { color: var(--ui-muted); font-size: 0.72rem; }
+.month-summary-item strong { font-family: var(--pico-font-family-monospace); font-size: 1rem; }
 
 .app-footer {
   max-width: 1440px;

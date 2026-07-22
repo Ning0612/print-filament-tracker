@@ -166,6 +166,11 @@
     </span>
   </div>
 
+  {# 製表戳記：帳表底部簽核腳註 #}
+  <p style="margin-top:1.5rem;font-family:var(--pico-font-family-monospace);font-size:0.72rem;letter-spacing:0.04em;color:var(--pico-muted-color);text-align:right;">
+    {{ t('cost.generated_on', date=generated_on) }}
+  </p>
+
   {% endif %}{# end has_data #}
 </div>
 {% endblock %}

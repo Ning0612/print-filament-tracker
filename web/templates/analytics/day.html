@@ -16,9 +16,40 @@
 <!-- Header -->
 <div class="page-header">
   <div>
-    <p class="eyebrow">{{ t('nav.group_insights') }}</p>
+    <p class="eyebrow">{{ t('nav.group_insights') }} · {{ month_summary.year_month }}</p>
     <h1>{{ daily.date }}</h1>
   </div>
+  <nav class="day-pager" aria-label="{{ t('analytics.day_nav_aria') }}">
+    {% if prev_date %}
+    <a class="day-turn" rel="prev" href="{{ url_for('analytics.day_view', date_str=prev_date) }}">‹ {{ t('analytics.prev_day') }}</a>
+    {% else %}
+    <span class="day-turn is-disabled" aria-disabled="true">‹ {{ t('analytics.prev_day') }}</span>
+    {% endif %}
+    {% if next_date %}
+    <a class="day-turn" rel="next" href="{{ url_for('analytics.day_view', date_str=next_date) }}">{{ t('analytics.next_day') }} ›</a>
+    {% else %}
+    <span class="day-turn is-disabled" aria-disabled="true">{{ t('analytics.next_day') }} ›</span>
+    {% endif %}
+  </nav>
+</div>
+
+<!-- 本月至今 日結摘要 -->
+<div class="month-summary" aria-label="{{ t('analytics.month_to_date') }}">
+  <span class="month-summary-label">{{ t('analytics.month_to_date') }}</span>
+  <span class="month-summary-item">
+    <small>{{ t('analytics.month_to_date_weight') }}</small>
+    <strong>{{ month_summary.total_weight_g | fmt_weight }}</strong>
+  </span>
+  <span class="month-summary-item">
+    <small>{{ t('analytics.month_to_date_task_count') }}</small>
+    <strong>{{ month_summary.task_count | fmt_int }}</strong>
+  </span>
+  {% if month_summary.total_cost is not none %}
+  <span class="month-summary-item">
+    <small>{{ t('analytics.month_to_date_cost') }}</small>
+    <strong>{{ month_summary.total_cost | fmt_money }}</strong>
+  </span>
+  {% endif %}
 </div>
 
 <!-- Stats (2/4) | Filament (1/4) | Material pie (1/4) -->

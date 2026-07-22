@@ -5,6 +5,7 @@ from datetime import date, datetime, timedelta
 _HEX_RE = re.compile(r"^[0-9A-Fa-f]{6}$")
 
 from src.db import (
+    get_adjacent_task_dates,
     get_cost_breakdown,
     get_cross_day_ranges_for_year,
     get_cross_day_tasks_for_date,
@@ -13,6 +14,8 @@ from src.db import (
     get_heatmap_available_years,
     get_heatmap_data_for_year,
     get_material_usage_stats,
+    get_month_to_date_filament_rows,
+    get_month_to_date_stats,
     get_monthly_trend,
     get_printer_usage_stats,
     get_spool_color_usage_stats,
@@ -497,6 +500,35 @@ def get_daily_detail_payload(conn: sqlite3.Connection, date_str: str, tz_offset_
         "timeline": timeline,
         "tl_start": tl_start,
         "tl_end": tl_end,
+    }
+
+
+def get_month_to_date_summary(
+    conn: sqlite3.Connection, date_str: str, tz_offset_minutes: int = 0
+) -> dict:
+    """月初至 date_str（含）的累計摘要，供每日頁「本月至今」日結卡使用。
+
+    口徑與每日卡片一致，故月摘要 = Σ 每日卡片：
+    - total_weight_g / task_count：started-date tasks 加總。
+    - total_cost：逐 (日, spool) 套用 capped price*min(used/init,1) 再加總；
+      全無定價回 None（與 total_cost_day 一致）。
+    """
+    stats = get_month_to_date_stats(conn, date_str, tz_offset_minutes)
+    rows = get_month_to_date_filament_rows(conn, date_str, tz_offset_minutes)
+    total_cost: float | None = None
+    for r in rows:
+        price = r.get("price")
+        init_g = r.get("init_g")
+        used_g = r.get("used_g") or 0
+        if price and init_g and init_g > 0 and used_g > 0:
+            total_cost = (total_cost or 0.0) + price * min(used_g / init_g, 1.0)
+    if total_cost is not None:
+        total_cost = round(total_cost, 2)
+    return {
+        "year_month": date_str[:7],
+        "total_weight_g": round(stats["total_weight_g"] or 0, 1),
+        "task_count": stats["task_count"],
+        "total_cost": total_cost,
     }
 
 

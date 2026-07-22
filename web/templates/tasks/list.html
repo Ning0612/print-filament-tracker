@@ -82,6 +82,14 @@
     </tr>
     {% endfor %}
   </tbody>
+  {% set page_weight = tasks | map(attribute='total_weight_g') | select | sum %}
+  <tfoot>
+    <tr class="ledger-total">
+      <td class="cell-left" colspan="7">{{ t('ledger.page_subtotal') }}</td>
+      <td class="num">{{ page_weight | fmt_weight('g', 2) | ledger_amount('debit') }}</td>
+      <td colspan="2"></td>
+    </tr>
+  </tfoot>
 </table>
 </div>
 

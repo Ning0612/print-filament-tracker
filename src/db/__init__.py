@@ -59,6 +59,7 @@ from ._filament import (
     update_spool,
 )
 from ._analytics import (
+    get_adjacent_task_dates,
     get_color_usage_stats,
     get_cost_breakdown,
     get_cross_day_ranges_for_year,
@@ -69,6 +70,8 @@ from ._analytics import (
     get_heatmap_data,
     get_heatmap_data_for_year,
     get_material_usage_stats,
+    get_month_to_date_filament_rows,
+    get_month_to_date_stats,
     get_monthly_trend,
     get_printer_usage_stats,
     get_spool_color_usage_stats,
@@ -143,6 +146,7 @@ __all__ = [
     "update_ptf_material",
     "update_spool",
     # analytics
+    "get_adjacent_task_dates",
     "get_color_usage_stats",
     "get_cost_breakdown",
     "get_cross_day_ranges_for_year",
@@ -153,6 +157,8 @@ __all__ = [
     "get_heatmap_data",
     "get_heatmap_data_for_year",
     "get_material_usage_stats",
+    "get_month_to_date_filament_rows",
+    "get_month_to_date_stats",
     "get_monthly_trend",
     "get_printer_usage_stats",
     "get_spool_color_usage_stats",

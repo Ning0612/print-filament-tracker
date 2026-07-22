@@ -1,9 +1,10 @@
+{% from "_macros.html" import ledger_eyebrow %}
 {% extends "base.html" %}
 {% block title %}{{ t('printers.title') }}{% endblock %}
 {% block content %}
 <div class="page-header">
   <div>
-    <p class="eyebrow">{{ t('nav.group_production') }}</p>
+    <p class="eyebrow">{{ ledger_eyebrow(t('nav.group_production'), count=printers|length) }}</p>
     <h1>{{ t('printers.title') }}</h1>
   </div>
   <div class="page-actions">
