@@ -346,7 +346,15 @@ button.danger, [type="submit"].danger {
 }
 
 /* === 13. TABLE SCROLL + TABLE BASE === */
-.overflow-auto { overflow-x: auto; }
+.overflow-auto {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+}
 
 table { font-size: 0.88rem; }
 thead th {
@@ -2286,6 +2294,7 @@ main.app-content {
   position: relative;
   z-index: 2;
   width: 100%;
+  min-width: 0;
   max-width: 1440px;
   min-height: calc(100vh - 4.5rem);
   margin: 0 auto;
@@ -2638,6 +2647,31 @@ code, .stat-number, .econ-total, .cost-value, .cost-stat-value, .spool-col-date,
   padding-inline: 0.55rem;
   font-size: 0.8rem;
 }
+.mapping-material-edit-form {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  flex-wrap: wrap;
+}
+.mapping-material-edit-form input {
+  flex: 1 1 100%;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+.mapping-material-edit-form button {
+  flex: 0 0 auto;
+}
+.mapping-data-table td .cover-thumb--sm {
+  width: min(64px, 100%);
+  height: auto;
+  aspect-ratio: 1;
+}
+.mapping-data-table .spool-group-header span[id^="toggle-"] {
+  width: 1em !important;
+}
 /* .cover-thumb is a fixed-width block box, so a centered td doesn't center
    it on its own — give it auto side margins where it sits in these tables. */
 .mapping-data-table td .cover-thumb,
@@ -2719,9 +2753,9 @@ code, .stat-number, .econ-total, .cost-value, .cost-stat-value, .spool-col-date,
 .tasks-list-table th:nth-child(1),
 .tasks-list-table td:nth-child(1) { width: 4%; }
 .tasks-list-table th:nth-child(2),
-.tasks-list-table td:nth-child(2) { width: 9%; }
+.tasks-list-table td:nth-child(2) { width: 12%; }
 .tasks-list-table th:nth-child(3),
-.tasks-list-table td:nth-child(3) { width: 27%; }
+.tasks-list-table td:nth-child(3) { width: 24%; }
 .tasks-list-table th:nth-child(4),
 .tasks-list-table td:nth-child(4) { width: 9%; }
 .tasks-list-table th:nth-child(5),
@@ -2745,6 +2779,14 @@ code, .stat-number, .econ-total, .cost-value, .cost-stat-value, .spool-col-date,
   align-items: center;
   gap: 0.3rem;
   margin-top: 0.4rem;
+}
+/* The history thumbnail is larger than its cell's content box at some
+   desktop widths. Keep it inside the cell so it cannot cover the task-name
+   column or its vertical rule. */
+.tasks-list-table td:nth-child(2) .cover-thumb--md {
+  width: min(96px, 100%);
+  height: auto;
+  aspect-ratio: 1;
 }
 
 /* Ledger table (v1.1) — opt-in 帳目式表格：暖紙面、外框、欄位直線分隔、
@@ -3010,17 +3052,70 @@ button.gallery-toggle-icon:hover { color: var(--ui-primary); background: transpa
   .spool-row .spool-col-weight { grid-column: 1 / 2; }
   .spool-row .spool-col-actions { grid-column: 2 / 3; grid-row: 1 / span 2; flex-direction: column; }
   .analytics-two-col { grid-template-columns: 1fr; }
+  /* Dense tables stay readable in a bounded scroll region instead of
+     compressing nowrap dates, badges, and action buttons into each other. */
+  .tasks-list-table,
   .mapping-data-table {
-    min-width: 900px;
-    table-layout: auto;
+    min-width: 960px;
+    table-layout: fixed;
   }
   .mapping-data-table .mapping-spool-select {
-    width: 220px;
-    max-width: none;
+    width: 100%;
+    max-width: 100%;
   }
 }
 
-@media (min-width: 821px) and (max-width: 1100px) {
+@media (min-width: 821px) and (max-width: 1300px) {
+  /* The sidebar and content padding still consume substantial width here. Let both
+     workbench tables shrink with the content canvas so their cells can wrap instead
+     of pushing the table beyond the visible page. */
+  .tasks-list-table,
+  .mapping-data-table {
+    min-width: 0;
+  }
+}
+
+/* The table cells contain a few legacy inline `white-space: nowrap` styles.
+   At medium desktop widths those fixed strings can be wider than their percentage
+   columns, so explicitly allow them to wrap before they paint over the next rule. */
+@media (min-width: 821px) and (max-width: 1740px) {
+  .tasks-list-table td:nth-child(4),
+  .tasks-list-table td:nth-child(5),
+  .tasks-list-table td:nth-child(6),
+  .tasks-list-table td:nth-child(7),
+  .tasks-list-table td:nth-child(8),
+  .tasks-list-table td.cell-status,
+  .tasks-list-table .amount,
+  .mapping-data-table td:nth-child(3),
+  .mapping-data-table td:nth-child(4),
+  .mapping-data-table td:nth-child(5),
+  .mapping-data-table td:nth-child(6),
+  .mapping-data-table td:nth-child(7),
+  .mapping-data-table td:last-child {
+    white-space: normal !important;
+    overflow-wrap: anywhere;
+  }
+  .tasks-list-table th {
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+  .tasks-list-table th:nth-child(3),
+  .tasks-list-table td:nth-child(3) { width: 23%; }
+  .tasks-list-table th:nth-child(5),
+  .tasks-list-table td:nth-child(5) { width: 6%; }
+  .mapping-data-table button {
+    max-width: 100%;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+  .mapping-data-table td:last-child > div[style*="inline-flex"] {
+    flex-wrap: wrap;
+    justify-content: center;
+    max-width: 100%;
+  }
+}
+
+@media (min-width: 821px) and (max-width: 1300px) {
   .cost-layout { grid-template-columns: 1fr; }
   .cost-right { position: static; }
   .task-form-grid { grid-template-columns: 180px minmax(0, 1fr); gap: 1.25rem; }
