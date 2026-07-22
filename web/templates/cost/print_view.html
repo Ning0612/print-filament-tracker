@@ -92,7 +92,7 @@
         {% for f in task.filaments %}
         <tr class="report-filament-row">
           <td class="seq"></td>
-          <td class="cell-left report-filament-cell">
+          <td class="cell-left report-filament-cell" {% if hourly_rate > 0 %}colspan="3"{% else %}colspan="2"{% endif %}>
             <span class="report-filament-detail">
               <span class="color-swatch" style="--swatch-color:{{ f.color }};width:0.7rem;height:0.7rem;border-radius:50%;flex-shrink:0;"></span>
               <span>{{ f.label }}</span>
@@ -100,10 +100,9 @@
               {% if f.cost is not none and f.weight_g > 0 %}
               <span class="report-filament-unit">{{ '%.4f'|format(f.cost / f.weight_g) }} {{ t('cost.currency_unit') }}/g</span>
               {% endif %}
+              <span class="report-filament-amount">{% if f.cost is not none %}{{ '%.2f'|format(f.cost) }}{% else %}—{% endif %}</span>
             </span>
           </td>
-          <td class="num report-filament-cost">{% if f.cost is not none %}{{ '%.2f'|format(f.cost) }}{% else %}—{% endif %}</td>
-          {% if hourly_rate > 0 %}<td></td>{% endif %}
           <td></td>
         </tr>
         {% endfor %}

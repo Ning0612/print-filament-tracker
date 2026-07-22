@@ -1505,7 +1505,8 @@ a.heatmap-cell:hover { opacity: 0.75; outline: 2px solid var(--pico-primary); ou
 .report-task-total { font-weight: 700; }
 .report-filament-cell { padding-left: 3rem !important; }
 .report-filament-detail {
-  display: inline-flex;
+  display: flex;
+  width: 100%;
   align-items: center;
   gap: 0.4rem;
   font-size: 0.78rem;
@@ -1514,9 +1515,13 @@ a.heatmap-cell:hover { opacity: 0.75; outline: 2px solid var(--pico-primary); ou
 .report-filament-detail .mono,
 .report-filament-unit { font-family: var(--pico-font-family-monospace); }
 .report-filament-unit { font-size: 0.72rem; margin-left: 0.5rem; }
-.report-ledger td.report-filament-cost {
-  color: var(--ui-muted);
-  font-size: 0.8rem;
+/* 每條材料成本靠右對齊成子欄，與「材料成本」欄的任務總額分離 */
+.report-filament-amount {
+  margin-left: auto;
+  padding-left: 0.75rem;
+  font-family: var(--pico-font-family-monospace);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
 /* 合計：會計式雙下劃線 */
