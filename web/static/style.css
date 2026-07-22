@@ -114,72 +114,8 @@ body {
 }
 
 /* === 3. NAVIGATION === */
-body > header.container-fluid {
-  background: var(--pico-card-background-color);
-  border-bottom: 1px solid var(--pico-muted-border-color);
-  box-shadow: var(--shadow-xs);
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  padding-top: 0;
-  padding-bottom: 0;
-}
-
-body > header nav {
-  height: 56px;
-  display: flex;
-  align-items: stretch;
-  padding: 0 !important;
-}
-
-body > header nav > ul {
-  display: flex;
-  align-items: center;
-  padding: 0;
-  margin: 0;
-  gap: 0;
-  list-style: none;
-}
-
-body > header nav > ul:first-child { flex-shrink: 0; }
-
-/* Brand */
-body > header nav > ul:first-child > li > strong {
-  font-size: 0.97rem;
-  font-weight: 700;
-  letter-spacing: -0.015em;
-  color: var(--pico-color);
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
-  padding-right: 0.75rem;
-}
-
-/* Nav links */
-body > header nav > ul:last-child > li > a {
-  display: flex;
-  align-items: center;
-  height: 56px;
-  padding: 0 0.875rem;
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: var(--pico-muted-color);
-  text-decoration: none;
-  border-bottom: 2px solid transparent;
-  transition: color 0.15s, border-color 0.15s;
-  white-space: nowrap;
-}
-
-body > header nav > ul:last-child > li > a:hover {
-  color: var(--pico-color);
-  text-decoration: none;
-}
-
-body > header nav > ul:last-child > li > a[aria-current="page"] {
-  color: var(--app-accent);
-  border-bottom-color: var(--app-accent);
-  font-weight: 600;
-}
+/* 舊 top-navbar 樣式（body > header nav）已於 sidebar 改版後移除——
+   base.html 現用 .app-sidebar 與 .app-mobile-topbar，無模板引用該結構。 */
 
 /* Theme toggle button */
 .theme-toggle {
@@ -1316,7 +1252,7 @@ a.heatmap-cell:hover { opacity: 0.75; outline: 2px solid var(--pico-primary); ou
   .print-stats-panel { grid-column: auto; }
 }
 
-/* === 27. COST CALCULATOR === */
+/* === 29. COST CALCULATOR === */
 
 .cost-layout {
   display: grid;

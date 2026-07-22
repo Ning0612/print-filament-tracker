@@ -1,14 +1,14 @@
-# Print Filament Tracker
+# 材料帳本 Filament Ledger
 
-![Banner](web/static/img/print-filament-tracker-banner.png)
+![Banner](web/static/img/filament-ledger-banner.png)
 
 ![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=flat-square&logo=python&logoColor=white)
 ![Flask](https://img.shields.io/badge/Flask-3.x-000000?style=flat-square&logo=flask&logoColor=white)
 ![SQLite](https://img.shields.io/badge/SQLite-003B57?style=flat-square&logo=sqlite&logoColor=white)
 ![HTMX](https://img.shields.io/badge/htmx-336699?style=flat-square&logo=htmx&logoColor=white)
 ![Pico CSS](https://img.shields.io/badge/Pico_CSS-0172AD?style=flat-square&logo=css3&logoColor=white)
-[![CI](https://github.com/Ning0612/print-filament-tracker/actions/workflows/ci.yml/badge.svg)](https://github.com/Ning0612/print-filament-tracker/actions/workflows/ci.yml)
-[![Release](https://github.com/Ning0612/print-filament-tracker/actions/workflows/release.yml/badge.svg)](https://github.com/Ning0612/print-filament-tracker/actions/workflows/release.yml)
+[![CI](https://github.com/Ning0612/filament-ledger/actions/workflows/ci.yml/badge.svg)](https://github.com/Ning0612/filament-ledger/actions/workflows/ci.yml)
+[![Release](https://github.com/Ning0612/filament-ledger/actions/workflows/release.yml/badge.svg)](https://github.com/Ning0612/filament-ledger/actions/workflows/release.yml)
 
 ## Demo 截圖
 
@@ -28,10 +28,10 @@
 
 本專案是因個人管理 3D 列印耗材需求而製作的本機工具。若後續有新的實際需求或功能發想，會持續維護。
 
-> **定位說明**：PrintFilamentTracker 設計為個人本機使用（personal, local, single-user）工具——所有列印歷史與耗材資料僅儲存於您自己的裝置（本機 SQLite），不進行資料蒐集、分析或第三方共享。本軟體仍會透過您的帳號憑證與 Bambu Cloud 通訊以取得列印記錄，詳見 [DISCLAIMER.md](DISCLAIMER.md)。此使用情境與 GDPR Article 2(2)(c) 個人家庭活動豁免條件相符，但能否適用取決於實際使用情境，使用者應自行評估。
+> **定位說明**：FilamentLedger 設計為個人本機使用（personal, local, single-user）工具——所有列印歷史與耗材資料僅儲存於您自己的裝置（本機 SQLite），不進行資料蒐集、分析或第三方共享。本軟體仍會透過您的帳號憑證與 Bambu Cloud 通訊以取得列印記錄，詳見 [DISCLAIMER.md](DISCLAIMER.md)。此使用情境與 GDPR Article 2(2)(c) 個人家庭活動豁免條件相符，但能否適用取決於實際使用情境，使用者應自行評估。
 
 > **⚠ 免責聲明**
-> PrintFilamentTracker 是獨立的社群專案，**與 Bambu Lab Co., Ltd. 無任何關聯、背書或贊助關係**。
+> FilamentLedger 是獨立的社群專案，**與 Bambu Lab Co., Ltd. 無任何關聯、背書或贊助關係**。
 > "Bambu"、"Bambu Lab" 為 Bambu Lab Co., Ltd. 的商標，僅用於描述本軟體所整合的第三方服務。
 >
 > 本軟體透過**非官方 API 端點**存取 Bambu Cloud。根據 [Bambu Lab 服務條款](https://bambulab.com/en-us/policies/terms)（2024 年 4 月 24 日版）：
@@ -71,8 +71,8 @@
 
 ### Windows 安裝
 
-1. 從 [Releases](https://github.com/Ning0612/print-filament-tracker/releases) 頁面下載 `PrintFilamentTracker.exe`
-2. 將 `.exe` 放置於任意目錄（建議 `C:\Users\你的名字\PrintFilamentTracker\`）
+1. 從 [Releases](https://github.com/Ning0612/filament-ledger/releases) 頁面下載 `FilamentLedger.exe`
+2. 將 `.exe` 放置於任意目錄（建議 `C:\Users\你的名字\FilamentLedger\`）
 3. 雙擊執行
 
 > **⚠ Windows SmartScreen 警告**：首次執行可能出現「Windows 已保護您的電腦」警告（因執行檔尚未數位簽章）。  
@@ -87,7 +87,7 @@
 
 ### macOS 安裝
 
-1. 從 [Releases](https://github.com/Ning0612/print-filament-tracker/releases) 頁面下載 `PrintFilamentTracker.app.zip`
+1. 從 [Releases](https://github.com/Ning0612/filament-ledger/releases) 頁面下載 `FilamentLedger.app.zip`
 2. 解壓縮後將 `.app` 拖曳至任意目錄
 3. **首次開啟**：右鍵點擊 `.app` → 選擇「**開啟**」→ 在對話框中確認開啟（繞過 Gatekeeper）
 
@@ -99,8 +99,8 @@
 
 | 作業系統 | 路徑 |
 |---------|------|
-| Windows | `%LOCALAPPDATA%\PrintFilamentTracker\` |
-| macOS | `~/Library/Application Support/PrintFilamentTracker/` |
+| Windows | `%LOCALAPPDATA%\FilamentLedger\` |
+| macOS | `~/Library/Application Support/FilamentLedger/` |
 
 > **⚠ 憑證安全**：登入後，Bambu 存取 Token 以**明文**儲存於 `data/tracker.db`。請勿將資料目錄分享或同步至公開雲端服務。
 
@@ -135,7 +135,7 @@
 ## 目錄結構
 
 ```
-PrintFilamentTracker/
+FilamentLedger/
 ├── src/            # 業務邏輯（無 Flask 依賴）
 ├── web/            # Flask 應用（routes, templates, i18n, static）
 │   └── static/img/ # 品牌圖片（icon、banner）
@@ -144,8 +144,8 @@ PrintFilamentTracker/
 │   ├── build_exe.sh    # macOS 建置腳本（PyInstaller，支援 --version=）
 │   └── get_token.py    # Bambu Cloud Token 取得工具（開發用）
 ├── tray_main.py    # 系統托盤入口點
-├── PrintFilamentTracker.spec     # Windows PyInstaller spec
-├── PrintFilamentTracker-mac.spec # macOS PyInstaller spec
+├── FilamentLedger.spec     # Windows PyInstaller spec
+├── FilamentLedger-mac.spec # macOS PyInstaller spec
 ├── installer/      # Windows MSI 安裝程式定義（WiX v4）
 │   ├── Product.wxs # WiX 安裝精靈規格（含圖示、桌面捷徑、啟動選項）
 │   └── license.rtf # 授權條款（PolyForm Noncommercial License 1.0.0）
@@ -163,14 +163,14 @@ PrintFilamentTracker/
 # Windows
 .venv\Scripts\python.exe -m pip install -r requirements.txt
 .\scripts\build_exe.ps1 -NoUpx -Version "1.2.0"
-# 輸出：dist\PrintFilamentTracker.exe + dist\PrintFilamentTracker-1.2.0.msi
+# 輸出：dist\FilamentLedger.exe + dist\FilamentLedger-1.2.0.msi
 ```
 
 ```bash
 # macOS
 .venv/bin/python -m pip install -r requirements.txt
 bash scripts/build_exe.sh --version=1.2.0
-# 輸出：dist/PrintFilamentTracker.app
+# 輸出：dist/FilamentLedger.app
 ```
 
 ## License

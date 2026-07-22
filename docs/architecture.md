@@ -1,6 +1,6 @@
 # 架構說明
 
-本文說明 PrintFilamentTracker 的模組設計、資料流、資料庫 Schema 與 API 介接。
+本文說明 FilamentLedger 的模組設計、資料流、資料庫 Schema 與 API 介接。
 
 ## 目錄
 
@@ -219,7 +219,7 @@ else:
 ```
 GET https://api.bambulab.com/v1/user-service/my/tasks
 Authorization: Bearer {token}
-User-Agent: PrintFilamentTracker/1.0 (community; unofficial Bambu Lab integration)
+User-Agent: FilamentLedger/1.0 (community; unofficial Bambu Lab integration)
 ?limit=500&after={cursor}
 ```
 

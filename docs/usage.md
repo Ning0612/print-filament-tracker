@@ -1,6 +1,6 @@
 # 使用說明
 
-本文說明 PrintFilamentTracker Web 介面的各項功能操作方式。
+本文說明材料帳本 Filament Ledger Web 介面的各項功能操作方式。
 
 ## 目錄
 

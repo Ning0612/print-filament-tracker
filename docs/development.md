@@ -1,6 +1,6 @@
 # 開發指南
 
-本文說明如何在 PrintFilamentTracker 上進行功能開發、新增翻譯、擴充模組及維護程式碼品質。
+本文說明如何在 FilamentLedger 上進行功能開發、新增翻譯、擴充模組及維護程式碼品質。
 
 ## 目錄
 
@@ -27,7 +27,7 @@
 ### 1. 建立虛擬環境
 
 ```bash
-cd PrintFilamentTracker
+cd FilamentLedger
 python -m venv .venv
 .venv/Scripts/python.exe -m pip install -r requirements.txt
 ```
@@ -76,7 +76,7 @@ Debug 模式下：
 ## 專案結構
 
 ```
-PrintFilamentTracker/
+FilamentLedger/
 ├── src/                    # 業務邏輯（無 Flask 依賴）
 │   ├── config.py
 │   ├── auth.py
@@ -101,8 +101,8 @@ PrintFilamentTracker/
 │   └── static/             # CSS/JS 靜態檔案
 │
 ├── tray_main.py            # System Tray 入口點（打包後的主入口）
-├── PrintFilamentTracker.spec      # Windows PyInstaller spec
-├── PrintFilamentTracker-mac.spec  # macOS PyInstaller spec
+├── FilamentLedger.spec      # Windows PyInstaller spec
+├── FilamentLedger-mac.spec  # macOS PyInstaller spec
 ├── file_version_info.txt          # Windows PE 版本元數據（嵌入 .exe 標頭）
 │
 ├── installer/
@@ -126,7 +126,7 @@ PrintFilamentTracker/
 └── LICENSE
 ```
 
-> **注意**：凍結版（`.exe`/`.app`）的資料目錄不在專案根目錄，而在作業系統標準位置（Windows：`%LOCALAPPDATA%\PrintFilamentTracker\`；macOS：`~/Library/Application Support/PrintFilamentTracker/`）。
+> **注意**：凍結版（`.exe`/`.app`）的資料目錄不在專案根目錄，而在作業系統標準位置（Windows：`%LOCALAPPDATA%\FilamentLedger\`；macOS：`~/Library/Application Support/FilamentLedger/`）。
 
 ---
 
@@ -196,17 +196,17 @@ macOS `.app` 打包仍由手動建置腳本處理。
 .\scripts\build_exe.ps1 -NoUpx -SkipMsi         # 僅 .exe
 
 # 輸出：
-#   dist\PrintFilamentTracker.exe          ← 免安裝版
-#   dist\PrintFilamentTracker-1.2.0.msi   ← 含安裝精靈（桌面捷徑、啟動選項）
+#   dist\FilamentLedger.exe          ← 免安裝版
+#   dist\FilamentLedger-1.2.0.msi   ← 含安裝精靈（桌面捷徑、啟動選項）
 ```
 
 ```bash
 # macOS
 bash scripts/build_exe.sh --version=1.2.0
-# 輸出：dist/PrintFilamentTracker.app
+# 輸出：dist/FilamentLedger.app
 ```
 
-**版本號管理**：版本號透過 `-Version "x.x.x"`（Windows）或 `--version=x.x.x`（macOS）傳入建置腳本，同時需更新 `file_version_info.txt`（Windows PE 標頭）與 `PrintFilamentTracker-mac.spec` 中的預設值。
+**版本號管理**：版本號透過 `-Version "x.x.x"`（Windows）或 `--version=x.x.x`（macOS）傳入建置腳本，同時需更新 `file_version_info.txt`（Windows PE 標頭）與 `FilamentLedger-mac.spec` 中的預設值。
 
 **MSI 打包前置需求（Windows）**：
 
@@ -287,7 +287,7 @@ print('OK')
 
 ## 新增資料庫欄位（Schema 遷移）
 
-PrintFilamentTracker 使用 `ALTER TABLE ADD COLUMN` 方式遷移，**禁止** DROP TABLE 或重建。
+FilamentLedger 使用 `ALTER TABLE ADD COLUMN` 方式遷移，**禁止** DROP TABLE 或重建。
 
 ### 流程
 
