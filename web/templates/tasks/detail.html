@@ -26,11 +26,23 @@
 </div>
 
 <div class="detail-two-column" style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;align-items:start;margin:1.25rem 0 1.75rem;">
-  {% if task.cover_url %}
-  <div class="cover-thumb cover-thumb--lg" style="max-width:none;width:100%;margin-bottom:0;">
-    <img src="{{ task.cover_url }}" alt="{{ task.print_name or '' }}" loading="lazy" decoding="async">
+  <div style="display:flex;flex-direction:column;gap:0.9rem;">
+    {% if task.cover_url %}
+    <div class="cover-thumb cover-thumb--lg" style="max-width:none;width:100%;margin-bottom:0;">
+      <img src="{{ task.cover_url }}" alt="{{ task.print_name or '' }}" loading="lazy" decoding="async">
+    </div>
+    {% endif %}
+    {% if makerworld_url %}
+    <div>
+      <small style="color:var(--pico-muted-color);">{{ t('tasks.detail_source') }}</small><br>
+      <a class="source-stamp" href="{{ makerworld_url }}" target="_blank" rel="noopener noreferrer">
+        {{ t('tasks.detail_makerworld') }}
+        <span class="source-stamp-arrow" aria-hidden="true">↗</span>
+        <span class="visually-hidden">{{ t('common.opens_new_tab') }}</span>
+      </a>
+    </div>
+    {% endif %}
   </div>
-  {% else %}<div></div>{% endif %}
   <div style="display:flex;flex-direction:column;gap:1.25rem;">
     <div class="detail-meta-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
       <div>

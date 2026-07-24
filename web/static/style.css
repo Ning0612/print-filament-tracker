@@ -2578,6 +2578,38 @@ input:focus, select:focus, textarea:focus {
 .print-status-badge.status-failed { color: var(--ui-danger); border-color: color-mix(in srgb, var(--ui-danger) 55%, var(--ui-border)); }
 .print-status-badge.status-in-progress { color: var(--ui-primary); border-color: color-mix(in srgb, var(--ui-primary) 55%, var(--ui-border)); }
 
+/* 來源憑證印章 — 任務詳情的模型出處外連。它是帳目的來源註記而非操作，
+   因此沿用 stamp badges 的方框細邊框語彙，不用 button 造型。 */
+.source-stamp {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.2rem;
+  padding: 0.22rem 0.6rem;
+  border: 1px solid var(--ui-stamp-border);
+  border-radius: 2px;
+  background: transparent;
+  color: var(--ui-ink);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-decoration: none;
+}
+.source-stamp:hover {
+  border-color: color-mix(in srgb, var(--ui-primary) 55%, var(--ui-border));
+  background: color-mix(in srgb, var(--ui-primary) 7%, transparent);
+  color: var(--ui-primary);
+}
+.source-stamp:focus-visible {
+  outline: 2px solid var(--ui-primary);
+  outline-offset: 2px;
+}
+.source-stamp .source-stamp-arrow {
+  font-size: 0.9em;
+  opacity: 0.7;
+}
+.source-stamp:hover .source-stamp-arrow { opacity: 1; }
+
 .progress-bar-container {
   height: 0.48rem;
   max-width: 150px;

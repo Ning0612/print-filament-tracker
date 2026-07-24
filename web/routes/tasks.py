@@ -1,3 +1,4 @@
+import json
 from datetime import datetime
 from pathlib import Path
 
@@ -23,6 +24,36 @@ from src.db import (
 bp = Blueprint("tasks", __name__)
 
 PER_PAGE = 20
+
+MAKERWORLD_MODEL_URL = "https://makerworld.com/models/{design_id}"
+
+
+def _makerworld_url(task: dict) -> str | None:
+    """雲端任務若來自 MakerWorld（raw_json 的 designId 非 0），回傳其模型頁連結。
+
+    自建模型的 designId 為 0，手動任務沒有 raw_json，兩者皆回傳 None。
+    raw_json 原封存放外部 API 回應，內容不受本程式控制，因此非 dict payload、
+    designId 非正整數等異常一律回傳 None——不讓單筆髒資料使詳情頁 500。
+    """
+    if task.get("is_manual"):
+        return None
+    raw = task.get("raw_json")
+    if not raw:
+        return None
+    try:
+        payload = json.loads(raw)
+    except (TypeError, ValueError):
+        return None
+    if not isinstance(payload, dict):
+        return None
+    design_id = payload.get("designId")
+    # bool 是 int 的子類，須先排除，否則 True 會被當成模型 ID 1。
+    # 只接受 int：float 會被 int() 截斷成錯誤 ID，Infinity 更會拋 OverflowError。
+    if isinstance(design_id, bool) or not isinstance(design_id, int):
+        return None
+    if design_id <= 0:
+        return None
+    return MAKERWORLD_MODEL_URL.format(design_id=design_id)
 
 
 # ── list & detail ─────────────────────────────────────────────────────────────
@@ -61,7 +92,9 @@ def detail_view(task_id: int):
     if task is None:
         return render_template("tasks/list.html", tasks=[], page=1, total_pages=1, total=0, per_page=PER_PAGE, search=""), 404
 
-    return render_template("tasks/detail.html", task=task)
+    return render_template(
+        "tasks/detail.html", task=task, makerworld_url=_makerworld_url(task)
+    )
 
 
 # ── manual task form helpers ──────────────────────────────────────────────────
