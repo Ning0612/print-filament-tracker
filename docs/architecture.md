@@ -41,7 +41,7 @@
 │  config.py ─ auth.py ─ cloud_client.py ─ ingestion.py       │
 │       │                                         │            │
 │       ▼                                         ▼            │
-│  db.py (SQLite CRUD)    filament.py   analytics.py          │
+│  db/ (SQLite CRUD)      filament.py   analytics.py          │
 │       │                 printer.py    backup.py              │
 │       ▼                                         ▼            │
 │  data/tracker.db        data/covers/  data/backups/         │
@@ -67,7 +67,7 @@
 | `auth.py` | 組裝 Bearer Authorization header；Token 前 8 字遮罩（用於日誌） | `build_auth_headers(token)`, `mask_token(token)` |
 | `cloud_client.py` | 分頁拉取 Bambu Cloud API，儲存原始回應至 `raw_tasks.json`；處理 401/429/逾時 | `BambuCloudClient.fetch_all_tasks()` |
 | `normalize.py` | 歷史遺留，目前轉換邏輯已移入 `ingestion.py` | — |
-| `db.py` | SQLite 連線工廠、Schema 初始化與遷移、全部表的 CRUD | `get_connection(db_path)`, `_migrate_add_column()` |
+| `db/` | SQLite 資料層 package：`__init__.py` re-export 全部公開函式（外部一律 `from src.db import ...`，不直接 import 私有子模組）。`_connection.py` 連線工廠、`_schema.py` Schema 初始化與遷移、`_task.py` / `_filament.py` / `_printer.py` / `_config.py` 各表 CRUD、`_analytics.py` 統計查詢 | `get_connection(db_path)`, `init_db(db_path)`, `_migrate_add_column()` |
 | `ingestion.py` | Cloud hits → DB pipeline：printer upsert、task insert、filament 建立、封面圖下載與補圖 | `ingest_raw_tasks(hits, db_path, covers_dir)`, `run_ingestion_from_file(raw_file, db_path)`, `run_ingestion_from_cloud(config, db_path)`, `try_redownload_cover(external_id, covers_dir, db_path)` |
 | `filament.py` | Spool CRUD、計算欄位（remaining、status）、Mapping 流程、JSON/CSV 匯入匯出 | `read_spool(db_path, id)`, `list_spools(db_path)`, `do_map(db_path, ptf_id, spool_id)` |
 | `printer.py` | Printer CRUD、統計資訊（任務數、總重量、總時長） | `read_printer(db_path, printer_id)`, `list_printers_with_stats(db_path)` |
@@ -190,7 +190,7 @@ CREATE INDEX idx_pt_printer  ON print_task(printer_id);
 
 ### Schema 遷移規則
 
-新增欄位**一律**透過 `_migrate_add_column(conn, table, column_def)` 以 `ALTER TABLE ADD COLUMN` 方式進行，並使用 `try/except OperationalError` 防止重複加入。
+新增欄位**一律**透過 `_migrate_add_column(conn, table, column_def)`（位於 `src/db/_schema.py`，由同檔的 `init_db()` 呼叫）以 `ALTER TABLE ADD COLUMN` 方式進行，並使用 `try/except OperationalError` 防止重複加入。
 
 **嚴禁** DROP TABLE 或重建 Schema（避免破壞現有資料）。
 

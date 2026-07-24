@@ -81,7 +81,14 @@ FilamentLedger/
 │   ├── config.py
 │   ├── auth.py
 │   ├── cloud_client.py
-│   ├── db.py               # 資料庫 CRUD
+│   ├── db/                 # 資料庫 package（__init__.py re-export）
+│   │   ├── _connection.py  # 連線工廠
+│   │   ├── _schema.py      # Schema 定義與遷移
+│   │   ├── _task.py        # 任務 CRUD
+│   │   ├── _filament.py    # 耗材 CRUD
+│   │   ├── _printer.py     # 列印機 CRUD
+│   │   ├── _config.py      # app_config 存取
+│   │   └── _analytics.py   # 統計查詢
 │   ├── ingestion.py        # 匯入 pipeline
 │   ├── filament.py         # 耗材管理
 │   ├── printer.py          # 列印機管理
@@ -291,35 +298,44 @@ FilamentLedger 使用 `ALTER TABLE ADD COLUMN` 方式遷移，**禁止** DROP TA
 
 ### 流程
 
-1. 在 `src/db.py` 的 `_initialize_schema(conn)` 中加入遷移呼叫：
+1. 在 `src/db/_schema.py` 的 `init_db(db_path)` 中，於 `conn.executescript(_SCHEMA_SQL)` 之後
+   加入遷移呼叫（與既有的 `_migrate_add_column` 呼叫排在一起）：
 
 ```python
-def _initialize_schema(conn):
-    # ... 現有表建立 ...
-    
-    # 新增欄位遷移（防重複加入）
-    _migrate_add_column(conn, "filament_spool", "brand TEXT")
-    _migrate_add_column(conn, "print_task", "quality_profile TEXT")
+def init_db(db_path: Path) -> None:
+    ...
+    with sqlite3.connect(db_path) as conn:
+        conn.execute("PRAGMA journal_mode=WAL")
+        conn.execute("PRAGMA synchronous=NORMAL")
+        conn.execute("PRAGMA busy_timeout=5000")
+        conn.executescript(_SCHEMA_SQL)
+
+        # 既有遷移
+        _migrate_add_column(conn, "print_task", "cover_url TEXT")
+        ...
+        # 新增欄位遷移（附加在最後，不要插隊或刪除既有呼叫）
+        _migrate_add_column(conn, "filament_spool", "brand TEXT")
 ```
 
-2. `_migrate_add_column` 函數簽名：
+2. `_migrate_add_column`（同樣位於 `src/db/_schema.py`）的實際行為——
+   只吞「欄位已存在」，其餘 `OperationalError` 一律往上拋，不會靜默失敗：
 
 ```python
-def _migrate_add_column(conn, table: str, column_def: str):
-    """
-    column_def 範例:
-      "brand TEXT"
-      "price REAL DEFAULT 0"
-      "created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP"
-    """
+def _migrate_add_column(conn: sqlite3.Connection, table: str, column_def: str) -> None:
+    """column_def 範例："brand TEXT"、"price REAL DEFAULT 0"。"""
     try:
         conn.execute(f"ALTER TABLE {table} ADD COLUMN {column_def}")
         conn.commit()
-    except sqlite3.OperationalError:
-        pass  # 欄位已存在，跳過
+    except sqlite3.OperationalError as exc:
+        if "duplicate column name" not in str(exc).lower():
+            raise
 ```
 
-3. 在對應的 CRUD 函數中加入新欄位的讀寫邏輯（`src/filament.py`、`src/printer.py` 等）
+> 注意：SQLite 的 `ALTER TABLE ADD COLUMN` 不接受非常數預設值，
+> `NOT NULL` 欄位必須同時給 `DEFAULT`（如 `is_manual INTEGER NOT NULL DEFAULT 0`）。
+
+3. 在對應的 CRUD 函數中加入新欄位的讀寫邏輯（`src/db/_filament.py`、`src/db/_printer.py` 等；
+   對外請透過 `from src.db import ...` 使用 re-export 的公開函式）
 
 4. 在 `web/templates/` 更新表單與列表模板
 
