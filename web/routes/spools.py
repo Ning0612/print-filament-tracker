@@ -34,6 +34,22 @@ def list_view():
     db_path = current_app.config["DB_PATH"]
     all_spools, tasks_by_spool = list_spools_with_tasks(db_path)
 
+    view_mode = request.args.get("view", "grouped")
+    if view_mode not in ("grouped", "flat"):
+        view_mode = "grouped"
+
+    if view_mode == "flat":
+        flat_spools = sorted(all_spools, key=lambda s: s["id"])
+        return render_template(
+            "spools/list.html",
+            view_mode=view_mode,
+            sections=None,
+            section_sorts=None,
+            flat_spools=flat_spools,
+            tasks_by_spool=tasks_by_spool,
+            total_count=len(all_spools),
+        )
+
     # Per-section sort params (s_<status> = field, d_<status> = asc|desc)
     section_sorts: dict[str, dict] = {}
     for status, _, default_field, default_dir in _SECTION_CONFIG:
@@ -72,8 +88,10 @@ def list_view():
 
     return render_template(
         "spools/list.html",
+        view_mode=view_mode,
         sections=sections,
         section_sorts=section_sorts,
+        flat_spools=None,
         tasks_by_spool=tasks_by_spool,
         total_count=len(all_spools),
     )

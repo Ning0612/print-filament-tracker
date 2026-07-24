@@ -28,6 +28,107 @@
      class="sort-btn{% if active %} sort-btn--active{% endif %}">{{ label }}{{ arrow }}</a>
 {% endmacro %}
 
+{% macro spool_item(s, tasks_by_spool, show_status) %}
+{% set pct = [[(s.remaining_weight_g / s.initial_weight_g * 100)|round|int, 0]|max, 100]|min %}
+{% if pct >= 50 %}{% set bar_cls = '' %}
+{% elif pct >= 25 %}{% set bar_cls = 'bar-yellow' %}
+{% elif pct >= 10 %}{% set bar_cls = 'bar-orange' %}
+{% else %}{% set bar_cls = 'bar-red' %}{% endif %}
+{% set stasks = tasks_by_spool.get(s.id, []) %}
+
+<div class="spool-item" id="spool-{{ s.id }}">
+  <div class="spool-row">
+
+    <div class="spool-col-color">
+      <button type="button" class="gallery-toggle-icon"
+              onclick="toggleSpoolGallery({{ s.id }}, this)"
+              aria-expanded="false"
+              title="{{ t('spools.expand_title') }}">▶</button>
+      <a href="{{ url_for('spools.detail_view', spool_id=s.id) }}"
+         class="spool-color-main">
+        <div class="spool-color-top">
+          <span class="spool-number">[{{ s.id }}]</span>
+          {% if s.color_hex %}
+          <span class="color-swatch" style="--swatch-color:{{ s.color_hex }};"></span>
+          {% endif %}
+        </div>
+        <span class="spool-color-name">{{ s.color_name or t('common.unnamed') }}</span>
+      </a>
+    </div>
+
+    <div class="spool-col-status">{% if show_status %}<span class="status-badge status-{{ s.status }}">{{ t('spools.status_' + s.status) }}</span>{% endif %}</div>
+
+    <div class="spool-col-count">
+      {% if stasks %}{{ t('spools.task_count', n=stasks|length) }}{% endif %}
+    </div>
+
+    <div class="spool-col-code">
+      {% if s.color_hex %}
+      <span class="spool-color-hex">{{ s.color_hex }}</span>
+      {% endif %}
+      {% if s.color_rgb %}
+      <span class="spool-color-rgb">{{ s.color_rgb }}</span>
+      {% endif %}
+    </div>
+
+    <div class="spool-col-material">
+      <small>{{ s.material or '-' }}</small>
+    </div>
+
+    <div class="spool-col-weight">
+      <div class="progress-bar-container" title="{{ t('spools.remaining', n='%.1f'|format(s.remaining_weight_g)) }}">
+        <div class="progress-bar {{ bar_cls }}" style="width:{{ pct }}%"></div>
+      </div>
+      <small>{{ s.remaining_weight_g | fmt_weight }}
+        <span style="color:var(--pico-muted-color);">({{ '%.0f'|format(s.usage_ratio * 100) }}%)</span>
+      </small>
+    </div>
+
+    <div class="spool-col-date">
+      <small style="color:var(--pico-muted-color);">{{ (s.purchased_at or '')[:10] or '-' }}</small>
+    </div>
+
+    <div class="spool-col-actions">
+      <a href="{{ url_for('spools.edit_view', spool_id=s.id) }}" role="button" class="outline"
+         style="padding:0.3rem 0.6rem;font-size:0.85rem;margin-bottom:0;">{{ t('common.edit') }}</a>
+      <form method="post" action="{{ url_for('spools.delete_view', spool_id=s.id) }}"
+            style="margin:0;display:inline;"
+            onsubmit="return confirm('{{ t('common.confirm_delete_spool') }}');">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit" class="outline danger"
+                style="padding:0.3rem 0.6rem;font-size:0.85rem;margin-bottom:0;">{{ t('common.delete') }}</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="spool-gallery" id="gallery-{{ s.id }}">
+    {% if stasks %}
+    <div class="task-gallery-grid">
+      {% for task in stasks %}
+      <a href="{{ url_for('tasks.detail_view', task_id=task.id) }}"
+         class="task-gallery-card" title="{{ task.print_name or '' }}">
+        <div class="task-gallery-thumb">
+          {% if task.cover_url %}
+          <img src="{{ task.cover_url }}" alt="{{ task.print_name or '' }}" decoding="async">
+          {% endif %}
+        </div>
+        <div class="task-gallery-info">
+          <div class="task-gallery-date">{{ task.started_at | tz_date }}</div>
+          <div class="task-gallery-weight">{{ (task.used_weight_g or 0) | fmt_weight }}</div>
+          <div>{{ print_status_badge(task) }}</div>
+        </div>
+      </a>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p style="color:var(--pico-muted-color);font-size:0.85rem;padding:0.5rem 0 0.75rem;">
+      {{ t('spools.no_tasks') }}
+    </p>
+    {% endif %}
+  </div>
+</div>
+{% endmacro %}
+
 <div class="page-header">
   <div>
     <p class="eyebrow">{{ t('nav.group_materials') }} · {{ t('ledger.entry_count', n=total_count) }}</p>
@@ -47,11 +148,32 @@
   </div>
 </div>
 
-<p style="color:var(--pico-muted-color);font-size:0.88rem;margin:0.75rem 0 1.75rem;">{{ t('spools.total_count', n=total_count) }}</p>
+<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.5rem;margin:0.75rem 0 1.75rem;">
+  <p style="color:var(--pico-muted-color);font-size:0.88rem;margin:0;">{{ t('spools.total_count', n=total_count) }}</p>
+  <div class="section-sorts">
+    <span style="color:var(--pico-muted-color);">{{ t('spools.view_label') }}</span>
+    <a href="{{ url_for('spools.list_view') }}"
+       class="sort-btn{% if view_mode == 'grouped' %} sort-btn--active{% endif %}">{{ t('spools.view_grouped') }}</a>
+    <a href="{{ url_for('spools.list_view', view='flat') }}"
+       class="sort-btn{% if view_mode == 'flat' %} sort-btn--active{% endif %}">{{ t('spools.view_flat') }}</a>
+  </div>
+</div>
 
 {% if total_count == 0 %}
 <p>{{ t('spools.no_spools') }}</p>
 {% endif %}
+
+{% if view_mode == 'flat' %}
+
+{% if flat_spools %}
+<div class="spool-list">
+  {% for s in flat_spools %}
+  {{ spool_item(s, tasks_by_spool, true) }}
+  {% endfor %}
+</div>
+{% endif %}
+
+{% else %}
 
 {% for section in sections %}
 {% set st = section.status %}
@@ -75,99 +197,7 @@
   {% if spools %}
   <div class="spool-list">
     {% for s in spools %}
-    {% set pct = [[(s.remaining_weight_g / s.initial_weight_g * 100)|round|int, 0]|max, 100]|min %}
-    {% if pct >= 50 %}{% set bar_cls = '' %}
-    {% elif pct >= 25 %}{% set bar_cls = 'bar-yellow' %}
-    {% elif pct >= 10 %}{% set bar_cls = 'bar-orange' %}
-    {% else %}{% set bar_cls = 'bar-red' %}{% endif %}
-    {% set stasks = tasks_by_spool.get(s.id, []) %}
-
-    <div class="spool-item" id="spool-{{ s.id }}">
-      <div class="spool-row">
-
-        <div class="spool-col-color">
-          <button type="button" class="gallery-toggle-icon"
-                  onclick="toggleSpoolGallery({{ s.id }}, this)"
-                  aria-expanded="false"
-                  title="{{ t('spools.expand_title') }}">▶</button>
-          <a href="{{ url_for('spools.detail_view', spool_id=s.id) }}"
-             class="spool-detail-link">
-            {% if s.color_hex %}
-            <span class="color-swatch" style="--swatch-color:{{ s.color_hex }};"></span>
-            {% endif %}
-            <span class="spool-color-name">{{ s.color_name or t('common.unnamed') }}</span>
-          </a>
-        </div>
-
-        <div class="spool-col-count">
-          {% if stasks %}{{ t('spools.task_count', n=stasks|length) }}{% endif %}
-        </div>
-
-        <div class="spool-col-code">
-          {% if s.color_hex %}
-          <span class="spool-color-hex">{{ s.color_hex }}</span>
-          {% endif %}
-          {% if s.color_rgb %}
-          <span class="spool-color-rgb">{{ s.color_rgb }}</span>
-          {% endif %}
-        </div>
-
-        <div class="spool-col-material">
-          <small>{{ s.material or '-' }}</small>
-        </div>
-
-        <div class="spool-col-weight">
-          <div class="progress-bar-container" title="{{ t('spools.remaining', n='%.1f'|format(s.remaining_weight_g)) }}">
-            <div class="progress-bar {{ bar_cls }}" style="width:{{ pct }}%"></div>
-          </div>
-          <small>{{ s.remaining_weight_g | fmt_weight }}
-            <span style="color:var(--pico-muted-color);">({{ '%.0f'|format(s.usage_ratio * 100) }}%)</span>
-          </small>
-        </div>
-
-        <div class="spool-col-date">
-          <small style="color:var(--pico-muted-color);">{{ (s.purchased_at or '')[:10] or '-' }}</small>
-        </div>
-
-        <div class="spool-col-actions">
-          <a href="{{ url_for('spools.edit_view', spool_id=s.id) }}" role="button" class="outline"
-             style="padding:0.3rem 0.6rem;font-size:0.85rem;margin-bottom:0;">{{ t('common.edit') }}</a>
-          <form method="post" action="{{ url_for('spools.delete_view', spool_id=s.id) }}"
-                style="margin:0;display:inline;"
-                onsubmit="return confirm('{{ t('common.confirm_delete_spool') }}');">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <button type="submit" class="outline danger"
-                    style="padding:0.3rem 0.6rem;font-size:0.85rem;margin-bottom:0;">{{ t('common.delete') }}</button>
-          </form>
-        </div>
-      </div>
-
-      <div class="spool-gallery" id="gallery-{{ s.id }}">
-        {% if stasks %}
-        <div class="task-gallery-grid">
-          {% for task in stasks %}
-          <a href="{{ url_for('tasks.detail_view', task_id=task.id) }}"
-             class="task-gallery-card" title="{{ task.print_name or '' }}">
-            <div class="task-gallery-thumb">
-              {% if task.cover_url %}
-              <img src="{{ task.cover_url }}" alt="{{ task.print_name or '' }}" decoding="async">
-              {% endif %}
-            </div>
-            <div class="task-gallery-info">
-              <div class="task-gallery-date">{{ task.started_at | tz_date }}</div>
-              <div class="task-gallery-weight">{{ (task.used_weight_g or 0) | fmt_weight }}</div>
-              <div>{{ print_status_badge(task) }}</div>
-            </div>
-          </a>
-          {% endfor %}
-        </div>
-        {% else %}
-        <p style="color:var(--pico-muted-color);font-size:0.85rem;padding:0.5rem 0 0.75rem;">
-          {{ t('spools.no_tasks') }}
-        </p>
-        {% endif %}
-      </div>
-    </div>
+    {{ spool_item(s, tasks_by_spool, false) }}
     {% endfor %}
   </div>
 
@@ -176,6 +206,8 @@
   {% endif %}
 </section>
 {% endfor %}
+
+{% endif %}
 
 <script>
 function toggleSpoolGallery(spoolId, toggle) {
